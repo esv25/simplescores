@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kamper - Turnering</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <style>
+    /* Filter Section */
+    .filter-section {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      padding: 16px;
+      background: #fff;
+      border-bottom: 1px solid #e2e8f0;
+    }
+    .filter-section input,
+    .filter-section select {
+      padding: 8px;
+      border: 1px solid #cbd5e0;
+      border-radius: 4px;
+      font-size: 1rem;
+    }
+
+    /* Matches List */
+    .matches {
+      margin-top: 8px;
+      padding-bottom: 60px;
+    }
+    .date-group {
+      margin-bottom: 24px;
+    }
+    .date {
+      position: sticky;
+      top: 0;
+      background: #fff;
+      padding: 8px;
+      font-weight: 600;
+      font-size: 1.1rem;
+      border-bottom: 1px solid #e2e8f0;
+      z-index: 1;
+    }
+    .match-link {
+      text-decoration: none;
+      color: inherit;
+    }
+    .match {
+      padding: 12px 16px;
+      border-bottom: 1px solid #e2e8f0;
+      background: #fff;
+    }
+    .match.finished {
+      opacity: 0.6;
+    }
+    /* Grid layout for name and score columns */
+    .team {
+      display: grid;
+      grid-template-columns: 1fr min-content;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+    .name {
+      font-weight: 500;
+      font-size: 1rem;
+    }
+    /* Time box styling */
+    .time-box {
+      display: inline-block;
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: #edf2f7;
+      font-size: 0.9rem;
+      color: #4a5568;
+      margin-right: 8px;
+      white-space: nowrap;
+    }
+    .score-group {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 8px;
+      min-width: 6em;
+    }
+    .score {
+      min-width: 2em;
+      text-align: center;
+      font-weight: 600;
+      padding: 2px 6px;
+      font-size: 1.1rem;
+      border-radius: 4px;
+      color: #fff;
+    }
+    .score.win  { background-color: #48bb78; }
+    .score.loss { background-color: #f56565; }
+    .score.draw { background-color: #a0aec0; }
+    .info {
+      font-size: 0.9rem;
+      color: #4a5568;
+      margin-top: 8px;
+    }
+
+    /* Scroll button */
+    #scrollToNext {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      z-index: 100;
+      border-radius: 0;
+      padding: 12px;
+      font-size: 1rem;
+      background-color: #3182ce;
+      color: #fff;
+      border: none;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <img src="logo.png" alt="Simple Scores-logo" class="logo">
+    <button id="hamburgerBtn" class="hamburger" aria-label="Åpne meny">
+      <span></span><span></span><span></span>
+    </button>
+  </header>
+
+  
+  <nav>
+  <!-- SKJUL SJEKKBOXEN SELV -->
+  <input type="checkbox" id="menu-toggle" />
+
+  <!-- ÉT ENESTE HAMBURGER‐IKON her -->
+  <label for="menu-toggle" id="menu-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </label>
+
+  <!-- Selve menyen -->
+  <ul id="menu">
+    <li><a href="publikum.html" class="nav-link"><i class="fa-solid fa-house"></i><span>Hjem</span></a></li>
+    <li><a href="turnering.html" class="nav-link"><i class="fa-solid fa-circle-info"></i><span>Turneringsdetaljer</span></a></li>
+    <li><a href="kampliste.html" class="nav-link-active"><i class="fa-solid fa-futbol"></i><span>Kamper</span></a></li>
+    <li><a href="lagoversikt.html" class="nav-link"><i class="fa-solid fa-users"></i><span>Lagoversikt</span></a></li>
+    <li><a href="dommere.html" class="nav-link"><i class="fa-solid fa-gavel"></i><span>Dommere</span></a></li>
+    <li><a href="tabell.html" class="nav-link"><i class="fa-solid fa-table-list"></i><span>Tabell</span></a></li>
+  </ul>
+</nav>
+
+  <main>
+    <div class="filter-section">
+      <input type="text" id="searchInput" placeholder="Søk etter kamp...">
+      <select id="teamFilter">
+        <option value="">Alle lag</option>
+      </select>
+      <input type="date" id="dateFilter">
+      <select id="resultFilter">
+        <option value="">Alle resultater</option>
+        <option value="win">Vunnet</option>
+        <option value="loss">Tapte</option>
+        <option value="draw">Uavgjort</option>
+      </select>
+      <button id="clearFilters">Tøm filter</button>
+    </div>
+    <div id="matchesContainer" class="matches"></div>
+  </main>
+  <button id="scrollToNext" class="kamp-knapp">Gå til neste kamp</button>
+  <footer class="footer">&copy; 2025 Turneringer. Alle rettigheter reservert.</footer>
+  <script src="https://www.gstatic.com/firebasejs/8.2.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.2.0/firebase-firestore.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.2.0/firebase-database.js"></script>
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyCLRjYMzbeksCfV1ImdFsyb_sUJsGM0ZH0",
+      authDomain: "resultatservice-d860c.firebaseapp.com",
+      databaseURL: "https://resultatservice-d860c-default-rtdb.europe-west1.firebasedatabase.app",
+      projectId: "resultatservice-d860c",
+      storageBucket: "resultatservice-d860c.appspot.com",
+      messagingSenderId: "649532849758",
+      appId: "1:649532849758:web:74d06f6b79ade1d752becf"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const firestore = firebase.firestore();
+    const rtdb      = firebase.database();
+
+    const searchInput  = document.getElementById('searchInput');
+    const teamFilter   = document.getElementById('teamFilter');
+    const dateFilter   = document.getElementById('dateFilter');
+    const resultFilter = document.getElementById('resultFilter');
+    const clearFilters = document.getElementById('clearFilters');
+    const container    = document.getElementById('matchesContainer');
+    const scrollBtn    = document.getElementById('scrollToNext');
+    const hamburgerBtn = document.getElementById('hamburgerBtn');
+    const navElement   = document.querySelector('nav');
+
+    let allMatches = [];
+    const tournamentId = new URLSearchParams(window.location.search).get('tournamentid');
+
+  // Dersom tournamentid mangler, omdiriger til opprettingssiden (nyTurnering.html)
+  if (!tournamentId) {
+      window.location.href = 'publikum.html';
+  }
+
+  // Når DOM-en er lastet, oppdaterer vi alle interne <a>-lenker med tournamentid
+  document.addEventListener('DOMContentLoaded', function() {
+    const links = document.querySelectorAll('a');
+    links.forEach(link => {
+      let href = link.getAttribute('href');
+      // Bare behandle relative lenker (ikke eksterne, mailto: eller anker)
+      if (href && !href.startsWith('http') && !href.startsWith('mailto:') && !href.startsWith('#')) {
+        const separator = href.includes('?') ? '&' : '?';
+        // Legg kun til parameteren dersom den ikke allerede finnes
+        if (!href.includes('tournamentid=')) {
+          link.setAttribute('href', href + separator + 'tournamentid=' + tournamentId);
+        }
+      }
+    });
+  });
+    document.addEventListener('DOMContentLoaded', () => {
+      clearFilters.addEventListener('click', resetFilters);
+      [searchInput, teamFilter, dateFilter, resultFilter].forEach(el => el.addEventListener(el.tagName === 'INPUT' ? 'input' : 'change', applyFilters));
+      scrollBtn.addEventListener('click', scrollToNextMatch);
+      hamburgerBtn.addEventListener('click', () => navElement.classList.toggle('open'));
+      fetchMatches(); subscribeLiveUpdates();
+    });
+
+    async function fetchMatches() {
+      const snap = await firestore.collection('turneringer').doc(tournamentId).collection('kamper').get();
+      allMatches = snap.docs.map(doc => {
+        const d     = doc.data();
+        const start = d.starttid.toDate();
+        const end   = d.sluttid?.toDate();
+        return {
+          id: doc.id,
+          hjemmelag: d.hjemmelag,
+          bortelag: d.bortelag,
+          dateStr: start.toLocaleDateString('no-NO',{day:'numeric',month:'short'}),
+          timeStr: start.toLocaleTimeString('no-NO',{hour:'2-digit',minute:'2-digit'}),
+          endTimeStr: end ? end.toLocaleTimeString('no-NO',{hour:'2-digit',minute:'2-digit'}) : '',
+          ts: start.getTime(),
+          score1: d.hjemmelagScore,
+          score2: d.bortelagScore,
+          status: d.status || '',
+          referees: Array.isArray(d.dommere) ? d.dommere : []
+        };
+      }).sort((a,b) => a.ts - b.ts);
+      populateTeamFilter(); applyFilters();
+    }
+
+    function subscribeLiveUpdates() {
+      rtdb.ref(`games/${tournamentId}/kamper`).on('value', snap => {
+        const data = snap.val() || {};
+        allMatches.forEach(m => {
+          const live = data[m.id] || {};
+          m.currentPeriod = live.currentPeriod ?? null;
+          m.remainingTime = live.remainingTime ?? null;
+        }); renderMatches(filterMatches());
+      });
+    }
+
+    function populateTeamFilter() {
+      const teams = new Set(allMatches.flatMap(m => [m.hjemmelag, m.bortelag]));
+      teamFilter.innerHTML = '<option value="">Alle lag</option>' + [...teams].sort().map(t => `<option value=\"${t}\">${t}</option>`).join('');
+    }
+
+    function applyFilters() { renderMatches(filterMatches()); }
+
+    function filterMatches() {
+      let f = [...allMatches];
+      const term = searchInput.value.trim().toLowerCase();
+      if (term) f = f.filter(m => m.hjemmelag.toLowerCase().includes(term) || m.bortelag.toLowerCase().includes(term));
+      if (teamFilter.value) f = f.filter(m => m.hjemmelag === teamFilter.value || m.bortelag === teamFilter.value);
+      if (dateFilter.value) {
+        const df = new Date(dateFilter.value).toLocaleDateString('no-NO',{day:'numeric',month:'short'});
+        f = f.filter(m => m.dateStr === df);
+      }
+      if (resultFilter.value) f = f.filter(m => {
+        if (resultFilter.value === 'win') return m.score1 > m.score2;
+        if (resultFilter.value === 'loss') return m.score1 < m.score2;
+        if (resultFilter.value === 'draw') return m.score1 === m.score2;
+        return true;
+      }); return f;
+    }
+
+    function renderMatches(groups) {
+      const byDate = {};
+      groups.forEach(m => (byDate[m.dateStr] ||= []).push(m));
+      container.innerHTML = Object.entries(byDate).map(([date, ms]) => `
+        <div class="date-group">
+          <div class="date">${date}</div>
+          ${ms.map(renderMatchCard).join('')}
+        </div>
+      `).join('');
+    }
+
+    function renderMatchCard(m) {
+      const finished = m.status.toLowerCase() === 'ferdig';
+      const notStarted = m.currentPeriod == null && !finished;
+      let timeBox = '';
+      if (m.currentPeriod != null) {
+        timeBox = `<div class="time-box">Periode ${m.currentPeriod}, ${m.remainingTime}</div>`;
+      }
+      const homeScore = notStarted ? '<span class="score draw">-</span>' : `<span class="score ${finished?(m.score1>m.score2?'win':m.score1<m.score2?'loss':'draw'):''}">${m.score1}</span>`;
+      const awayScore = notStarted ? '<span class="score draw">-</span>' : `<span class="score ${finished?(m.score2>m.score1?'win':m.score2<m.score1?'loss':'draw'):''}">${m.score2}</span>`;
+
+      return `
+        <a href="kampdetaljer.html?id=${m.id}&tournamentid=${tournamentId}" class="match-link">
+          <div class="match ${finished?'finished':''}">
+            <div class="team">
+              <span class="name">${m.hjemmelag}</span>
+              <div class="score-group">${timeBox}${homeScore}</div>
+            </div>
+            <div class="team">
+              <span class="name">${m.bortelag}</span>
+              <div class="score-group">${awayScore}</div>
+            </div>
+            <div class="info">Start: ${m.timeStr} &nbsp; Dommere: ${m.referees.join(', ')||'Ingen'}</div>
+          </div>
+        </a>
+      `;
+    }
+
+    function scrollToNextMatch() {
+      const next = document.querySelector('#matchesContainer .match:not(.finished)');
+      if (next) next.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    function resetFilters() {
+      searchInput.value = '';
+      teamFilter.value = '';
+      dateFilter.value = '';
+      resultFilter.value = '';
+      applyFilters();
+    }
+  </script>
+</body>
+</html>

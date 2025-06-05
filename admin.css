@@ -1,0 +1,859 @@
+/* Reset CSS */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* Body */
+body {
+    font-family: 'Poppins', sans-serif;
+    background-color: #f0f2f5;
+    color: #2d3e50;
+    margin: 0;
+    padding: 0;
+    line-height: 1.6;
+}
+
+/* Header Styling */
+/* Juster header */
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end; /* Plasser elementene nederst */
+    padding: 20px 40px;
+    background-color: #1a202c;
+    color: white;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    border-bottom: 3px solid #68d391;
+    position: relative;
+}
+
+/* Juster knappens stil */
+.user-button {
+    background-color: #4c51bf;
+    color: white;
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px; /* Firkantet stil */
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: bold;
+    position: absolute;
+    bottom: 10px; /* Plasser knappen nederst i headeren */
+    right: 20px; /* Plasser knappen mot høyre */
+}
+
+.user-button:hover {
+    background-color: #434190;
+}
+.user-menu {
+    display: none; /* Skjult som standard */
+    position: absolute;
+    top: 60px; /* Juster etter headerhøyden */
+    right: 20px;
+    background-color: #ffffff;
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+}
+
+.user-menu p {
+    color: #2d3e50;
+    font-weight: bold;
+}
+
+.user-menu button {
+    background-color: #4c51bf;
+    color: white;
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-top: 10px;
+}
+
+nav {
+    position: relative;
+    background-color: #e2e8f0; /* Lys bakgrunnsfarge for hele navigasjonen */
+    padding: 15px 40px;
+    border-bottom: 1px solid #68d391; /* Bare bunnborder for å unngå doble linjer */
+    border-radius: 5px; /* Avrundede hjørner */
+    display: flex;
+    align-items: center;
+    justify-content: left; /* Justerer innhold til begge sider */
+    gap: 30px;
+    box-sizing: border-box; /* Inkluder padding og border i høydeberegning */
+}
+
+/* Menyikon */
+.meny-ikon {
+    font-size: 30px;
+    color: #2d3e50;
+    display: none; /* Skjules på desktop som standard */
+    cursor: pointer;
+    border: none;
+    background: none;
+    font-family: 'Poppins', sans-serif;
+    z-index: 1001; /* Sikrer at ikonet er over menyen */
+    padding: 10px; /* Legger til padding rundt ikonet */
+    margin: 0;
+    /* Fjern standard knappestiler */
+    outline: none;
+    display: none;
+    align-items: center;
+    justify-content: center;
+}
+
+.meny-ikon:focus {
+    outline: none;
+}
+
+/* Standard ikon (hamburger) */
+.meny-ikon::before {
+    content: "☰"; /* Hamburgerikon */
+}
+
+/* Bytter ikon til '✖' når menyen er åpen */
+.meny-ikon.åpen::before {
+    content: "✖";
+}
+
+/* Menyelementer */
+nav ul {
+    display: flex;
+    gap: 30px;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    transition: all 0.3s ease;
+}
+
+nav ul.meny-åpen {
+    flex-direction: column;
+    position: absolute;
+    top: 100%; /* Plasserer menyen direkte under nav */
+    left: 0;
+    width: 100%;
+    background-color: #e2e8f0;
+    padding: 20px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+    border-radius: 0 0 5px 5px; /* Avrundede nederste hjørner */
+    z-index: 1000; /* Under meny-ikon */
+}
+
+nav li {
+    transition: transform 0.3s ease, background-color 0.3s ease;
+}
+
+nav li:hover {
+    transform: translateY(-3px);
+    background-color: #68d391; /* Grønn bakgrunn ved hover */
+    border-radius: 5px;
+}
+
+nav a {
+    color: #2d3e50; /* Mørk tekstfarge som standard */
+    text-decoration: none;
+    font-weight: 500; /* Gir en litt finere vekt til fonten */
+    font-size: 18px;
+    padding: 10px 15px;
+    display: inline-block;
+    transition: color 0.3s ease;
+}
+
+nav li:hover a {
+    color: white; /* Hvit tekstfarge ved hover */
+}
+
+/* Responsiv design for mobil */
+@media (max-width: 768px) {
+    .meny-ikon {
+        display: flex; /* Viser menyikonet på mobil */
+        order: -1; /* Flytt ikonet til starten av flex-containeren */
+        margin-right: auto; /* Skyv ikonet til venstre */
+    }
+
+    nav ul {
+        display: none;
+        flex-direction: column;
+        width: 100%;
+    }
+
+    nav ul.meny-åpen {
+        display: flex;
+    }
+
+    nav li {
+        margin: 10px 0;
+        transform: none;
+        background-color: transparent;
+    }
+
+    nav li:hover {
+        background-color: #68d391; /* Behold hover-effekten */
+    }
+
+    nav li:hover a {
+        color: white;
+    }
+    .meny-ikon{
+        display: flex;
+    }
+}
+/* Main Content Styling */
+main {
+    flex-grow: 1;
+    padding: 40px;
+    background-color: #ffffff;
+    max-width: 1200px;
+    margin: 0 auto;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    border-radius: 10px;
+}
+
+/* Button Styling */
+button {
+    background-color: #4c51bf;
+    color: white;
+    padding: 12px 24px;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+button:hover {
+    background-color: #434190;
+    transform: scale(1.05);
+}
+
+/* Disabled Button */
+button[disabled] {
+    background-color: #cccccc;
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
+/* General dropdown (select) styling */
+select {
+    width: 100%;
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid #68d391;
+    font-size: 16px;
+    background-color: #ffffff;
+    color: #333;
+    appearance: none;
+    background-image: url('data:image/svg+xml;charset=US-ASCII,<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 10 10"><path fill="%23333" d="M0 3l5 5 5-5z"/></svg>');
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    background-size: 10px;
+    cursor: pointer;
+}
+
+select:focus {
+    outline: none;
+    border-color: #4c51bf;
+    box-shadow: 0 0 5px rgba(76, 81, 191, 0.5);
+}
+
+/* Label styling for dropdowns */
+label {
+    font-size: 16px;
+    font-weight: bold;
+    margin-bottom: 5px;
+    display: block;
+    color: #2d3e50;
+}
+
+/* Flexbox container for turneringer */
+.turnering-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 30px;
+    justify-content: space-around;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 40px;
+}
+
+/* Individual tournament card */
+.turnering {
+    flex: 1 1 calc(30% - 40px);
+    max-width: 300px;
+    background-color: #ffffff;
+    padding: 20px;
+    margin-bottom: 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease;
+    cursor: pointer;
+}
+
+.turnering:hover {
+    transform: scale(1.05);
+}
+
+.turnering h4 {
+    font-size: 18px;
+    font-weight: bold;
+    margin-bottom: 10px;
+    color: #2d3e50;
+}
+
+.turnering p {
+    font-size: 14px;
+    color: #777;
+}
+
+#wizard {
+    position: relative;
+    z-index: 2000;
+  }
+  
+/* Media query for smaller screens */
+@media (max-width: 1024px) {
+    .turnering {
+        flex: 1 1 calc(45% - 40px);
+    }
+}
+
+@media (max-width: 768px) {
+    .turnering {
+        flex: 1 1 calc(100% - 40px);
+    }
+}
+
+/* Popup Styling */
+.popup {
+    display: none;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 450px;
+    padding: 25px;
+    background-color: #ffffff;
+    border-radius: 15px;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+    z-index: 1000;
+    max-width: 90%;
+}
+
+.popup.active {
+    display: block;
+    animation: popup-fade-in 0.3s ease-in-out;
+}
+
+@keyframes popup-fade-in {
+    from {
+        opacity: 0;
+        transform: translate(-50%, -60%);
+    }
+    to {
+        opacity: 1;
+        transform: translate(-50%, -50%);
+    }
+}
+
+/* Background Overlay */
+.popup-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 999;
+}
+
+.popup-overlay.active {
+    display: block;
+    animation: overlay-fade-in 0.3s ease-in-out;
+}
+
+@keyframes overlay-fade-in {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+/* Flexbox container for the phases */
+.fase-container-wrapper {
+    display: flex;
+    justify-content: space-around;
+    gap: 30px;
+    margin-top: 20px;
+    flex-wrap: wrap;
+}
+
+/* Individual phase container */
+.fase-container {
+    flex: 1 1 calc(30% - 40px);
+    min-width: 300px;
+    padding: 30px;
+    background-color: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    text-align: center;
+}
+
+/* Phase header */
+.fase-container h5 {
+    font-size: 20px;
+    color: #2d3e50;
+    font-weight: bold;
+    margin-bottom: 20px;
+}
+
+/* Button container within phases */
+.button-container {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+}
+
+.button-container button {
+    background-color: #4c51bf;
+    color: white;
+    padding: 10px 25px;
+    flex: 1;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.button-container button:hover {
+    background-color: #434190;
+    transform: scale(1.05);
+}
+
+/* Table Styling */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 30px;
+    background-color: #ffffff;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+table th, table td {
+    border: 1px solid #ddd;
+    padding: 20px;
+    text-align: center;
+    vertical-align: middle;
+}
+
+table th {
+    background-color: #68d391;
+    color: white;
+    font-size: 18px;
+    text-transform: uppercase;
+}
+
+table td {
+    color: #2d3e50;
+}
+
+/* Action Buttons Container */
+.table-actions {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    align-items: center;
+}
+
+table td button {
+    background-color: #4c51bf;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s;
+}
+
+table td button:hover {
+    background-color: #434190;
+    transform: scale(1.05);
+}
+
+/* Main container for the fields (baner) */
+.bane-tabell {
+    background-color: #ffffff;
+    padding: 30px;
+    margin-bottom: 30px;
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.bane-tabell h3 {
+    font-size: 22px;
+    font-weight: bold;
+    margin-bottom: 20px;
+    color: #2d3e50;
+}
+
+/* Match (kamp) card */
+.kamp-kort {
+    background-color: white;
+    padding: 20px;
+    margin-bottom: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: transform 0.2s ease;
+}
+
+.kamp-kort:hover {
+    transform: translateY(-5px);
+}
+
+.kamp-tid {
+    font-size: 18px;
+    font-weight: bold;
+    color: #2d3e50;
+}
+
+.kamp-detaljer {
+    flex-grow: 1;
+    margin-left: 20px;
+}
+
+.kamp-detaljer h4 {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 5px;
+    color: #333;
+}
+
+.kamp-gruppe {
+    font-size: 14px;
+    color: #888;
+    font-style: italic;
+}
+
+.gruppe, .dommer {
+    display: block;
+    margin-top: 5px;
+    font-size: 12px;
+    color: #555;
+}
+
+
+/* Individual field layout */
+.bane-tabell {
+    flex: 1 1 calc(45% - 30px);
+    max-width: 500px;
+}
+
+/* Wrapper styling */
+.wrapper {
+    display: flex;
+    align-items: flex-start;
+    min-height: 100vh;
+}
+
+/* Sidebar styling */
+.sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    width: 200px;
+    background-color: #1a202c;
+    padding: 20px;
+    box-shadow: 4px 0 10px rgba(0, 0, 0, 0.1);
+    border-radius: 0 10px 10px 0;
+    flex-shrink: 0;
+}
+
+/* Button styling inside the sidebar */
+.sidebar button {
+    background-color: #4c51bf;
+    color: white;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 5px;
+    font-size: 14px;
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    transition: background-color 0.3s ease, transform 0.2s;
+    width: 100%;
+}
+
+.sidebar button:hover {
+    background-color: #434190;
+    transform: scale(1.05);
+}
+
+/* Content area */
+.main-content {
+    flex-grow: 1;
+    padding: 40px;
+    margin-left: 20px;
+    max-width: 1000px;
+}
+
+/* Responsive behavior */
+@media (max-width: 768px) {
+    .wrapper {
+        flex-direction: column;
+    }
+
+    .sidebar {
+        flex-direction: row;
+        width: 100%;
+        height: auto;
+        border-radius: 0;
+        justify-content: space-around;
+    }
+
+    .main-content {
+        margin-left: 0;
+    }
+
+    .sidebar button {
+        flex: 1;
+    }
+}
+
+.kamp-liste {
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.kamp-item {
+    background-color: white;
+    margin-bottom: 20px;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: transform 0.2s ease;
+}
+
+.kamp-item:hover {
+    transform: translateY(-5px);
+}
+
+.kamp-info {
+    font-size: 16px;
+    font-weight: 600;
+    color: #2d3e50;
+}
+
+.kamp-info h4 {
+    margin-bottom: 10px;
+}
+
+.kamp-tid, .kamp-bane, .kamp-divisjon {
+    font-size: 14px;
+    color: #777;
+}
+
+.kamp-tid span, .kamp-bane span, .kamp-divisjon span {
+    font-weight: bold;
+    color: #2d3e50;
+}
+
+.kamp-knapp {
+    padding: 10px 20px;
+    background-color: #3182ce;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s;
+}
+
+.kamp-knapp:hover {
+    background-color: #2c5282;
+    transform: scale(1.05);
+}
+
+
+.logo-title, img{
+    height: 200px;
+}
+/* Adjust button and other elements for mobile */
+@media (max-width: 768px) {
+    .kamp-item {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .kamp-knapp {
+        width: 100%;
+        text-align: center;
+    }
+}
+
+/* Responsive behavior for smaller screens */
+@media (max-width: 768px) {
+    .button-container-top {
+        justify-content: center;
+    }
+
+    .button-container-top button {
+        flex: 1 1 100%;
+        text-align: center;
+    }
+}
+
+/* Media Queries for responsiveness */
+@media (max-width: 1024px) {
+    .fase-container-wrapper {
+        flex-direction: column;
+    }
+
+    .fase-container {
+        margin-bottom: 30px;
+    }
+}
+
+/* Media Queries */
+@media (max-width: 768px) {
+    header{
+        flex-direction: column;
+    }
+
+    main {
+        padding: 20px;
+    }
+
+    .button-container {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .fase-container {
+        margin-top: 20px;
+    }
+}
+
+.kamp-dommer {
+    font-size: 0.9em;
+    color: #555;
+    margin-top: 5px;
+}
+
+/* Q&A-seksjonen */
+#qa-section {
+    width: 300px; /* Fast bredde */
+    max-height: 100vh; /* Justert via JavaScript */
+    overflow-y: auto;
+    background-color: #f9f9f9;
+    border-left: 1px solid #ddd;
+    padding: 20px;
+    box-shadow: -2px 0 5px rgba(0,0,0,0.1);
+    position: fixed; /* Fester Q&A til høyre side */
+    top: 0; /* Justeres via JavaScript */
+    right: 0;
+    display: none; /* Skjult som standard */
+    z-index: 1000; /* Lavere enn header og nav */
+    transition: transform 0.3s ease, opacity 0.3s ease;
+    transform: translateX(100%);
+    opacity: 0;
+}
+
+/* Header for Q&A-seksjonen for lukkeknappen */
+.qa-header {
+    display: flex;
+    justify-content: flex-end; /* Plasserer knappen til høyre */
+    margin-bottom: 20px; /* Avstand mellom header og første spørsmål */
+}
+
+#qa-section .close-btn {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: #333; /* Juster farge etter behov */
+}
+
+/* Stil for spørsmål */
+#qa-section .question {
+    cursor: pointer;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+/* Stil for svar */
+#qa-section .answer {
+    display: none;
+    margin-bottom: 20px;
+    padding-left: 10px;
+    border-left: 2px solid #ddd;
+}
+
+.site-footer {
+    background-color: #f8f8f8;
+    padding: 20px 0;
+    text-align: center;
+    margin-top: 40px;
+    font-family: 'Poppins', sans-serif;
+    font-size: 14px;
+    color: #333;
+  }
+  
+  .site-footer .footer-container {
+    width: 90%;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  
+  .site-footer a {
+    color: #4c51bf;
+    text-decoration: none;
+    transition: color 0.3s ease;
+  }
+  
+  .site-footer a:hover {
+    color: #434190;
+  }
+  
+  .site-footer p {
+    margin: 5px 0;
+  }
+  
+/* Responsiv justering for mindre skjermer */
+@media (max-width: 768px) {
+    #qa-section {
+        width: 100%;
+        height: 50%;
+        bottom: 0;
+        top: auto;
+        right: 0;
+        left: 0;
+        box-shadow: 0 -2px 5px rgba(0,0,0,0.1);
+        transform: translateY(100%);
+    }
+    
+    #qa-section.show {
+        transform: translateY(0);
+    }
+
+    /* Juster header for mobilvisning */
+    .qa-header {
+        margin-bottom: 15px; /* Mindre avstand på mobil */
+    }
+}
+

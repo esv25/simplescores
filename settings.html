@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Innstillinger for Scoreboard</title>
+    <link rel="stylesheet" href="admin.css">
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            font-size: 2rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            font-size: 1.2rem;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        select, input {
+            width: 100%;
+            padding: 10px;
+            font-size: 1rem;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            margin-bottom: 10px;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 1rem;
+            border: none;
+            border-radius: 4px;
+            color: #fff;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+
+
+        .settings-saved {
+            display: none;
+            color: green;
+            font-size: 1.2rem;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo-title">
+            <a href="nyTurnering.html"><img src="logo.png" alt="Simple Scores Logo" class="logo"></a>
+        </div>
+        <div class="nav2">
+            <button id="user-button" onclick="toggleUserMenu()">Bruker</button>
+            <div id="user-menu" class="user-menu" style="display: none;">
+                <p>Logget inn som <span id="mail"></span></p>
+                <button id="loggut" onclick="loggut()">Logg ut</button>
+            </div>
+            <button onclick="displaysidebar()" type="button">Q&A</button>
+        </div>
+    </header>
+    <nav>
+        <button class="meny-ikon" id="meny-knapp" aria-label="Åpne meny" aria-expanded="false" aria-controls="meny"></button>
+        <ul id="meny">
+            <li><a href="slideshow.html">Slideshow</a></li>
+            <li><a href="instillinger.html">Instillinger</a></li>
+            <li><a href="legg til lag.html">Legg til lag</a></li>
+            <li><a href="format.html">Format</a></li>
+            <li><a href="kampoppsett.html">Kampoppsett</a></li>
+            <li><a href="kamper.html">Kamper</a></li>
+        </ul>
+    </nav>
+    
+
+    <div class="container">
+        <div class="form-group">
+            <label for="division">Velg divisjon</label>
+            <select id="divisionDropdown">
+                <!-- Divisjoner vil bli populert her av JavaScript -->
+            </select>
+            
+        </div>
+
+        <div class="form-group">
+            <label for="halfDuration">Tid per omgang (minutter)</label>
+            <input type="number" id="halfDuration" value="15">
+        </div>
+
+        <div class="form-group">
+            <label for="numPeriods">Antall omganger</label>
+            <input type="number" id="numPeriods" value="2">
+        </div>
+
+        <div class="form-group">
+            <label for="timeoutDuration">Timeout-lengde (sekunder)</label>
+            <input type="number" id="timeoutDuration" value="30">
+        </div>
+        <div class="form-group">
+            <label for="pauseDuration">Pauselengde (sekunder)</label>
+            <input type="number" id="pauseDuration" value="60">
+        </div>
+        
+
+        <button onclick="saveSettings()">Lagre innstillinger</button>
+        <div class="settings-saved" id="settingsSaved">Innstillinger lagret!</div>
+        <button onclick="goToKamper()">Tilbake til kamper</button>
+    </div>
+
+        <!-- Q&A Seksjon -->
+        <div id="qa-section" style="display: none;">
+            <button class="close-btn" onclick="closeSection()">&times;</button>
+        
+            <div class="question" onclick="toggleAnswer(0)">How do I create a new tournament?</div>
+            <div class="answer">To create a new tournament, go to the "Create Tournament" page and fill in the name, dates, and organizer information. Then you can add divisions and teams.</div>
+        
+            <div class="question" onclick="toggleAnswer(1)">How can I add or manage teams?</div>
+            <div class="answer">To add or manage teams, navigate to the "Add Teams" section. Enter team names and player information, and manage existing teams by selecting divisions.</div>
+        
+            <div class="question" onclick="toggleAnswer(2)">How do I set up match schedules?</div>
+            <div class="answer">In the "Match Schedule" section, you can assign fields, select match times, and generate a schedule based on the number of teams and matches.</div>
+        
+            <div class="question" onclick="toggleAnswer(3)">Can I assign referees to matches?</div>
+            <div class="answer">Yes, in the "Match Schedule" section, you can assign referees to each match. Specify how many referees are required per match and assign them as needed.</div>
+        
+            <div class="question" onclick="toggleAnswer(4)">How do I update match scores in real-time?</div>
+            <div class="answer">Use the "Scoreboard" feature to update match scores in real-time. You can manually enter scores, which will be displayed live to both administrators and the audience.</div>
+        
+            <div class="question" onclick="toggleAnswer(5)">What customization options are available for tournament formats?</div>
+            <div class="answer">In the "Format" section, you can choose between group play, knockout rounds, or single matches. Customize tournament progression based on the selected format.</div>
+        
+            <div class="question" onclick="toggleAnswer(6)">How do I log out of the admin panel?</div>
+            <div class="answer">Click the "Log Out" button at the top-right of the dashboard to log out. Remember to save any changes before logging out.</div>
+        
+            <div class="question" onclick="toggleAnswer(7)">How can I assign fields to matches?</div>
+            <div class="answer">In the "Match Schedule" section, you can manually assign fields to each match. Choose from existing fields or add new ones as needed.</div>
+        
+            <div class="question" onclick="toggleAnswer(8)">How do I manage tournament settings and audience access?</div>
+            <div class="answer">In the "Settings" section, you can control general tournament settings and determine what the audience can view, such as match scores, details, and statistics.</div>
+        </div>
+        
+    <script src="https://www.gstatic.com/firebasejs/8.2.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.2.0/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.2.0/firebase-auth.js"></script>
+    <script>
+const firebaseConfig = {
+    apiKey: "AIzaSyCLRjYMzbeksCfV1ImdFsyb_sUJsGM0ZH0",
+    authDomain: "resultatservice-d860c.firebaseapp.com",
+    databaseURL: "https://resultatservice-d860c-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "resultatservice-d860c",
+    storageBucket: "resultatservice-d860c.appspot.com",
+    messagingSenderId: "649532849758",
+    appId: "1:649532849758:web:74d06f6b79ade1d752becf"
+};
+        // Initialiser Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        const auth = firebase.auth();
+        auth.onAuthStateChanged((user) => {
+        if (user) {
+        const email = user.email;
+        document.getElementById('mail').innerHTML = email;
+        } else {
+        // Ingen bruker er logget inn, redirect til innloggingssiden
+        window.location.href = 'login.html';
+        }
+        });
+        function loggut() {
+    auth.signOut().then(() => {
+        window.location.href = 'login.html';
+    }).catch((error) => {
+        console.error("Feil ved utlogging:", error);
+    });
+}
+
+        // Hent turnerings-ID fra sessionStorage
+        const params = new URLSearchParams(window.location.search);
+        const turneringId = params.get('id');
+        document.addEventListener('DOMContentLoaded', function() {
+    // Hent turnerings-ID fra URL-querystring
+
+
+    if (turneringId) {
+      // Gå gjennom alle interne <a>-lenker og legg til query-parametere
+      const links = document.querySelectorAll('a');
+      links.forEach(link => {
+        let href = link.getAttribute('href');
+        // Sjekk at href finnes og at det er en relativ lenke
+        if (href && !href.startsWith('http') && !href.startsWith('mailto:') && !href.startsWith('#')) {
+          const separator = href.includes('?') ? '&' : '?';
+          // Legg kun til parameteren hvis den ikke allerede er der
+          if (!href.includes('id=')) {
+            link.setAttribute('href', href + separator + 'id=' + turneringId);
+          }
+        }
+      });
+    }
+  });
+
+  function goToKamper() {
+    // Henter querystringen fra den nåværende URL-en
+    const queryString = window.location.search;
+    // Navigerer til 'kamper.html' med querystringen lagt til
+    window.location.href = 'kamper.html' + queryString;
+}
+
+
+        if (!turneringId) {
+            alert('Turnerings-ID ikke funnet. Du må velge en turnering.');
+            window.location.href = 'kamper.html'; // Tilbake til kamplisten
+        }
+        function saveSettings() {
+    const division = document.getElementById('divisionDropdown').value;
+    const halfDuration = document.getElementById('halfDuration').value;
+    const numPeriods = document.getElementById('numPeriods').value;
+    const timeoutDuration = document.getElementById('timeoutDuration').value;
+    const pauseDuration = document.getElementById('pauseDuration').value;  // Ny variabel
+
+    // Lagre innstillingene i Firestore under turneringen
+    db.collection('turneringer').doc(turneringId)
+      .collection('settings').doc(division)
+      .set({
+            halfDuration: parseInt(halfDuration),
+            numPeriods: parseInt(numPeriods),
+            timeoutDuration: parseInt(timeoutDuration),
+            pauseDuration: parseInt(pauseDuration)  // Lagre den nye innstillingen
+      })
+      .then(() => {
+          document.getElementById('settingsSaved').style.display = 'block';
+          setTimeout(() => {
+              document.getElementById('settingsSaved').style.display = 'none';
+          }, 3000);
+      })
+      .catch((error) => {
+          console.error('Feil ved lagring av innstillinger:', error);
+      });
+}
+
+        async function populateDivisionDropdown() {
+            try {
+                // Hent turnerings-ID fra sessionStorage (allerede lagret på klienten)
+
+
+                if (!turneringId) {
+                    console.error('Turnerings-ID mangler. Kan ikke hente divisjoner.');
+                    return;
+                }
+
+                // Hent turneringsdata fra Firestore
+                const docRef = db.collection('turneringer').doc(turneringId);
+                const doc = await docRef.get();
+
+                if (!doc.exists) {
+                    console.error('Fant ikke turneringsdokumentet.');
+                    return;
+                }
+                function adjustSidebarPosition() {
+    const header = document.querySelector('header');
+    const nav = document.querySelector('nav');
+    const qaSection = document.getElementById('qa-section');
+    
+    if (header && nav && qaSection) {
+        const headerHeight = header.offsetHeight;
+        const navHeight = nav.offsetHeight;
+        const totalHeight = headerHeight + navHeight;
+        
+        qaSection.style.top = `${totalHeight}px`;
+        qaSection.style.maxHeight = `calc(100vh - ${totalHeight}px)`;
+    }
+}
+
+// Kall funksjonen når siden laster og når vindusstørrelsen endres
+document.addEventListener('DOMContentLoaded', adjustSidebarPosition);
+window.addEventListener('resize', adjustSidebarPosition);
+
+// Funksjon for å vise Q&A-sidebaren
+function displaysidebar(){
+    const qaSection = document.getElementById('qa-section');
+    if (qaSection) {
+        qaSection.style.display = "block"; // Vis sidebaren
+        // Animasjon: skyv sidebaren inn fra høyre
+        setTimeout(() => {
+            qaSection.style.transform = "translateX(0)";
+            qaSection.style.opacity = "1";
+        }, 10); // Lite delay for å trigge CSS transition
+    } else {
+        console.error("Element med id 'qa-section' ble ikke funnet.");
+    }
+}
+
+// Funksjon for å skjule Q&A-sidebaren
+function closeSection(){
+    const qaSection = document.getElementById('qa-section');
+    if (qaSection) {
+        // Animasjon: skyv sidebaren ut til høyre
+        qaSection.style.transform = "translateX(100%)";
+        qaSection.style.opacity = "0";
+        // Etter animasjonen, skjul sidebaren
+        qaSection.addEventListener('transitionend', function handler() {
+            qaSection.style.display = "none";
+            qaSection.removeEventListener('transitionend', handler);
+        });
+    } else {
+        console.error("Element med id 'qa-section' ble ikke funnet.");
+    }
+}
+
+// Funksjon for å toggle (vise/skjule) et svar
+function toggleAnswer(index) {
+    const answers = document.querySelectorAll('#qa-section .answer');
+    if (answers[index]) {
+        if (answers[index].style.display === "none" || answers[index].style.display === "") {
+            answers[index].style.display = "block";
+        } else {
+            answers[index].style.display = "none";
+        }
+    }
+}
+
+
+                // Hent divisjonene fra turneringsdokumentet
+                const tournamentData = doc.data();
+                const divisions = tournamentData.divisions || [];
+
+                // Finn dropdown-menyen som skal oppdateres
+                const divisionDropdown = document.getElementById('divisionDropdown');
+
+                if (!divisionDropdown) {
+                    console.error('Dropdown med ID "divisionDropdown" ble ikke funnet.');
+                    return;
+                }
+
+                // Tøm dropdown før oppdatering
+                divisionDropdown.innerHTML = '';
+
+                // Legg til standard "Velg divisjon"-alternativ
+                const defaultOption = document.createElement('option');
+                defaultOption.textContent = 'Velg divisjon';
+                defaultOption.value = '';
+                divisionDropdown.appendChild(defaultOption);
+
+                // Populer med divisjonene
+                divisions.forEach(division => {
+                    const option = document.createElement('option');
+                    option.textContent = division.name; // Bruk name-egenskapen
+                    option.value = division.name; // Bruk name-egenskapen som verdi
+                    divisionDropdown.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Feil ved henting av divisjoner:', error);
+            }
+        }
+
+        // Kall funksjonen når siden lastes
+        document.addEventListener('DOMContentLoaded', populateDivisionDropdown);
+
+        document.addEventListener('DOMContentLoaded', function() {
+        var menyKnapp = document.getElementById('meny-knapp');
+        var meny = document.getElementById('meny');
+
+        menyKnapp.addEventListener('click', function() {
+            meny.classList.toggle('meny-åpen');
+            menyKnapp.classList.toggle('åpen');
+
+            var erApen = meny.classList.contains('meny-åpen');
+            menyKnapp.setAttribute('aria-expanded', erApen);
+            if (erApen) {
+                menyKnapp.setAttribute('aria-label', 'Lukk meny');
+            } else {
+                menyKnapp.setAttribute('aria-label', 'Åpne meny');
+            }
+        });
+    });
+    </script>
+</body>
+</html>

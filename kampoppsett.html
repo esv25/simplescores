@@ -1,0 +1,5167 @@
+<!DOCTYPE html>
+<html lang="no">
+    <head>
+        <title>Kampoppsett</title>
+        <meta charset="utf-8">
+        <link rel="stylesheet" type="text/css" href="./admin.css">
+        <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+        <style>
+.body {
+    font-family: 'Poppins', sans-serif;
+    background-color: #f5f5f5;
+    margin: 0;
+    padding: 0;
+}
+
+/* Gjør wizard full bredde av sin container */
+#wizard {
+  width: 100% !important;
+  max-width: 100% !important;
+  margin: 20px 0 !important; /* fjern auto-margin hvis du vil strekke helt til kantene */
+}
+
+.pause-kort {
+  background-color: #ffeeba;
+  border: 2px dashed #ffc107;
+  margin: 5px 0;
+  border-radius: 8px;
+}
+.pause-kort .kamp-detaljer h4 {
+  margin: 0;
+  font-style: italic;
+  color: #856404;
+}
+
+
+.fase-container.dragover {
+    border-color: #00b300;
+    background-color: #f0fff0;
+}
+
+.fase-container h4 {
+    margin: 0;
+    padding: 0;
+    font-size: 16px;
+    font-weight: bold;
+}
+
+.placeholder {
+    border: 2px dashed #aaa;
+    background-color: #f7f7f7;
+    height: 40px;
+    margin: 5px 0;
+}
+
+.wizard-step {
+    display: none;
+    padding: 24px;
+}
+.date-container {
+  border: 1px solid #ccc;
+  padding: 12px;
+  margin-bottom: 24px;
+  border-radius: 8px;
+}
+.date-container h2 {
+  margin-top: 0;
+  font-size: 20px;
+}
+
+
+.wizard-step.active {
+    display: block;
+}
+
+.wizard-step h2 {
+    margin-bottom: 16px;
+    font-size: 24px;
+    color: #2d3e50;
+}
+
+.wizard-step h3 {
+    margin: 24px 0 12px;
+    font-size: 18px;
+    color: #4c51bf;
+}
+
+.wizard-step input[type="number"],
+.wizard-step input[type="text"],
+.wizard-step select {
+    width: 100%;
+    padding: 12px;
+    margin: 8px 0 16px;
+    border: 1px solid #68d391;
+    border-radius: 8px;
+    font-size: 16px;
+}
+
+.wizard-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 24px;
+    border-top: 1px solid #e2e8f0;
+    background-color: #fafafa;
+    border-radius: 0 0 10px 10px;
+}
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px 24px;
+    min-width: 100px;
+    font-size: 16px;
+    font-weight: 600;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    transition: transform .1s ease, box-shadow .1s ease;
+}
+
+.btn:focus {
+    outline: 3px solid #ffbf47;
+    outline-offset: 2px;
+}
+
+.btn.secondary {
+    background-color: #e2e8f0;
+    color: #2d3e50;
+}
+
+.btn.primary {
+    background-color: #4c51bf;
+    color: #ffffff;
+}
+
+.btn:hover {
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    transform: translateY(-1px);
+}
+
+@media (max-width: 600px) {
+    .wizard-footer {
+        flex-direction: column;
+    }
+    .wizard-footer > div {
+        width: 100%;
+        justify-content: space-around;
+    }
+}
+
+@media (min-width: 1024px) {
+    #wizard {
+        max-width: 90%;
+        margin: 20px auto;
+    }
+}
+
+/* 1) Tillat at #wizard kan vokse med bredden */
+#wizard {
+  max-width: 100% !important;
+}
+/* === Flex-container for baner === */
+#baneContainer {
+  display: flex !important;
+  flex-wrap: wrap;     /* brekk til neste rad ved behov */
+  gap: 16px;
+  padding: 8px 0;
+}
+
+/* === Lanes: la dem auto-vokse med innholdet === */
+.bane-tabell {
+  /* fjern hardlåst basis og max-width */
+  flex: 0 1 auto !important;  
+  min-width: 260px;           /* behold minst 260px om du vil */
+  max-width: none !important; /* fjern begrensning */
+  
+  /* slik at box-sizing også inkluderer padding/border */
+  box-sizing: border-box;     
+  
+  /* dersom noen barn er absolutt posisjonert */
+  position: relative;         
+}
+
+/* === Phase-container: alltid 100% av forelderen === */
+.fase-container {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box; /* viktig for å få padding + border innenfor bredden */
+}
+
+
+
+
+        </style>
+    </head>
+    <body id="wrapper">
+        <header>
+            <div class="logo-title">
+                <a href="nyTurnering.html"><img src="logo.png" alt="Simple Scores Logo" class="logo"></a>
+            </div>
+            <div class="nav2">
+                <button id="user-button" onclick="toggleUserMenu()">Bruker</button>
+                <div id="user-menu" class="user-menu" style="display: none;">
+                    <p>Logget inn som <span id="mail"></span></p>
+                    <button id="loggut" onclick="loggut()">Logg ut</button>
+                </div>
+                <button onclick="displaysidebar()" type="button">Q&A</button>
+            </div>
+        </header>
+        
+            
+        <nav>
+            <button class="meny-ikon" id="meny-knapp" aria-label="Åpne meny" aria-expanded="false" aria-controls="meny"></button>
+            <ul id="meny">
+                <li><a href="slideshow.html">Slideshow</a></li>
+                <li><a href="instillinger.html">Instillinger</a></li>
+                <li><a href="leggtillag.html">Legg til lag</a></li>
+                <li><a href="format.html">Format</a></li>
+                <li><a href="kampoppsett.html">Kampoppsett</a></li>
+                <li><a href="kamper.html">Kamper</a></li>
+            </ul>
+        </nav>
+        
+
+            <main>
+<!-- Wizard-container -->
+<div id="wizard">
+  <!-- Steg 1: Basisinnstillinger -->
+  <div class="wizard-step active" id="step1">
+    <h2>Basisinnstillinger</h2>
+    <h3>Tid per kamp per divisjon</h3>
+    <div id="divisionTimeContainer">
+      <!-- Eksempelvis genereres disse dynamisk med JavaScript -->
+      
+      <div class="division-time-entry">
+        <label for="wizard_tidPerKamp_elite">Elite (min):</label>
+        <input type="number" id="wizard_tidPerKamp_elite" data-division="elite" placeholder="Eks: 15">
+      </div>
+      <div class="division-time-entry">
+        <label for="wizard_tidPerKamp_1div">1. divisjon (min):</label>
+        <input type="number" id="wizard_tidPerKamp_1div" data-division="1.divisjon" placeholder="Eks: 15">
+      </div>
+      
+    </div>
+    
+
+    <label for="wizard_tidMellomKamper">Tid mellom kamper (min):</label>
+    <input type="number" id="wizard_tidMellomKamper" placeholder="Eks: 5">
+
+    <h3>Angi start- og sluttid per dag</h3>
+    <div id="dateTimesWizardContainer"></div>
+
+    <div class="wizard-footer">
+      <button onclick="nextStep()">Neste</button>
+    </div>
+  </div>
+
+  <!-- Steg 2: Pauser -->
+  <div class="wizard-step" id="step2">
+    <h2>Pauser</h2>
+    <div id="breaksContainer"></div>
+    <button type="button" class="btn secondary" onclick="addBreak()">Legg til pause</button>
+
+    <div class="wizard-footer">
+      <button onclick="prevStep()">Forrige</button>
+      <button onclick="nextStep()">Neste</button>
+    </div>
+  </div>
+
+  <!-- Steg 3: Hviletid for lag -->
+  <div class="wizard-step" id="step3">
+    <h2>Hviletid for lag</h2>
+    <label for="wizard_minimumHviletid">Minimum hviletid (min):</label>
+    <input type="number" id="wizard_minimumHviletid" placeholder="Eks: 30">
+
+    <div class="wizard-footer">
+      <button onclick="prevStep()">Forrige</button>
+      <button onclick="nextStep()">Neste</button>
+    </div>
+  </div>
+
+  <!-- Steg 4: Administrer baner -->
+  <div class="wizard-step" id="step4">
+    <h2>Administrer baner</h2>
+    <div id="fieldsList"></div>
+    <input type="text" id="wizard_baneNavn" placeholder="Navn på ny bane">
+    <button type="button" onclick="addFieldFromWizard()">Legg til bane</button>
+
+    <div class="wizard-footer">
+      <button onclick="prevStep()">Forrige</button>
+      <button onclick="nextStep()">Neste</button>
+    </div>
+  </div>
+
+  <!-- Steg 5: Kamp-timing -->
+  <div class="wizard-step" id="step5">
+    <h2>Kamp-timing</h2>
+    <p>Velg om kun én kamp fra samme divisjon skal spilles om gangen:</p>
+    <label><input type="radio" name="wizard_matchTiming" value="simultaneous" checked> Samtidig</label>
+    <label><input type="radio" name="wizard_matchTiming" value="sequential"> Sekvensielt</label>
+
+    <div class="wizard-footer">
+      <button onclick="prevStep()">Forrige</button>
+      <button onclick="finishWizard()">Generer oppsett</button>
+    </div>
+  </div>
+
+  <!-- Steg 6: Kampoppsett -->
+  <div class="wizard-step" id="step6">
+    <h2>Kampoppsett</h2>
+    <div id="baneContainer"></div>
+
+    <div class="wizard-footer">
+      <div class="left-buttons">
+        <button class="btn secondary" onclick="prevStep()">Forrige</button>
+        <button class="btn secondary" onclick="slettAlleKamper()">Slett</button>
+        <button class="btn secondary" onclick="lagreKampoppsett()">Lagre</button>
+      </div>
+      <div class="right-buttons">
+        <button class="btn secondary" onclick="showStep(7)">Dommer oppsett</button>
+        <button class="btn primary" onclick="publishSchedule()">Publiser</button>
+      </div>
+    </div>
+  </div>
+
+<!-- Steg 7: Antall dommere per kamp -->
+<div class="wizard-step" id="step7">
+  <h2>Antall dommere per kamp</h2>
+  
+  <label for="numRefereesInput">Velg antall dommere per kamp:</label>
+  <input
+    type="number"
+    id="numRefereesInput"
+    min="1"
+    value="1"
+    style="width: 4em;"
+  />
+
+  <div class="wizard-footer">
+    <button onclick="showStep(6)">Forrige</button>
+    <button onclick="promptGenerateRefereeSchedule()">Generer dommer‑oppsett</button>
+  </div>
+</div>
+</div>
+</main>
+
+              
+<!-- Wizard container -->
+    
+  
+
+        <div id="popupOverlay" class="popup-overlay"></div>
+            <!-- Q&A Seksjon -->
+            <div id="qa-section" style="display: none;">
+                <button class="close-btn" onclick="closeSection()">&times;</button>
+            
+                <div class="question" onclick="toggleAnswer(0)">How do I create a new tournament?</div>
+                <div class="answer">To create a new tournament, go to the "Create Tournament" page and fill in the name, dates, and organizer information. Then you can add divisions and teams.</div>
+            
+                <div class="question" onclick="toggleAnswer(1)">How can I add or manage teams?</div>
+                <div class="answer">To add or manage teams, navigate to the "Add Teams" section. Enter team names and player information, and manage existing teams by selecting divisions.</div>
+            
+                <div class="question" onclick="toggleAnswer(2)">How do I set up match schedules?</div>
+                <div class="answer">In the "Match Schedule" section, you can assign fields, select match times, and generate a schedule based on the number of teams and matches.</div>
+            
+                <div class="question" onclick="toggleAnswer(3)">Can I assign referees to matches?</div>
+                <div class="answer">Yes, in the "Match Schedule" section, you can assign referees to each match. Specify how many referees are required per match and assign them as needed.</div>
+            
+                <div class="question" onclick="toggleAnswer(4)">How do I update match scores in real-time?</div>
+                <div class="answer">Use the "Scoreboard" feature to update match scores in real-time. You can manually enter scores, which will be displayed live to both administrators and the audience.</div>
+            
+                <div class="question" onclick="toggleAnswer(5)">What customization options are available for tournament formats?</div>
+                <div class="answer">In the "Format" section, you can choose between group play, knockout rounds, or single matches. Customize tournament progression based on the selected format.</div>
+            
+                <div class="question" onclick="toggleAnswer(6)">How do I log out of the admin panel?</div>
+                <div class="answer">Click the "Log Out" button at the top-right of the dashboard to log out. Remember to save any changes before logging out.</div>
+            
+                <div class="question" onclick="toggleAnswer(7)">How can I assign fields to matches?</div>
+                <div class="answer">In the "Match Schedule" section, you can manually assign fields to each match. Choose from existing fields or add new ones as needed.</div>
+            
+                <div class="question" onclick="toggleAnswer(8)">How do I manage tournament settings and audience access?</div>
+                <div class="answer">In the "Settings" section, you can control general tournament settings and determine what the audience can view, such as match scores, details, and statistics.</div>
+            </div>
+            
+    
+
+        <script src="https://www.gstatic.com/firebasejs/8.2.0/firebase-app.js"></script>
+        <script src="https://www.gstatic.com/firebasejs/8.2.0/firebase-firestore.js"></script>
+        <script src="https://www.gstatic.com/firebasejs/8.2.0/firebase-auth.js"></script>
+
+        <script>
+const firebaseConfig = {
+    apiKey: "AIzaSyCLRjYMzbeksCfV1ImdFsyb_sUJsGM0ZH0",
+    authDomain: "resultatservice-d860c.firebaseapp.com",
+    databaseURL: "https://resultatservice-d860c-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "resultatservice-d860c",
+    storageBucket: "resultatservice-d860c.appspot.com",
+    messagingSenderId: "649532849758",
+    appId: "1:649532849758:web:74d06f6b79ade1d752becf"
+};
+
+        // Resten av skriptet ditt...
+
+
+
+            // Initialize Firebase
+            const app = firebase.initializeApp(firebaseConfig)
+            const db = firebase.firestore()
+
+
+            const auth = firebase.auth();
+
+            auth.onAuthStateChanged((user) => {
+        if (user) {
+        const email = user.email;
+        document.getElementById('mail').innerHTML = email;
+        } else {
+        // Ingen bruker er logget inn, redirect til innloggingssiden
+        window.location.href = 'login.html';
+        }
+        });
+        function loggut() {
+    auth.signOut().then(() => {
+        window.location.href = 'login.html';
+    }).catch((error) => {
+        console.error("Feil ved utlogging:", error);
+    });
+}
+     
+const params = new URLSearchParams(window.location.search);
+    const turneringId = params.get('id');
+     
+
+  document.addEventListener('DOMContentLoaded', function() {
+    // Hent turnerings-ID fra URL-querystring
+    if (!turneringId){
+      window.location.href = 'nyTurnering.html'
+    }
+
+    if (turneringId) {
+      // Gå gjennom alle interne <a>-lenker og legg til query-parametere
+      const links = document.querySelectorAll('a');
+      links.forEach(link => {
+        let href = link.getAttribute('href');
+        // Sjekk at href finnes og at det er en relativ lenke
+        if (href && !href.startsWith('http') && !href.startsWith('mailto:') && !href.startsWith('#')) {
+          const separator = href.includes('?') ? '&' : '?';
+          // Legg kun til parameteren hvis den ikke allerede er der
+          if (!href.includes('id=')) {
+            link.setAttribute('href', href + separator + 'id=' + turneringId);
+          }
+        }
+      });
+    }
+  });
+
+  
+  document.addEventListener('DOMContentLoaded', async () => {
+  await fetchTurneringData();   // henter divisions + fyller divisionTimeContainer
+  await initializeSettings();   // laster resten av innstillingene som før
+  loadDateTimesWizard();        // fyller de tradisjonelle date/time-feltene
+  hentOgOpprettBaner();
+});
+
+
+            let kamper = []; // Definer kamper som en global variabel
+            let pauses = []; // Global array for pauser
+            let dateTimes = {}; // Objekt for å lagre start- og sluttider for hver dato
+            let totalTimeNeeded = 0; // Total tid som trengs for turneringen
+            let dommere = []; // Array for å lagre dommerne
+            let dommerIndex = 0; // Indeks for rund-robin tildeling
+            let turneringData = {};
+
+
+            // Funksjoner for å håndtere popups
+            function openPopup(popupId) {
+                document.getElementById(popupId).classList.add('active');
+                document.getElementById('popupOverlay').classList.add('active');
+            }
+
+            function closePopup(popupId) {
+                document.getElementById(popupId).classList.remove('active');
+                document.getElementById('popupOverlay').classList.remove('active');
+            }
+            function adjustSidebarPosition() {
+    const header = document.querySelector('header');
+    const nav = document.querySelector('nav');
+    const qaSection = document.getElementById('qa-section');
+    
+    if (header && nav && qaSection) {
+        const headerHeight = header.offsetHeight;
+        const navHeight = nav.offsetHeight;
+        const totalHeight = headerHeight + navHeight;
+        
+        qaSection.style.top = `${totalHeight}px`;
+        qaSection.style.maxHeight = `calc(100vh - ${totalHeight}px)`;
+    }
+}
+
+
+let currentWizardStep = 1;
+
+// ─── showStep ──────────────────────────────────────────────────────────────────
+function showStep(stepNumber) {
+  document.querySelectorAll('.wizard-step').forEach(step => {
+    const isActive = step.id === `step${stepNumber}`;
+    step.classList.toggle('active', isActive);
+    step.style.display = isActive ? 'block' : 'none';
+  });
+  currentWizardStep = stepNumber;
+
+  // Når vi går tilbake til steg 1, last inn dato-/tids-feltene på nytt
+  if (stepNumber === 1) {
+    loadDateTimesWizard();
+  }
+}
+
+function nextStep() {
+  showStep(currentWizardStep + 1);
+}
+
+function prevStep() {
+  showStep(currentWizardStep - 1);
+}
+
+async function loadDateTimesWizard() {
+  // 1) Hent datoene for turneringen
+  let tournamentDates = [];
+  if (window.turneringData && Array.isArray(window.turneringData.dates)) {
+    tournamentDates = window.turneringData.dates;
+  } else {
+    const doc = await db.collection('turneringer').doc(turneringId).get();
+    const data = doc.data() || {};
+    tournamentDates = Array.isArray(data.dates) ? data.dates : [];
+    window.turneringData = data;
+  }
+
+  // 2) Tøm containeren
+  const container = document.getElementById("dateTimesWizardContainer");
+  container.innerHTML = "";
+
+  // 3) For hver dato: opprett én label + to <input type="time">
+  tournamentDates.forEach(date => {
+    const entry = document.createElement("div");
+    entry.className = "date-time-entry";
+    entry.dataset.date = date;
+
+    const lblStart = document.createElement("label");
+    lblStart.setAttribute("for", `wizard_startTime-${date}`);
+    lblStart.textContent = `Dato ${date} – Start:`;
+    entry.appendChild(lblStart);
+
+    const startIn = document.createElement("input");
+    startIn.type = "time";
+    startIn.id   = `wizard_startTime-${date}`;
+    entry.appendChild(startIn);
+
+    const lblEnd = document.createElement("label");
+    lblEnd.setAttribute("for", `wizard_endTime-${date}`);
+    lblEnd.textContent = `Slutt:`;
+    entry.appendChild(lblEnd);
+
+    const endIn = document.createElement("input");
+    endIn.type = "time";
+    endIn.id   = `wizard_endTime-${date}`;
+    entry.appendChild(endIn);
+
+    container.appendChild(entry);
+  });
+}
+
+
+function slugify(str) {
+  return str
+    .toString()
+    .normalize('NFKD')                 // fjern aksenter
+    .toLowerCase()
+    .trim()
+    .replace(/[\s\W-]+/g, '-');        // erstatt alt ikke-ord med bindestrek
+}
+
+
+
+function nextStep() {
+  showStep(currentWizardStep + 1);
+}
+
+function prevStep() {
+  showStep(currentWizardStep - 1);
+}
+
+
+
+async function publishSchedule() {
+  if (!turneringId) {
+    alert('Ukjent turnering. Kan ikke publisere.');
+    return;
+  }
+  try {
+    // Sett 'published' = true på turneringsdokumentet
+    await db.collection('turneringer')
+            .doc(turneringId)
+            .update({ published: true });
+    alert('Turneringen er publisert!');
+    // Valgfritt: omdiriger til offentlig visning av kampoppsettet
+    // window.location.href = `public_kampoppsett.html?id=${turneringId}`;
+  } catch (error) {
+    console.error('Feil ved publisering:', error);
+    alert('Kunne ikke publisere turneringen. Sjekk konsollen.');
+  }
+}
+
+function updateSummary() {
+    const settings = window.globalSchedulingSettings || {};
+    const tidPerKamp = settings.tidPerKamp || 0;
+    const tidMellomKamper = settings.tidMellomKamper || 0;
+    const minHviletid = settings.minimumRestTime || 0;
+    const matchTimingVal = settings.matchTiming || 'simultaneous';
+    // Lag lesbar tekst for kamp-timing-valget
+    const timingTekst = matchTimingVal === 'sequential' 
+        ? 'Sekvensielt (én kamp per divisjon om gangen)' 
+        : 'Samtidig (flere kamper fra ulike divisjoner samtidig)';
+    // Bygg oppsummeringstekst med valg
+    const summaryText = 
+        `Tid per kamp: ${tidPerKamp} min\n` +
+        `Tid mellom kamper: ${tidMellomKamper} min\n` +
+        `Minimum hviletid: ${minHviletid} min\n` +
+        `Divisjons-kampoppsett: ${timingTekst}`;
+    // Sett oppsummeringsteksten i UI og vis oppsummeringsseksjonen
+    const summaryPara = document.getElementById('summaryText');
+    if (summaryPara) {
+        summaryPara.textContent = summaryText;
+    }
+    const summarySection = document.getElementById('wizardSummary');
+    if (summarySection) {
+        summarySection.style.display = 'block';
+    }
+}
+function openAdvancedWizard() {
+    // Vis avansert steg og skjul hoved-wizard stegene
+    const advStep = document.getElementById('advancedWizardStep');
+    if (advStep) advStep.style.display = 'block';
+    // Skjul eventuelt det aktive steget (forventet steg3)
+showStep(5)
+}
+function closeAdvancedWizard() {
+    // Skjul avansert steg
+    const advStep = document.getElementById('advancedWizardStep');
+    if (advStep) advStep.style.display = 'none';
+    // Gå tilbake til steg 3 i wizard
+    const step3El = document.getElementById('step3');
+    if (step3El) {
+        step3El.style.display = 'block';
+        currentWizardStep = 3;
+    }
+}
+function beregnTidsbrukPerDag() {
+  const tidsbruk = {};  // { dato: antallMinutter }
+  scheduledMatches.forEach(kamp => {
+    const start = new Date(kamp.starttid);
+    const slutt = new Date(start.getTime() + 30*60000); // kampvarighet 30 min
+    const datoStr = start.toISOString().split('T')[0];  // YYYY-MM-DD
+    const diffMinutter = (slutt - start) / 60000;
+    tidsbruk[datoStr] = (tidsbruk[datoStr] || 0) + diffMinutter;
+  });
+  // Lag en enkel visning av tidsbruken per dag (f.eks. i konsoll eller DOM)
+  for (let dato in tidsbruk) {
+    const timer = Math.floor(tidsbruk[dato] / 60);
+    const minutter = tidsbruk[dato] % 60;
+    console.log(`Total tidsbruk ${dato}: ${timer}t ${minutter}m`);
+    // Alternativt, oppdater et DOM-element for å vise brukeren resultatet
+    document.getElementById('tidsbrukDisplay').innerText =
+      `Total tidsbruk ${dato}: ${timer}t ${minutter}m`;
+  }
+}
+async function lagreKampoppsett() {
+  if (!Array.isArray(window.scheduledMatches) || window.scheduledMatches.length === 0) {
+    console.error("Ingen kamper funnet i scheduledMatches.");
+    return;
+  }
+
+  // 1) Map original rundenumre til nye (reset per fase)
+  const phaseRoundMap = {};
+  window.scheduledMatches.forEach(item => {
+    const phase     = item.match.fasenummer ?? 0;
+    const origRound = item.match.rundeNummer ?? 0;
+    phaseRoundMap[phase] ??= {};
+    if (!(origRound in phaseRoundMap[phase])) {
+      phaseRoundMap[phase][origRound] = Object.keys(phaseRoundMap[phase]).length;
+    }
+  });
+
+  // 2) Tell kamper per (fase, runde) for lokal kampnummer
+  const roundCounters = {};
+  window.scheduledMatches.forEach(item => {
+    const phase    = item.match.fasenummer ?? 0;
+    const origRnd  = item.match.rundeNummer ?? 0;
+    const newRound = phaseRoundMap[phase][origRnd];
+
+    roundCounters[phase] ??= {};
+    roundCounters[phase][newRound] ??= 0;
+
+    item._newRound      = newRound;
+    item._localMatchIdx = roundCounters[phase][newRound]++;
+
+    // Merk: localMatchIdx starter på 0 for hver runde
+  });
+
+  // 3) Global løpende indeks for alle kamper
+  let globalMatchIdx = 0;
+
+  // 4) Bygg batch og lagre til Firestore
+  const batch     = db.batch();
+  const kamperRef = db
+    .collection("turneringer")
+    .doc(turneringId)
+    .collection("kamper");
+
+  window.scheduledMatches.forEach(item => {
+    const { court, date, startTime, endTime, match: m, timing } = item;
+
+    const hjemmelag  = m.hjemmelag   || m.teamA || m.home         || "Ukjent hjemmelag";
+    const bortelag   = m.bortelag    || m.teamB || m.away         || "Ukjent bortelag";
+    const divisjon   = m.divisjon    || m.division               || "Ukjent divisjon";
+    const fasenr     = m.fasenummer  ?? 0;
+    // Riktig uttrekk av fasetype:
+    const fasetype   = m.faseType    || m.phaseType              || "Ukjent fasetype";
+
+    const rundenr    = item._newRound;        // 0-basert pr. fase
+    const kampnummer = item._localMatchIdx;   // 0-basert pr. runde
+    const kampIndeks = globalMatchIdx++;      // 0-basert globalt
+
+    const startDate = new Date(`${date}T${startTime}`);
+    const endDate   = new Date(`${date}T${endTime}`);
+    if (isNaN(startDate) || isNaN(endDate)) {
+      console.warn(`Ugyldig dato/tid for kamp ${m.id}`, { date, startTime, endTime });
+      return;
+    }
+    const startTs = firebase.firestore.Timestamp.fromDate(startDate);
+    const endTs   = firebase.firestore.Timestamp.fromDate(endDate);
+
+    const data = {
+      hjemmelag,
+      bortelag,
+      divisjon,
+      fasenummer:  fasenr,
+      fasetype,                          // nå riktig lagret
+      rundenummer:  rundenr,
+      kampNummer:  kampnummer,
+      kampIndeks:  kampIndeks,
+      bane:        court,
+      starttid:    startTs,
+      sluttid:     endTs
+    };
+    if (timing != null) data.timing = timing;
+
+    batch.set(kamperRef.doc(m.id), data, { merge: true });
+  });
+
+  try {
+    await batch.commit();
+    console.log("Kampoppsett lagret med korrekt fasetype, reset av kampNummer per runde og global kampIndeks.");
+    alert("Kampoppsett oppdatert med fasetype!");
+  } catch (error) {
+    console.error("Feil ved batch-commit:", error);
+    alert("Kunne ikke lagre kampoppsett. Se konsollen for detaljer.");
+  }
+}
+
+async function loadFieldsWizard() {
+  const fieldsContainer = document.getElementById('fieldsList');
+  fieldsContainer.innerHTML = ''; // Tøm containeren
+  try {
+    const banerSnapshot = await db.collection('turneringer').doc(turneringId).collection('baner').get();
+    if (banerSnapshot.empty) {
+      fieldsContainer.innerHTML = "<p>Ingen baner registrert.</p>";
+      return;
+    }
+    banerSnapshot.forEach(doc => {
+      const fieldData = doc.data();
+      const fieldDiv = document.createElement('div');
+      fieldDiv.style.padding = "5px 0";
+      fieldDiv.textContent = fieldData.baneNavn;
+      const deleteBtn = document.createElement('button');
+      deleteBtn.textContent = "Slett";
+      deleteBtn.style.marginLeft = "10px";
+      deleteBtn.onclick = async () => {
+        await db.collection('turneringer').doc(turneringId).collection('baner').doc(doc.id).delete();
+        loadFieldsWizard();
+      };
+      fieldDiv.appendChild(deleteBtn);
+      fieldsContainer.appendChild(fieldDiv);
+    });
+  } catch (error) {
+    console.error('Feil ved lasting av baner:', error);
+    fieldsContainer.innerHTML = "<p>Feil ved lasting av baner.</p>";
+  }
+}
+
+async function addFieldFromWizard() {
+  const baneNavnElem = document.getElementById('wizard_baneNavn');
+  const baneNavn = baneNavnElem.value.trim();
+  if (!baneNavn) {
+    alert("Vennligst oppgi et navn for banen.");
+    return;
+  }
+  try {
+    await db.collection('turneringer').doc(turneringId).collection('baner').add({
+      baneNavn: baneNavn
+    });
+    baneNavnElem.value = '';  // Tøm inputfeltet
+    loadFieldsWizard();
+  } catch (error) {
+    console.error("Feil ved lagring av bane:", error);
+    alert("Feil ved lagring av bane. Sjekk konsollen for detaljer.");
+  }
+}
+
+// Funksjon for å åpne wizard-administrasjonsseksjonen for baner
+function openFieldsWizardAdmin() {
+  document.getElementById('fieldsWizardAdmin').style.display = 'block';
+  loadFieldsWizard();
+}
+
+// Funksjon for å lukke wizard-administrasjonsseksjonen for baner
+function closeFieldsWizardAdmin() {
+  document.getElementById('fieldsWizardAdmin').style.display = 'none';
+}
+
+
+
+// === 1) Oppdatert addBreak(): inkluderer en datovelger ===
+function addBreak() {
+  const container = document.getElementById('breaksContainer');
+  const idx = container.children.length;
+  const entry = document.createElement('div');
+  entry.className = 'break-entry';
+  
+  // Hent turneringsdatoene (forutsetter at de ligger på window.turneringData.dates)
+  const dates = window.turneringData?.dates || [];
+  const options = dates.map(d => `<option value="${d}">${d}</option>`).join('');
+  
+  entry.innerHTML = `
+    <label>Dato:
+      <select class="breakDate">
+        ${options}
+      </select>
+    </label>
+    <label>Pause #${idx+1} start:
+      <input type="time" class="breakTime">
+    </label>
+    <label>Varighet (min):
+      <input type="number" class="breakDuration" placeholder="Eks: 15">
+    </label>
+    <button type="button" onclick="this.parentNode.remove()">Fjern</button>
+  `;
+  container.appendChild(entry);
+}
+
+// === 2) Oppdatert readBreaksFromWizard(): leser også av valgt dato ===
+function readBreaksFromWizard() {
+  const breaks = [];
+  document.querySelectorAll('.break-entry').forEach(entry => {
+    const date = entry.querySelector('.breakDate').value;
+    const time = entry.querySelector('.breakTime').value;
+    const dur  = parseInt(entry.querySelector('.breakDuration').value, 10);
+    if (date && time && !isNaN(dur) && dur > 0) {
+      breaks.push({ date, startTime: time, duration: dur });
+    }
+  });
+  return breaks;
+}
+  // 1) Første: last inn turneringsdata – inkludert divisions
+  async function fetchTurneringData() {
+  try {
+    const doc = await db.collection('turneringer').doc(turneringId).get();
+    if (!doc.exists) throw new Error('Turnering ikke funnet');
+    const data = doc.data();
+    window.turneringData = data;
+    // LAST INN de start- og sluttidene brukeren har lagret i Firestore:
+    window.dateTimes = data.dateTimes || {};
+    populateDivisionTimeInputs();
+  } catch (err) {
+    console.error('Kunne ikke hente turneringData:', err);
+  }
+}
+
+
+  function populateDivisionTimeInputs() {
+  const rawDivs  = window.turneringData.divisions || [];
+  const divisions = rawDivs.map(d => {
+    // Hvis det allerede er en streng, bruk den; ellers prøv d.name eller d.id
+    if (typeof d === 'string') return d;
+    if (typeof d.name === 'string') return d.name;
+    if (typeof d.id   === 'string') return d.id;
+    console.warn('Uventet divisjonsformat:', d);
+    return JSON.stringify(d);
+  });
+
+  const container = document.getElementById('divisionTimeContainer');
+  container.innerHTML = ''; // tømmer tidligere innhold
+
+  divisions.forEach(div => {
+    const safeId = div
+      .replace(/\s+/g, '_')      // mellomrom → underscore
+      .replace(/\W/g, '')        // fjern ikke-alfanumeriske tegn
+      .toLowerCase();
+
+    const entry = document.createElement('div');
+    entry.className = 'division-time-entry';
+    entry.innerHTML = `
+      <label for="wizard_tidPerKamp_${safeId}">${div} (min):</label>
+      <input
+        type="number"
+        id="wizard_tidPerKamp_${safeId}"
+        data-division="${div}"
+        placeholder="Eks: 15"
+      >
+    `;
+    container.appendChild(entry);
+  });
+}
+
+  // Start lasting så snart DOM er klar
+  document.addEventListener('DOMContentLoaded', fetchTurneringData);
+/**
+ * Fordeler kampene jevnt mellom start- og sluttid.
+ * - Første kamp på alle baner starter på dateTimes[date].startTime
+ * - Siste kamp slutter på dateTimes[date].endTime
+ * - Mellom hver kamp legges det til:
+ *   tidMellomKamper (min) + ekstraGap (fordelt gjenstående tid)
+ */
+/**
+ * Fordeler kampene sekvensielt etter fase, slik at fase 2 aldri starter
+ * før alle bane-kamper i fase 1 er ferdige.
+ *
+ * @param {Array<Object>} scheduledMatches - Liste med kamper. Hver kamp har minst:
+ *   - id: unik identifikator
+ *   - bane: felt/bane navn
+ *   - fasenummer: tall (1, 2, …)
+ *   - faseType: 'pause' eller annet (pause-kamper ignoreres)
+ *   - starttid: Date-objekt (midlertidig, overskrives)
+ * @param {number} tidPerKamp - varighet per kamp i minutter
+ * @param {number} tidMellomKamper - pause mellom kamper i minutter
+ * @param {Object} dateTimes - oppslag per dato (YYYY-MM-DD) med:
+ *   - startTime: 'HH:MM:SS'
+ *   - endTime:   'HH:MM:SS'
+ *
+ * @returns {Array<Object>} Samme array med oppdaterte starttid/sluttid på hver kamp
+ */
+/**
+ * Fordeler kampene sekvensielt etter fase, slik at fase 2 aldri starter
+ * før alle bane-kamper i fase 1 er ferdige.
+ *
+ * @param {Array<Object>} scheduledMatches - Liste med kamper. Hver kamp har minst:
+ *   - id: unik identifikator
+ *   - bane: felt/bane navn
+ *   - fasenummer: tall (1, 2, …)
+ *   - faseType: 'pause' eller annet (pause-kamper ignoreres)
+ *   - starttid: Date-objekt (midlertidig, overskrives)
+ * @param {number} tidPerKamp - varighet per kamp i minutter
+ * @param {number} tidMellomKamper - pause mellom kamper i minutter
+ * @param {Object} dateTimes - oppslag per dato (YYYY-MM-DD) med:
+ *   - startTime: 'HH:MM:SS'
+ *   - endTime:   'HH:MM:SS'
+ *
+ * @returns {Array<Object>} Samme array med oppdaterte starttid/sluttid på hver kamp
+ */
+function distributeMatchesEvenly(scheduledMatches, tidPerKamp, tidMellomKamper, dateTimes) {
+  // 1) Organiser kamper per dato og bane, ekskluder 'pause'
+  const byDateField = {};
+  scheduledMatches.forEach(k => {
+    if (k.faseType === 'pause') return;
+    const date = k.starttid.toISOString().slice(0, 10);
+    byDateField[date]         ||= {};
+    byDateField[date][k.bane] ||= [];
+    byDateField[date][k.bane].push(k);
+  });
+
+  // 2) For hver dato planlegg globalt per fase
+  Object.entries(byDateField).forEach(([date, fields]) => {
+    const { startTime, endTime } = dateTimes[date];
+    const windowStart = new Date(`${date}T${startTime}`);
+    // Samle alle unike fasenummer for denne datoen
+    const phaseKeys = new Set();
+    Object.values(fields).forEach(matches =>
+      matches.forEach(m => phaseKeys.add(m.fasenummer || 0))
+    );
+    const sortedPhases = [...phaseKeys].sort((a, b) => a - b);
+
+    // Denne tidspunktsmarkøren oppdateres etter hver fase
+    let lastPhaseEnd = new Date(windowStart);
+
+    // Behandle hver fase i rekkefølge
+    sortedPhases.forEach(phaseNum => {
+      // 2.a) Planlegg alle kamper i denne fasen, bane for bane
+      Object.values(fields).forEach(matches => {
+        // Filtrer ut kamper som tilhører aktuell fase
+        const phaseMatches = matches
+          .filter(m => (m.fasenummer || 0) === phaseNum)
+          .sort((a, b) => a.id.localeCompare(b.id)); // eller annen stabil sortering
+
+        // Internt offset per bane
+        let offsetFieldMs = 0;
+
+        phaseMatches.forEach((kamp, i) => {
+          const start = new Date(
+            lastPhaseEnd.getTime()
+            + offsetFieldMs
+            + i * (tidPerKamp * 60000 + tidMellomKamper * 60000)
+          );
+          kamp.starttid = start;
+          kamp.sluttid = new Date(start.getTime() + tidPerKamp * 60000);
+        });
+      });
+
+      // 2.b) Oppdater lastPhaseEnd til seneste sluttid i denne fasen på alle baner
+      let phaseMaxEnd = lastPhaseEnd;
+      Object.values(fields).forEach(matches => {
+        matches
+          .filter(m => (m.fasenummer || 0) === phaseNum)
+          .forEach(m => {
+            if (m.sluttid > phaseMaxEnd) {
+              phaseMaxEnd = m.sluttid;
+            }
+          });
+      });
+      lastPhaseEnd = phaseMaxEnd;
+    });
+  });
+
+  return scheduledMatches;
+}
+
+/****************************************************************
+ * Oppdatert helper – støtter både "division" og "divisjon"
+ ****************************************************************/
+ async function hentLagForDivisjon(divisjon) {
+  const colRef = db
+    .collection('turneringer')
+    .doc(turneringId)
+    .collection('lag');
+
+  // 1) Prøv engelsk felt ­(hvis du en gang endrer alt til engelsk)
+  let snap = await colRef.where('division', '==', divisjon).get();
+
+  // 2) Finner vi ingenting?  Prøv norsk felt.
+  if (snap.empty) {
+    snap = await colRef.where('divisjon', '==', divisjon).get();
+  }
+
+  // 3) Hvis det fortsatt er tomt, hent alle og filtrer client-side,
+  //    så vi overlever om feltet mangler helt.
+  if (snap.empty) {
+    snap = await colRef.get();
+  }
+
+  return snap.docs
+    .map(d => d.data().lagNavn || d.data().navn)
+    .filter(Boolean);
+}
+
+// ─── 1) Hent alle pauser for en gitt dato ───
+function getBreaksForDate(date) {
+  const dateStr = date.toISOString().slice(0,10); // "YYYY-MM-DD"
+  return (window.globalSchedulingSettings.breaks || [])
+    .filter(b => b.date === dateStr)
+    .map(b => ({ startTime: b.startTime, duration: b.duration }));
+}
+
+// ─── 2) Sjekk overlap med pause ───
+function overlapsAnyBreak(startDate) {
+  const hhmm = startDate.toTimeString().slice(0,5);
+  const breaks = getBreaksForDate(startDate);
+  return breaks.some(b => {
+    const pauseEnd = addMinutesToTime(b.startTime, b.duration);
+    return hhmm >= b.startTime && hhmm < pauseEnd;
+  });
+}
+
+
+
+async function calculateTotalTimeNeeded() {
+  try {
+    const doc    = await db.collection('turneringer').doc(turneringId).get();
+    const data   = doc.data();
+    const tidPerKamp     = data.tidPerKamp;
+    const tidMellomKamper = data.tidMellomKamper;
+    const turnsDates     = data.dates || [];
+    const numDays        = turnsDates.length;
+
+    // Hent pauser fra wizard (fallback til Firestore hvis du lagrer dem der)
+    const breaks = window.globalSchedulingSettings?.breaks || (data.breaks || []);
+
+    // Hent antall kamper (samme som før)
+    const matchRounds = await collectMatches();
+    let totalMatches = 0;
+    for (const divi in matchRounds) {
+      for (const fase in matchRounds[divi]) {
+        totalMatches += matchRounds[divi][fase].length;
+      }
+    }
+
+    // Hent baner og antall
+    const baner = await hentBaner();
+    const numberOfFields = baner.length;
+
+    // Beregn total pause-tid: sum av varighet per pause × dager
+    const totalPauseMinutes = breaks.reduce((sum, b) => sum + b.duration, 0) * numDays;
+
+    // Tid per kamp inkl. pause-mellom-kamper
+    const timePerMatchWithBreak = tidPerKamp + tidMellomKamper;
+
+    // Total tid = (kamper×tid) + pauser, delt på antall baner
+    const totalTime = Math.ceil(
+      (totalMatches * timePerMatchWithBreak + totalPauseMinutes)
+      / numberOfFields
+    );
+
+    return totalTime;
+  } catch (error) {
+    console.error('Feil ved beregning av total tid:', error);
+    return 0;
+  }
+}
+
+// —————————————————————————————————————————————————————————————————
+// (Valgfritt) Hjelpefunksjoner for å unngå å plassere kamper i pausetid
+// —————————————————————————————————————————————————————————————————
+function addMinutesToTime(timeStr, mins) {
+  const [h, m] = timeStr.split(':').map(Number);
+  const d = new Date(0,0,0,h,m);
+  d.setMinutes(d.getMinutes() + mins);
+  return d.toTimeString().slice(0,5);
+}
+
+function overlapsPause(startDate, breaks) {
+  const hhmm = startDate.toTimeString().slice(0,5);
+  return breaks.some(b => {
+    const pauseEnd = addMinutesToTime(b.startTime, b.duration);
+    return hhmm >= b.startTime && hhmm < pauseEnd;
+  });
+}
+
+/**
+ * Skyver alle kamper innenfor hver bane og dato
+ * slik at siste kamp ender ved dateTimes[date].endTime.
+ */
+ function alignLastMatches(scheduledMatches, tidPerKamp, tidMellomKamper, dateTimes) {
+  // Organiser kamper per dato og bane
+  const byDateField = {};
+  scheduledMatches.forEach(k => {
+    const date = k.starttid.toISOString().slice(0,10);
+    byDateField[date] = byDateField[date] || {};
+    byDateField[date][k.bane] = byDateField[date][k.bane] || [];
+    byDateField[date][k.bane].push(k);
+  });
+
+  Object.entries(byDateField).forEach(([date, fields]) => {
+    const endTimeStr = dateTimes[date].endTime;
+    const [hEnd, mEnd] = endTimeStr.split(':').map(Number);
+    const dayEnd = new Date(`${date}T${endTimeStr}`);
+
+    Object.values(fields).forEach(matches => {
+      matches.sort((a,b) => a.starttid - b.starttid);
+      const n = matches.length;
+      if (n === 0) return;
+
+      // Total tid i minutter for denne banen
+      const totalTid = tidPerKamp * n + tidMellomKamper * (n - 1);
+
+      // Beregn ny start-tid for første kamp
+      const firstStart = new Date(dayEnd.getTime() - totalTid * 60000);
+
+      // Tilordn nye tider til hver kamp
+      matches.forEach((kamp, i) => {
+        const start = new Date(firstStart.getTime() + i * (tidPerKamp + tidMellomKamper) * 60000);
+        kamp.starttid = start;
+        kamp.sluttid  = new Date(start.getTime() + tidPerKamp * 60000);
+      });
+    });
+  });
+
+  return scheduledMatches;
+}
+
+
+
+
+/**
+ * Tegner én tom .bane-tabell pr. bane.
+ *  – Henter baner fra Firestore (sannhetens kilde)
+ *  – Fyller på med eventuelle nye baner som bare finnes i scheduledMatches
+ */
+ /**
+ * Tegner én tom .bane-tabell per bane.
+ *  – Henter baner fra Firestore (sannhetens kilde)
+ *  – Legger også til eventuelle baner som finnes i scheduledMatches
+ */
+async function renderBanes(scheduledMatches = []) {
+  const container = document.getElementById('baneContainer');
+  container.innerHTML = '';
+
+  // 1) Hent baner som er lagret i databasen
+  const snap = await db
+    .collection('turneringer')
+    .doc(turneringId)
+    .collection('baner')
+    .get();
+  const banerFirestore = snap.docs.map(d => d.data().baneNavn);
+
+  // 2) Hent baner som ligger tilknyttet kampene
+  const banerFraKamper = scheduledMatches.map(k => k.bane);
+
+  // 3) Slå sammen begge listene og fjern duplikater
+  const unikeBaner = Array.from(new Set([
+    ...banerFirestore,
+    ...banerFraKamper
+  ]));
+
+  // 4) Lag én <div> per bane i UI
+  unikeBaner.forEach(baneNavn => {
+    const baneDiv = document.createElement('div');
+    baneDiv.className = 'bane-tabell';
+    baneDiv.id = baneNavn;
+
+    const heading = document.createElement('h3');
+    heading.textContent = baneNavn;
+    baneDiv.appendChild(heading);
+
+    container.appendChild(baneDiv);
+  });
+  setupGlobalDragAndDrop();
+
+}
+
+
+/**
+ * Konverterer starttid-feltet til JS Date, sorterer matches stigende på tid.
+ * @param {Array<Object>} matches - Array med kamp-objekter
+ * @returns {Array<Object>} sortedMatches - Samme array, men sortert og med _startDate
+ */
+ function prepareAndSortMatches(matches) {
+  // Konverter og legg på _startDate
+  matches.forEach(match => {
+    if (match.starttid) {
+      // Firestore Timestamp?
+      if (typeof match.starttid.toDate === 'function') {
+        match._startDate = match.starttid.toDate();
+      }
+      // ISO-streng?
+      else if (typeof match.starttid === 'string') {
+        match._startDate = new Date(match.starttid);
+      }
+      // Aller fallback: Date-objekt?
+      else if (match.starttid instanceof Date) {
+        match._startDate = match.starttid;
+      } else {
+        // Uventet, sett nåtid
+        match._startDate = new Date();
+      }
+    } else {
+      // Ingen tid, putt i bunn
+      match._startDate = new Date(0);
+    }
+  });
+
+  // Sorter på millisekund
+  matches.sort((a, b) =>
+    a._startDate.getTime() - b._startDate.getTime()
+  );
+
+  return matches;
+}
+// ——————————————————————————————————————————————————————————————————
+// 1) Når siden laster: bygg baner, hent og sorter kamper, så renderer
+
+// ——————————————————————————————————————————————————————————————————
+// 4) Hjelpefunksjon: formater JS Date til klokkeslett + dato
+// ——————————————————————————————————————————————————————————————————
+function formatDateTime(dato) {
+  if (!(dato instanceof Date) || isNaN(dato.getTime())) {
+    return 'Ukjent tid';
+  }
+  const tid = dato.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  const dag = dato.toLocaleDateString();
+  return `${tid} ${dag}`;
+}
+
+
+// Eksempel på enkel format-funksjon for dato/klokkeslett
+function formatDateTime(dato) {
+  return dato.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) +
+         " " + dato.toLocaleDateString();
+}
+
+
+
+// ——————————————
+// 1) Hent alle lag og bygg et navn→ID‐kart
+// ——————————————
+async function fetchTeamMap(turneringId) {
+  const lagSnap = await db
+    .collection('turneringer')
+    .doc(turneringId)
+    .collection('lag')
+    .get();
+
+  const teamMap = {};
+  lagSnap.docs.forEach(d => {
+    const data = d.data();
+    // Hent både lagNavn og fallback på navn
+    const rawName = data.lagNavn || data.navn;
+    if (typeof rawName === 'string' && rawName.trim() !== '') {
+      teamMap[rawName.trim()] = d.id;
+    } else {
+      console.warn(`Lag ${d.id} mangler 'lagNavn'/’navn’ eller har en ugyldig verdi:`, data);
+    }
+  });
+
+  return teamMap;
+}
+
+
+
+// ——————————————
+// 2) Prepare matches: legg på hjemmelagId/bortelagId
+// ——————————————
+async function prepareMatchesWithIds(rawMatches, turneringId) {
+  const teamMap = await fetchTeamMap(turneringId);
+
+  return rawMatches.map(m => ({
+    ...m,
+    hjemmelagId: teamMap[(m.hjemmelag || '').trim()] || null,
+    bortelagId:  teamMap[(m.bortelag  || '').trim()] || null
+  }));
+}
+
+
+
+
+
+// ——————————————
+// 4) Selve tildelingen med innebygd filtering
+// ——————————————
+async function generateRefereeSchedule(matches, numRefsPerMatch) {
+  // 4.1) Hent alle dommere fra Firestore
+  const snap = await db
+    .collection('turneringer')
+    .doc(turneringId)
+    .collection('dommere')
+    .get();
+
+  const refs = snap.docs.map(d => {
+    const data = d.data();
+    return {
+      id: d.id,
+      name: data.dommer,
+      teamId: data.teamId || null,
+      divisions: data.divisions || [],
+      load: 0,
+      busySlots: new Set()
+    };
+  });  // :contentReference[oaicite:0]{index=0}:contentReference[oaicite:1]{index=1}
+
+  // 4.2) Hjelpefunksjon: returner kvalifiserte dommere for en kamp
+  function qualifiedRefs(match) {
+    return refs.filter(r => {
+      if (!r.divisions.includes(match.divisjon)) return false;
+      if (r.teamId &&
+         (r.teamId === match.hjemmelagId ||
+          r.teamId === match.bortelagId)) {
+        return false;
+      }
+      return true;
+    });
+  }
+
+  // 4.3) Gruppér kamper etter start‐tidslott, med validering
+  const slots = {};
+  matches.forEach(match => {
+    const raw = match.starttid;
+    const date = new Date(raw);
+
+    if (!(date instanceof Date) || isNaN(date.getTime())) {
+      console.warn(`Ugyldig starttid for kamp ${match.id}:`, raw);
+      return; // hopper over denne kampen
+    }
+
+    const slot = date.toISOString();
+    if (!slots[slot]) slots[slot] = [];
+    slots[slot].push(match);
+  });
+
+  // 4.4) Tildel dommere for hver kamp i hvert tidslott
+  const assignments = {};
+  for (const slot of Object.keys(slots).sort()) {
+    const games = slots[slot];
+
+    // Behandle de kampene som har færrest kvalifiserte dommere først
+    games.sort((a, b) => qualifiedRefs(a).length - qualifiedRefs(b).length);
+
+    for (const game of games) {
+      assignments[game.id] = [];
+      for (let i = 0; i < numRefsPerMatch; i++) {
+        const candidates = qualifiedRefs(game)
+          .filter(r => !r.busySlots.has(slot))
+          .sort((a, b) => a.load - b.load);
+
+        if (candidates.length === 0) {
+          console.warn(
+            `For få kvalifiserte/ledige dommere for kamp ${game.id} kl. ${slot}`
+          );
+          break;
+        }
+
+        const chosen = candidates[0];
+        assignments[game.id].push(chosen.id);
+        chosen.load++;
+        chosen.busySlots.add(slot);
+      }
+    }
+  }
+
+  console.log('Dommer­tildeling (ID‑er):', assignments);
+
+  // 4.5) Gjør om fra ID til navn for visning
+  const scheduleWithNames = {};
+  for (const [matchId, refIds] of Object.entries(assignments)) {
+    scheduleWithNames[matchId] = refIds.map(id => {
+      const r = refs.find(x => x.id === id);
+      return r ? r.name : id;
+    });
+  }
+
+  console.log('Dommer­tildeling (navn):', scheduleWithNames);
+  return scheduleWithNames;
+}
+
+// ——————————————
+// 5) Lagre dommer‑oppsettet i Firestore
+// ——————————————
+async function saveRefereeSchedule(schedule) {
+  const batch = db.batch();
+  for (const [matchId, dommere] of Object.entries(schedule)) {
+    const matchRef = db
+      .collection('turneringer')
+      .doc(turneringId)
+      .collection('kamper')
+      .doc(matchId);
+    batch.update(matchRef, { dommere });  // lagrer array med navn
+  }
+  await batch.commit();
+  console.log("Dommeroppsett lagret i Firestore.");
+}
+
+
+// Funksjon for å vise Q&A-sidebaren
+function displaysidebar(){
+    const qaSection = document.getElementById('qa-section');
+    if (qaSection) {
+        qaSection.style.display = "block"; // Vis sidebaren
+        // Animasjon: skyv sidebaren inn fra høyre
+        setTimeout(() => {
+            qaSection.style.transform = "translateX(0)";
+            qaSection.style.opacity = "1";
+        }, 10); // Lite delay for å trigge CSS transition
+    } else {
+        console.error("Element med id 'qa-section' ble ikke funnet.");
+    }
+}
+
+// Funksjon for å skjule Q&A-sidebaren
+function closeSection(){
+    const qaSection = document.getElementById('qa-section');
+    if (qaSection) {
+        // Animasjon: skyv sidebaren ut til høyre
+        qaSection.style.transform = "translateX(100%)";
+        qaSection.style.opacity = "0";
+        // Etter animasjonen, skjul sidebaren
+        qaSection.addEventListener('transitionend', function handler() {
+            qaSection.style.display = "none";
+            qaSection.removeEventListener('transitionend', handler);
+        });
+    } else {
+        console.error("Element med id 'qa-section' ble ikke funnet.");
+    }
+}
+
+// Funksjon for å toggle (vise/skjule) et svar
+function toggleAnswer(index) {
+    const answers = document.querySelectorAll('#qa-section .answer');
+    if (answers[index]) {
+        if (answers[index].style.display === "none" || answers[index].style.display === "") {
+            answers[index].style.display = "block";
+        } else {
+            answers[index].style.display = "none";
+        }
+    }
+}
+
+            function leggTilBane() {
+                const baneNavn = document.getElementById('baneNavn').value;
+
+                if (baneNavn.trim() === '') {
+                    alert('Vennligst oppgi et navn for banen.');
+                    return;
+                }
+
+                db.collection('turneringer').doc(turneringId).collection('baner').doc().set({
+                    baneNavn: baneNavn,
+                }).then(() => {
+                    const baneContainer = document.getElementById('baneContainer');
+
+                    // Opprett baneDiv og sett attributter
+                    const baneDiv = document.createElement('div');
+                    baneDiv.classList.add('bane-tabell');
+                    baneDiv.id = baneNavn;
+
+                    // Lag heading for banen
+                    const heading = document.createElement('h3');
+                    heading.textContent = `${baneNavn}`;
+                    baneDiv.appendChild(heading);
+
+                    // Sett opp drag-and-drop for baneDiv
+                    setupBaneContainer(baneDiv);
+
+                    // Legg til baneDiv i baneContainer
+                    baneContainer.appendChild(baneDiv);
+
+                    // Nullstill felter og lukk popup
+                    document.getElementById('baneNavn').value = '';
+                    closePopup('banePopup');
+                }).catch((error) => {
+                    console.error("Error adding document: ", error);
+                });
+            }
+
+            function velgTid() {
+    const tidPerKamp = parseInt(document.getElementById('tidPerKamp').value, 10);
+    const tidMellomKamper = parseInt(document.getElementById('tidMellomKamper').value, 10);
+
+    if (isNaN(tidPerKamp) || isNaN(tidMellomKamper)) {
+        alert('Vennligst fyll inn gyldige tall for begge feltene.');
+        return;
+    }
+
+    // Lagre tidene i Firestore under turneringen
+    db.collection('turneringer').doc(turneringId).update({
+        tidPerKamp: tidPerKamp,
+        tidMellomKamper: tidMellomKamper
+    })
+    .then(() => {
+        alert('Tider lagret i Firestore.');
+        closePopup('tidPopup');
+    })
+    .catch(error => {
+        console.error('Feil ved lagring av tider:', error);
+    });
+}
+
+
+async function openDateTimesPopup() {
+    try {
+        const turneringDoc = await db.collection('turneringer').doc(turneringId).get();
+        const turneringData = turneringDoc.data();
+        const tournamentDates = turneringData.dates;
+        dateTimes = turneringData.dateTimes || {};
+
+        if (!tournamentDates || tournamentDates.length === 0) {
+            alert('Ingen datoer funnet for turneringen.');
+            return;
+        }
+
+        const dateTimesContainer = document.getElementById('dateTimesContainer');
+        dateTimesContainer.innerHTML = ''; // Tøm containeren
+
+        // Kalkuler total tid som trengs for turneringen
+        totalTimeNeeded = await calculateTotalTimeNeeded();
+
+        tournamentDates.forEach(date => {
+            // Opprett felter for start- og sluttid
+            const dateDiv = document.createElement('div');
+            dateDiv.className = 'date-time-entry';
+
+            const dateLabel = document.createElement('label');
+            dateLabel.textContent = `Dato: ${date}`;
+            dateDiv.appendChild(dateLabel);
+
+            const startTimeInput = document.createElement('input');
+            startTimeInput.type = 'time';
+            startTimeInput.id = `startTime-${date}`;
+            startTimeInput.placeholder = 'Starttid';
+
+            const endTimeInput = document.createElement('input');
+            endTimeInput.type = 'time';
+            endTimeInput.id = `endTime-${date}`;
+            endTimeInput.placeholder = 'Sluttid';
+
+            dateDiv.appendChild(startTimeInput);
+            dateDiv.appendChild(endTimeInput);
+
+            dateTimesContainer.appendChild(dateDiv);
+
+            // Hvis vi allerede har lagrede tider, sett verdiene
+            if (dateTimes[date]) {
+                startTimeInput.value = dateTimes[date].startTime;
+                endTimeInput.value = dateTimes[date].endTime;
+            }
+        });
+
+        // Vis total tid som trengs
+        const totalTimeRequiredElement = document.getElementById('totalTimeRequired');
+        totalTimeRequiredElement.textContent = `Total tid som trengs for turneringen: ${formatTotalTime(totalTimeNeeded)}`;
+
+        openPopup('dateTimesPopup');
+    } catch (error) {
+        console.error('Feil ved åpning av dateTimesPopup:', error);
+    }
+}
+
+
+function saveDateTimes() {
+    const dateDivs = document.querySelectorAll('.date-time-entry');
+    let allTimesSet = true;
+
+    dateDivs.forEach(div => {
+        const dateLabel = div.querySelector('label').textContent;
+        const date = dateLabel.replace('Dato: ', '');
+
+        const startTimeInput = div.querySelector(`input[id^="startTime-"]`);
+        const endTimeInput = div.querySelector(`input[id^="endTime-"]`);
+
+        const startTime = startTimeInput.value;
+        const endTime = endTimeInput.value;
+
+        if (!startTime || !endTime) {
+            alert(`Vennligst fyll inn start- og sluttid for ${date}`);
+            allTimesSet = false;
+            return;
+        }
+
+        if (!dateTimes) {
+            dateTimes = {};
+        }
+
+        dateTimes[date] = {
+            startTime: startTime,
+            endTime: endTime
+        };
+    });
+
+    if (!allTimesSet) {
+        return;
+    }
+
+    // Lagre dateTimes i Firestore under turneringen
+    db.collection('turneringer').doc(turneringId).update({
+        dateTimes: dateTimes
+    })
+    .then(() => {
+        alert('Dato- og tidspunkter lagret i Firestore.');
+        closePopup('dateTimesPopup');
+    })
+    .catch(error => {
+        console.error('Feil ved lagring av datoer og tider:', error);
+    });
+}
+
+            // Hjelpefunksjon for å formatere total tid
+            function formatTotalTime(totalMinutes) {
+                const hours = Math.floor(totalMinutes / 60);
+                const minutes = totalMinutes % 60;
+                return `${hours} timer og ${minutes} minutter`;
+            }
+
+            // Funksjon for å beregne total tid som trengs for turneringen
+            async function calculateTotalTimeNeeded() {
+    try {
+        const turneringDoc = await db.collection('turneringer').doc(turneringId).get();
+        const turneringData = turneringDoc.data();
+        const tidPerKamp = turneringData.tidPerKamp;
+        const tidMellomKamper = turneringData.tidMellomKamper;
+
+        if (!tidPerKamp || !tidMellomKamper) {
+            alert('Vennligst fyll inn tid per kamp og tid mellom kamper.');
+            return 0;
+        }
+
+        // Hent kamper
+        const matchRounds = await collectMatches();
+        if (!matchRounds || Object.keys(matchRounds).length === 0) {
+            console.error('Ingen kamper funnet i matchRounds');
+            return 0;
+        }
+
+        // Tell totalt antall kamper
+        let totalMatches = 0;
+        for (const division in matchRounds) {
+            for (const fase in matchRounds[division]) {
+                totalMatches += matchRounds[division][fase].length;
+            }
+        }
+
+        // Hent antall baner
+        const baner = await hentBaner();
+        const numberOfFields = baner.length;
+
+        // Beregn total tid
+        const timePerMatchWithBreak = tidPerKamp + tidMellomKamper;
+        const totalTime = Math.ceil((totalMatches * timePerMatchWithBreak) / numberOfFields);
+
+        return totalTime; // Returner total tid i minutter
+
+    } catch (error) {
+        console.error('Feil ved beregning av total tid:', error);
+        return 0;
+    }
+}
+/**
+ * Samler alle kamper fra Firestore per divisjon og fase:
+ * - Støtter type = "gruppespill", "utslag" og "enkelt"
+ * - Returnerer et objekt { [divisjon]: { [faseKey]: Array<kamp> } }
+ */
+async function collectMatches() {
+  console.log("[collectMatches] ► start");
+  const result = {};
+  const docRef = db.collection("turneringer").doc(turneringId);
+  const turn = await docRef.get();
+  if (!turn.exists) {
+    console.error("[collectMatches] ✖ turnering ikke funnet");
+    return {};
+  }
+
+  // Hent divisjoner fra turnering-data
+  const divisions = (turn.data().divisions || [])
+    .map(d => (typeof d === "string" ? d : d.name));
+
+  for (const div of divisions) {
+    result[div] = {};
+    const formatSnap = await docRef.collection(`${div}_format`).get();
+    if (formatSnap.empty) {
+      console.warn(`[collectMatches] ⚠ '${div}_format' er tomt`);
+      continue;
+    }
+
+    for (const faseDoc of formatSnap.docs) {
+      const faseKey = faseDoc.id;           // f.eks. "fase1"
+      const fd      = faseDoc.data();
+      const type    = fd.type || "enkelt";
+      result[div][faseKey] = [];
+
+      // ───── GRUPPESPILL ─────
+      if (type === "gruppespill") {
+        const grupper = fd.grupper || {};
+        const moter   = Number(fd.moter) || 1;
+        for (const grpNavn in grupper) {
+          const orig = [...(grupper[grpNavn] || [])];
+          if (orig.length < 2) continue;
+          const teams = orig.length % 2 ? [...orig, null] : orig;
+          const n      = teams.length;
+          const runder = n - 1;
+          for (let rep = 0; rep < moter; rep++) {
+            let T = teams.slice();
+            for (let r = 0; r < runder; r++) {
+              for (let i = 0; i < n / 2; i++) {
+                const home = T[i], away = T[n - 1 - i];
+                if (home && away) {
+                  result[div][faseKey].push({
+                    id:          crypto.randomUUID(),
+                    hjemmelag:   home,
+                    bortelag:    away,
+                    divisjon:    div,
+                    faseType:    "gruppespill",
+                    rundeNummer: r + 1 + rep * runder,
+                    fase:        faseKey,
+                    fasenummer:  parseInt(faseKey.replace("fase", ""), 10) || 1
+                  });
+                }
+              }
+              T.splice(1, 0, T.pop());
+            }
+          }
+        }
+      }
+      // ───── UTSLAG ─────
+      else if (type === "utslag") {
+        const rounds = fd.utslagsrunder || [];
+        rounds.forEach((rundeObj, rundeIdx) => {
+          (rundeObj.kamper || []).forEach(k => {
+            if (!k.lag1 || !k.lag2) return;
+            result[div][faseKey].push({
+              id:          crypto.randomUUID(),
+              hjemmelag:   k.lag1,
+              bortelag:    k.lag2,
+              divisjon:    div,
+              faseType:    "utslag",
+              // Oppdaterer rundenummer basert på indeksen i 2D-arrayen:
+              rundeNummer: typeof k.runde === "number"
+                            ? k.runde
+                            : (rundeIdx + 1),
+              bronse:      !!k.bronse,
+              fase:        faseKey,
+              fasenummer:  parseInt(faseKey.replace("fase", ""), 10) || 1
+            });
+          });
+        });
+      }
+      // ───── ENKELTKAMP / ANNET ─────
+      else {
+        (fd.kamper || []).forEach(k => {
+          result[div][faseKey].push({
+            id:          crypto.randomUUID(),
+            hjemmelag:   k.lag1 || "TBD",
+            bortelag:    k.lag2 || "TBD",
+            divisjon:    div,
+            faseType:    type,
+            rundeNummer: k.rundeNummer || 1,
+            fase:        faseKey,
+            fasenummer:  parseInt(faseKey.replace("fase", ""), 10) || 1
+          });
+        });
+      }
+
+      console.log(`  ${div}/${faseKey}:`, result[div][faseKey].length, "kamper");
+    }
+  }
+
+  const total = Object.values(result)
+    .flatMap(d => Object.values(d))
+    .flat().length;
+  console.log("[collectMatches] ► ferdig –", total, "kamper totalt");
+  return result;
+}
+
+
+
+
+async function slettAlleKamper() {
+  try {
+    const kamperRef = db.collection("turneringer").doc(turneringId).collection("kamper");
+    const snapshot = await kamperRef.get();
+    const deletePromises = [];
+    snapshot.forEach(doc => {
+      deletePromises.push(doc.ref.delete());
+    });
+    await Promise.all(deletePromises);
+    console.log("Alle lagrede kamper er slettet. Starter på nytt.");
+    // Etter sletting kan du for eksempel laste inn wizard igjen eller oppdatere UIet:
+    window.location.reload();
+  } catch (error) {
+    console.error("Feil ved sletting av lagrede kamper:", error);
+  }
+}
+
+            function checkForDuplicateMatches(matchRounds) {
+                for (const division in matchRounds) {
+                    for (const fase in matchRounds[division]) {
+                        const matches = matchRounds[division][fase];
+                        const seenMatches = new Set();
+                        matches.forEach(match => {
+                            const lag1 = JSON.stringify(match.lag1);
+                            const lag2 = JSON.stringify(match.lag2);
+                            // Opprett en nøkkel som er uavhengig av rekkefølgen på lagene
+                            const matchKey = lag1 < lag2 ? `${lag1}-${lag2}` : `${lag2}-${lag1}`;
+                            if (seenMatches.has(matchKey)) {
+                                console.warn(`Duplikatkamp funnet i divisjon ${division}, fase ${fase}:`, match);
+                            } else {
+                                seenMatches.add(matchKey);
+                            }
+                        });
+                    }
+                }
+            }
+
+// Hjelpefunksjon som flater ut et objekt med arrays til ett samlet array
+function flattenMatches(data) {
+  let result = [];
+  if (Array.isArray(data)) {
+    return data;
+  } else if (typeof data === 'object' && data !== null) {
+    for (const key in data) {
+      const value = data[key];
+      if (Array.isArray(value)) {
+        result.push(...value);
+      } else if (typeof value === 'object' && value !== null) {
+        result.push(...flattenMatches(value));
+      }
+    }
+  }
+  return result;
+}
+function filterMatchRounds(matchRounds) {
+  const result = {};
+  for (const division in matchRounds) {
+    result[division] = {};
+    for (const faseKey in matchRounds[division]) {
+      const matches = matchRounds[division][faseKey];
+      if (!Array.isArray(matches)) continue;
+      const filtered = [];
+      const removed = [];
+      matches.forEach(match => {
+        const hjem = (match.hjemmelag || '').trim().toLowerCase();
+        const bort = (match.bortelag  || '').trim().toLowerCase();
+        const isWalkover = (hjem === '' || hjem === 'empty') || (bort === '' || bort === 'empty');
+        if (isWalkover) {
+          removed.push(match);
+        } else {
+          filtered.push(match);
+        }
+      });
+      // Logg en oppsummering
+      console.log(`Division ${division}, fase ${faseKey}: fjernet ${removed.length}, beholdt ${filtered.length}`);
+      // Hvis du vil vise dem som tabell:
+      if (removed.length) console.table(removed);
+      result[division][faseKey] = filtered;
+    }
+  }
+  return result;
+}
+/**
+ * Henter alle start/slutt-tider fra wizard-steget.
+ * Forutsetter at hver .date-time-entry har data-date med YYYY-MM-DD,
+ * og to <input type="time"> (start først, slutt neste).
+ */
+ function readDateTimesFromWizard() {
+  const wizardDateTimes = {};
+  document.querySelectorAll('.date-time-entry').forEach(entry => {
+    const date   = entry.dataset.date;
+    const inputs = entry.querySelectorAll('input[type="time"]');
+    const start  = inputs[0]?.value;
+    const end    = inputs[1]?.value;
+    if (start && end) {
+      wizardDateTimes[date] = { startTime: start, endTime: end };
+    }
+  });
+  return wizardDateTimes;
+}
+/**
+ * Tegner opp hele skjemaet:
+ * - Datoer fra tournamentSettings.dates
+ * - Baner fra window.baner (eller det navnet du bruker)
+ * - Kampkort for hver kamp i scheduledMatches
+ * - Placeholder dersom ingen kamp finnes for den dato/bane-kombinasjonen
+ */
+/**
+ * Tegner skjemaet med baner, datoer og kamp-kort.
+ * For hver kamp-kort legges en TOM <p class="referees"></p> slik at
+ * renderRefereesOnCards() trygt kan fylle inn navn senere.
+ */
+ function renderScheduleUI(scheduledMatches) {
+  const container = document.getElementById('baneContainer');
+  container.innerHTML = '';
+
+  // 1) Alle datoer turneringen bruker
+  const dates = window.turneringData.dates || [];
+
+  dates.forEach(date => {
+    /* ---------- DATO-CONTAINER ---------- */
+    const dateDiv = document.createElement('div');
+    dateDiv.className = 'date-container';
+    dateDiv.dataset.date = date;
+    dateDiv.innerHTML = `<h2>${date}</h2>`;
+
+    /* ---------- Én bane om gangen ---------- */
+    window.baner.forEach(baneNavn => {
+      const laneDiv = document.createElement('div');
+      laneDiv.className = 'bane-tabell';
+      laneDiv.dataset.bane = baneNavn;
+      laneDiv.id = `lane-${date}-${baneNavn.replace(/\s+/g, '-')}`;
+      laneDiv.innerHTML = `<h3>${baneNavn}</h3>`;
+
+      /* ---------- Match-filter ---------- */
+      const matchesForThis = scheduledMatches.filter(
+        m =>
+          m.bane === baneNavn &&
+          m.starttid.toISOString().slice(0, 10) === date
+      );
+
+      if (matchesForThis.length === 0) {
+        /* Placeholder-kort */
+        const placeholder = document.createElement('div');
+        placeholder.className = 'kamp-kort placeholder';
+        placeholder.innerHTML = `
+          <div class="kamp-detaljer">
+            <em>Legg til kamp</em>
+          </div>
+          <p class="referees"></p>
+        `;
+        laneDiv.appendChild(placeholder);
+      } else {
+        /* Alle kamper på denne banen + datoen */
+        matchesForThis.forEach(m => {
+          const card = document.createElement('div');
+          card.className = m.faseType === 'pause' ? 'pause-kort' : 'kamp-kort';
+          card.setAttribute('data-match-id', m.id);
+          card.draggable = true;
+          card.innerHTML = `
+            <div class="kamp-detaljer">
+              <h4>${m.hjemmelag} – ${m.bortelag}</h4>
+              <p>${m.starttid.toTimeString().slice(0, 5)}–${m.sluttid
+                .toTimeString()
+                .slice(0, 5)}</p>
+            </div>
+            <p class="referees"></p>
+          `;
+          laneDiv.appendChild(card);
+        });
+      }
+
+      dateDiv.appendChild(laneDiv);
+    });
+
+    container.appendChild(dateDiv);
+  });
+
+  /* Drag & drop-setup */
+  setupGlobalDragAndDrop();
+}
+
+
+
+
+function generateSchedule() {
+  const {
+    divisions,
+    divisionTimes,
+    tidMellomKamper,
+    minimumRestTime,
+    matchTiming,
+    baner,
+    matches
+  } = window.globalSchedulingSettings;
+
+  // --- 1) Sett opp en kø per divisjon med tilhørende antall lag og runder ---
+  const divisionData = divisions.map(div => {
+    const queue = Object.values(matches[div]).flat();
+    const teams = Array.from(new Set(
+      queue.flatMap(m => [m.hjemmelag, m.bortelag])
+    ));
+    const mpr = teams.length / 2;
+    // Del queue i chunker for hver runde
+    const rounds = [];
+    for (let i = 0; i < queue.length; i += mpr) {
+      rounds.push(queue.slice(i, i + mpr));
+    }
+    return { division: div, rounds };
+  });
+
+  // --- 1a) Trim eventuelle duplikatrunder ---
+  divisionData.forEach(dd => {
+    const r = dd.rounds;
+    if (r.length < 2) return;
+    const makeSig = arr => arr.map(m => [m.hjemmelag, m.bortelag]
+                                     .sort().join('-'))
+                           .sort().join('|');
+    const last = r[r.length - 1];
+    const prev = r[r.length - 2];
+    if (makeSig(last) === makeSig(prev)) r.pop();
+  });
+
+  // --- 1b) Finn minste antall runder ---
+  const minRunde = Math.min(...divisionData.map(d => d.rounds.length));
+
+  // --- 1c) Kollektér ekstra runder per divisjon ---
+  const extraGroups = [];
+  divisionData.forEach(dd => {
+    const extra = dd.rounds.slice(minRunde);
+    extra.forEach(roundArr => {
+      extraGroups.push({ division: dd.division, matches: roundArr });
+    });
+    // Begrens til de første minRunde rundene
+    dd.rounds = dd.rounds.slice(0, minRunde);
+  });
+
+  // --- 2) Bygg baseline: iterer runde for runde, divisjon for divisjon ---
+  const baseOrdered = [];
+  for (let r = 0; r < minRunde; r++) {
+    divisionData.forEach(dd => {
+      dd.rounds[r].forEach(match => {
+        baseOrdered.push({ division: dd.division, match });
+      });
+    });
+  }
+
+  // --- 3) Sett inn ekstra runder jevnt fordelt ---
+  const totalSlots = baseOrdered.length + 1;
+  const groupsCount = extraGroups.length;
+  let ordered = [...baseOrdered];
+  extraGroups.forEach((grp, i) => {
+    // pos mellom 1 og totalSlots-1
+    const insertPos = Math.floor(((i + 1) * totalSlots) / (groupsCount + 1));
+    const items = grp.matches.map(match => ({ division: grp.division, match }));
+    ordered.splice(insertPos, 0, ...items);
+  });
+
+  // --- 4) Planlegg kampene i rekkefølge ---
+  const plannedMatches = ordered.map(item =>
+    planMatchOnCourt(item.match, {
+      division: item.division,
+      faseKey: null,
+      duration: divisionTimes[item.division],
+      buffer: tidMellomKamper,
+      minRest: minimumRestTime,
+      timing: matchTiming
+    }, baner)
+  );
+
+  console.log(
+    `generateSchedule ► ${plannedMatches.length} planlagte kamper` +
+    ` (inkl. jevnt fordelt ekstra runder)`
+  );
+
+  window.globalSchedulingResult = plannedMatches;
+  return plannedMatches;
+}
+
+/**
+ * Synkroniserer starten på siste felles runde tvers av alle divisjoner.
+ */
+ function alignSharedLastRoundStartAcrossDivisions(scheduledMatches) {
+  // 1) Maks rundeNummer per divisjon
+  const maxRoundByDiv = {};
+  scheduledMatches.forEach(({ match }) => {
+    const div = match.divisjon;
+    const r   = match.rundeNummer;
+    if (!maxRoundByDiv[div] || r > maxRoundByDiv[div]) {
+      maxRoundByDiv[div] = r;
+    }
+  });
+
+  // 2) Finn siste felles rundenummer
+  const sharedLastRound = Math.min(...Object.values(maxRoundByDiv));
+
+  // 3) Finn for hver divisjon når deres sharedLastRound starter tidligst
+  const firstStarts = {};
+  scheduledMatches
+    .filter(item => item.starttid instanceof Date && item.match.rundeNummer === sharedLastRound)
+    .forEach(item => {
+      const div = item.match.divisjon;
+      const t0  = item.starttid.getTime();
+      if (firstStarts[div] == null || t0 < firstStarts[div]) {
+        firstStarts[div] = t0;
+      }
+    });
+
+  // 4) Beregn mål-start som seneste av disse
+  const targetStart = Math.max(...Object.values(firstStarts));
+
+  // 5) Skift alle kamper i hver divisjon med delta = targetStart – egen start på sharedLastRound
+  return scheduledMatches.map(item => {
+    const div      = item.match.divisjon;
+    const ownFirst = firstStarts[div];
+    if (ownFirst != null && item.starttid instanceof Date) {
+      const delta = targetStart - ownFirst;
+      if (delta !== 0) {
+        item.starttid = new Date(item.starttid.getTime() + delta);
+        item.sluttid  = new Date(item.sluttid.getTime()  + delta);
+      }
+    }
+    return item;
+  });
+}
+
+/**
+ * Skyver ALLE kamper i hver divisjon slik at
+ * divisjonenes siste kampe avsluttes samtidig,
+ * men beholder deres interne runde‑rekkefølge.
+ */
+ function alignDivisionsByFinish(scheduledMatches) {
+  // 1) Finn siste slutt-tid for hver divisjon
+  const finishByDiv = {};
+  scheduledMatches.forEach(item => {
+    if (!(item.starttid instanceof Date) || !(item.sluttid instanceof Date)) return;
+    const div    = item.match.divisjon;
+    const finish = item.sluttid.getTime();
+    finishByDiv[div] = Math.max(finishByDiv[div] || 0, finish);
+  });
+
+  // 2) Mål-finish er seneste av alle
+  const targetFinish = Math.max(...Object.values(finishByDiv));
+
+  // 3) For hver kamp, flytt den med delta basert på egen divisjons differanse
+  return scheduledMatches.map(item => {
+    const div = item.match.divisjon;
+    if (finishByDiv[div]) {
+      const delta = targetFinish - finishByDiv[div];
+      if (delta !== 0 && item.starttid instanceof Date) {
+        item.starttid = new Date(item.starttid.getTime() + delta);
+        item.sluttid  = new Date(item.sluttid.getTime()  + delta);
+      }
+    }
+    return item;
+  });
+}
+
+/**
+ * Planlegger runder slik at:
+ * - Alle divisjoner får likt antall «slots» basert på sharedLastRound.
+ * - Eventuelle ekstra runder legges midt i, ikke som siste slot.
+ */
+ function distributeWithExcessAtMiddle(matches, divisionTimes, wizardDateTimes) {
+  // Finn maksrunde per divisjon
+  const maxByDiv = {};
+  matches.forEach(m => {
+    const d = m.match.divisjon;
+    const r = m.match.rundeNummer;
+    maxByDiv[d] = Math.max(maxByDiv[d]||0, r);
+  });
+  const sharedLast = Math.min(...Object.values(maxByDiv));       // felles basis
+  const midSlot    = Math.ceil(sharedLast/2);                     // midtpunkt i slots
+
+  return matches.map(item => {
+    const d    = item.match.divisjon;
+    const r    = item.match.rundeNummer;
+    const date = item.date;
+    const dt   = wizardDateTimes[date];
+    if (!dt) return item;
+
+    // tidsvindu per dag
+    const startDay = new Date(`${date}T${dt.startTime}`);
+    const endDay   = new Date(`${date}T${dt.endTime}`);
+    const windowMs = endDay - startDay;
+
+    // slot‐antall = sharedLast
+    const interval = windowMs / sharedLast;
+
+    // beregn slot‐nummer
+    let slot = r <= sharedLast
+      ? r
+      : midSlot + (r - sharedLast);
+
+    // beregn tider
+    const t0 = startDay.getTime() + (slot - 1) * interval;
+    item.starttid = new Date(t0);
+    item.sluttid  = new Date(t0 + (divisionTimes[d]||0)*60000);
+    return item;
+  });
+}
+function interpolateDivisionRounds(matches, divisionTimes, wizardDateTimes) {
+  function parseLocalDateTime(dateStr, timeStr) {
+    const [y,m,d]   = dateStr.split('-').map(Number);
+    const [hh,mm]   = timeStr.split(':').map(Number);
+    return new Date(y, m-1, d, hh, mm);
+  }
+
+  return matches.map(item => {
+    const div     = item.match.divisjon;
+    const r       = item.match.rundeNummer;
+    const dateKey = item.date;
+    const dt      = wizardDateTimes[dateKey];
+    if (!dt) return item;
+
+    const dayStart = parseLocalDateTime(dateKey, dt.startTime);
+    const dayEnd   = parseLocalDateTime(dateKey, dt.endTime);
+    const windowMs = dayEnd - dayStart;
+
+    const roundsInDiv = Math.max(
+      ...matches.filter(m => m.match.divisjon === div)
+               .map(m => m.match.rundeNummer)
+    );
+    const denom = roundsInDiv > 1 ? (roundsInDiv - 1) : 1;
+    const tFrac = (r - 1) / denom;
+
+    const slotStartMs = dayStart.getTime() + tFrac * windowMs;
+    item.starttid    = new Date(slotStartMs);
+    item.sluttid     = new Date(slotStartMs + (divisionTimes[div]||0)*60000);
+    return item;
+  });
+}
+/**
+ * Lage Date i lokal tid fra "YYYY-MM-DD" + "HH:mm"
+ */
+ function parseLocalDateTime(dateStr, timeStr) {
+  const [y, m, d] = dateStr.split('-').map(Number);
+  const [h, mm]   = timeStr.split(':').map(Number);
+  return new Date(y, m - 1, d, h, mm);
+}
+
+/**
+ * Planlegg hver divisjon:
+ * - Felles runder 1…sharedLast spres fra start til slutt
+ * - Ekstra runder (> sharedLast) legges midt i (tFrac = 0.5)
+ */
+function planDivisionSeparately(rawSchedule, divisionTimes, wizardDateTimes) {
+  // 1) Finn maks-runde per divisjon
+  const maxByDiv = {};
+  rawSchedule.forEach(item => {
+    const d = item.match.divisjon;
+    maxByDiv[d] = Math.max(maxByDiv[d] || 0, item.match.rundeNummer);
+  });
+  // 2) Felles siste runde
+  const sharedLast = Math.min(...Object.values(maxByDiv));
+
+  return rawSchedule.map((item, idx) => {
+    const div      = item.match.divisjon;
+    const r        = item.match.rundeNummer;
+    const dateKey  = item.date;
+    const dt       = wizardDateTimes[dateKey];
+    if (!dt) return item;
+
+    // Beregn fraksjon:
+    let tFrac;
+    if (r <= sharedLast) {
+      // del de felles rundene 1…sharedLast jevnt
+      tFrac = sharedLast > 1
+        ? (r - 1) / (sharedLast - 1)
+        : 0;
+    } else {
+      // ekstra runder (r > sharedLast) plasseres midt i
+      tFrac = 0.5;
+    }
+
+    // Regn ut start/slutt
+    const dayStart = parseLocalDateTime(dateKey, dt.startTime);
+    const dayEnd   = parseLocalDateTime(dateKey, dt.endTime);
+    const windowMs = dayEnd - dayStart;
+    const startMs  = dayStart.getTime() + tFrac * windowMs;
+    item.starttid  = new Date(startMs);
+    item.sluttid   = new Date(startMs + (divisionTimes[div] || 0) * 60000);
+
+    return item;
+  });
+}
+
+/**
+ * Synkroniserer sluttidene i alle divisjoner, slik at de avslutter samtidig.
+ */
+function alignFinishesAcrossDivisions(scheduledMatches) {
+  // 1) Finn siste slutt per divisjon
+  const finishByDiv = {};
+  scheduledMatches.forEach(item => {
+    if (!(item.sluttid instanceof Date)) return;
+    const div    = item.match.divisjon;
+    const finish = item.sluttid.getTime();
+    finishByDiv[div] = Math.max(finishByDiv[div] || 0, finish);
+  });
+  // 2) Beregn mål-finish
+  const targetFinish = Math.max(...Object.values(finishByDiv));
+  // 3) Flytt hver kamp i divisjonen med delt på diff
+  return scheduledMatches.map(item => {
+    const div     = item.match.divisjon;
+    const divFinish = finishByDiv[div] || 0;
+    const delta   = targetFinish - divFinish;
+    if (delta !== 0 && item.starttid instanceof Date) {
+      item.starttid = new Date(item.starttid.getTime() + delta);
+      item.sluttid  = new Date(item.sluttid.getTime() + delta);
+    }
+    return item;
+  });
+}
+
+async function finishWizard() {
+  try {
+    delete window.schedulingState;
+
+    // 1) Hent matcher og wizard‑tider
+    const alleMatches     = await collectMatches();
+    const wizardDateTimes = readDateTimesFromWizard();
+
+    // 2) Les divisjonstid
+    const divisionTimes = {};
+    document.querySelectorAll('#divisionTimeContainer input[data-division]')
+      .forEach(i => divisionTimes[i.dataset.division] = parseInt(i.value,10) || 20);
+
+    // 3) Andre settings
+    const tidMellomKamper = parseInt(document.getElementById('wizard_tidMellomKamper').value,10) || 0;
+    const minimumRestTime= parseInt(document.getElementById('wizard_minimumHviletid').value,10) || 0;
+    const matchTiming    = document.querySelector('input[name="wizard_matchTiming"]:checked').value;
+    const baner          = await hentOgOpprettBaner();
+
+    // 4) Sett globalSchedulingSettings for generateSchedule
+    window.globalSchedulingSettings = {
+      divisions:        Object.keys(divisionTimes),
+      divisionTimes,
+      dateTimes:        wizardDateTimes,
+      tidMellomKamper,
+      minimumRestTime,
+      matchTiming,
+      baner,
+      matches:          alleMatches
+    };
+
+    // 5) Generer struktur
+    const rawSchedule = generateSchedule();
+
+    // 6) Planlegg hver divisjon med midt‑ekstra‑runde
+    const perDivSchedule = planDivisionSeparately(rawSchedule, divisionTimes, wizardDateTimes);
+
+    // 7) Synkroniser sluttidene
+    const finalSchedule = alignFinishesAcrossDivisions(perDivSchedule);
+
+    // 8) Vis og lagre
+    window.scheduledMatches = finalSchedule;
+    await renderScheduleUI(finalSchedule);
+    await lagreKampoppsett();
+    await loadSavedSchedule();
+    console.log('✅ Kampoppsett lagret med ekstra runder midt i.');
+
+    showStep(6);
+  } catch (err) {
+    console.error('Feil i finishWizard:', err);
+    alert('Noe gikk galt – sjekk konsollen for detaljer.');
+  }
+}
+/**
+ * Fjerner siste runde i hver divisjon/fase
+ * dersom den har samme antall kamper som runden før.
+ */
+ function trimDuplicateLastRound(matchRounds) {
+  Object.entries(matchRounds).forEach(([divisjon, faser]) => {
+    Object.entries(faser).forEach(([faseKey, kamper]) => {
+      // Finn alle unike rundenumre
+      const rundeNumre = Array.from(new Set(kamper.map(k => k.rundeNummer)))
+                             .sort((a, b) => a - b);
+      if (rundeNumre.length < 2) return; 
+
+      const siste = rundeNumre[rundeNumre.length - 1];
+      const nestSiste = rundeNumre[rundeNumre.length - 2];
+
+      const antallSiste = kamper.filter(k => k.rundeNummer === siste).length;
+      const antallNestSiste = kamper.filter(k => k.rundeNummer === nestSiste).length;
+
+      // Hvis de er like, fjern alle kamper med rundeNummer === siste
+      if (antallSiste === antallNestSiste) {
+        matchRounds[divisjon][faseKey] =
+          kamper.filter(k => k.rundeNummer !== siste);
+        console.log(
+          `Trimmet bort duplikatrunde ${siste} i ${divisjon}/${faseKey}`
+        );
+      }
+    });
+  });
+}
+
+
+
+document.addEventListener('DOMContentLoaded', async () => {
+  try {
+    // 1) Hent turneringsdata (divisjoner, publisert-status osv.)
+    await fetchTurneringData();               // fyller divisionTimeContainer
+
+    // 2) Last inn eksisterende innstillinger og vis i wizard
+    await initializeSettings();               // logger "Innstillinger initialisert: {...}"
+
+    // 3) Fyll inn dato/tid-feltene i wizardtrinnet
+    await loadDateTimesWizard();              // logger "DateTimes hentet: {...}"
+
+    // 4) Hent og vis baner i wizard
+    await hentOgOpprettBaner();               // logger "Baner hentet: [...]"
+  } catch (err) {
+    console.error('Feil ved init:', err);
+    alert('Det oppstod en feil under oppstart – se konsollen.');
+  }
+});
+
+
+
+/**
+ * Planlegger én kamp på ett av de tilgjengelige banene, basert på 
+ * neste ledige tidspunkt på tvers av dager og baner.
+ *
+ * @param {Object} match    – kampen som skal planlegges
+ * @param {Object} settings – { division, faseKey, duration, buffer, minRest, timing }
+ * @param {Array}  baner    – liste med banenavn
+ * @returns {Object} – et objekt med match + planleggingsdetaljer
+ */
+/**
+ * Planlegger én kamp på ett av de tilgjengelige banene, med hensyn til:
+ *  - banenes ledige tidspunkt (som før)
+ *  - at hvert lag ikke kan ha overlapping
+ *  - minimum hviletid mellom to kamper for hvert lag
+ *
+ * @param {Object} match    – kampen som skal planlegges (bør inneholde match.hjemmelag og match.bortelag)
+ * @param {Object} settings – { division, faseKey, duration, buffer, minRest, timing }
+ * @param {Array}  baner    – liste med banenavn
+ * @returns {Object} – et objekt med match + planleggingsdetaljer
+ */
+ function planMatchOnCourt(match, settings, baner) {
+  const { duration, buffer, minRest, timing } = settings;
+  const dateTimes = window.globalSchedulingSettings.dateTimes;
+
+  // Initialiser intern tilstand første gang
+  if (!window.schedulingState) {
+    const dateQueue = Object.entries(dateTimes).sort(([a], [b]) => a.localeCompare(b));
+    const courtNext = {};
+    baner.forEach(court => {
+      const [firstDate, slot] = dateQueue[0];
+      courtNext[court] = { dateIndex: 0, time: slot.startTime };
+    });
+    window.schedulingState = {
+      dateQueue,
+      courtNext,
+      teamNext: {}  // holder neste ledige tid per lag, som ISO-streng "YYYY-MM-DDTHH:mm"
+    };
+  }
+
+  const state = window.schedulingState;
+  const home = match.hjemmelag;
+  const away = match.bortelag;
+
+  // Hjjelpefunksjon: kombiner dato + klokkeslett til ISO-minutt
+  const toTimestamp = (dateStr, timeStr) => {
+    // dateStr "YYYY-MM-DD", timeStr "HH:mm"
+    return new Date(`${dateStr}T${timeStr}:00`).getTime();
+  };
+
+  let chosen, startTs, endTs;
+  // Finn første ledige court/time som også passer lagene
+  outer: while (true) {
+    // 1) Finn court med tidligst tilgjengelig slot
+    chosen = null;
+    for (const court of baner) {
+      const next = state.courtNext[court];
+      if (!next.time) continue;
+      const ts = toTimestamp(state.dateQueue[next.dateIndex][0], next.time);
+      if (!chosen || ts < chosen.ts) {
+        chosen = { court, ...next, ts };
+      }
+    }
+    if (!chosen) throw new Error('Ingen ledige slots igjen for planlegging');
+
+    // 2) Sjekk lagenes tilgjengelighet
+    startTs = chosen.ts;
+    endTs   = startTs + duration * 60 * 1000;
+    const minHome = state.teamNext[home]  || 0;
+    const minAway = state.teamNext[away] || 0;
+    if (startTs >= minHome && startTs >= minAway) {
+      // ok å spille her
+      break outer;
+    }
+    // Hvis ikke ledig for ett av lagene, flytt denne banens next.time frem til max(minHome,minAway), behold dagen
+    const conflictTs = Math.max(minHome, minAway);
+    const conflictDate = new Date(conflictTs);
+    const dateStr = conflictDate.toISOString().slice(0,10);
+    const timeStr = conflictDate.toTimeString().slice(0,5);
+    state.courtNext[chosen.court] = { dateIndex: chosen.dateIndex, time: timeStr };
+    // Så loop og finn ny court
+  }
+
+  // Fra chosen har vi court, dateIndex og time
+  const dateStr = state.dateQueue[chosen.dateIndex][0];
+  const startTime = chosen.time;
+  const endTime = new Date(endTs).toTimeString().slice(0,5);
+
+  // Beregn neste ledige slot på denne banen
+  let nextDateIdx  = chosen.dateIndex;
+  let nextTimeMin  = endTs + buffer * 60 * 1000;
+  // Dersom passerer dagens slutt, hopp til neste dag
+  const dayEnd = state.dateQueue[chosen.dateIndex][1].endTime;
+  const dayEndTs = toTimestamp(dateStr, dayEnd);
+  if (nextTimeMin > dayEndTs) {
+    nextDateIdx++;
+    if (nextDateIdx < state.dateQueue.length) {
+      const nextStart = state.dateQueue[nextDateIdx][1].startTime;
+      nextTimeMin = toTimestamp(state.dateQueue[nextDateIdx][0], nextStart);
+    } else {
+      nextTimeMin = null;
+    }
+  }
+  const nextTime = nextTimeMin 
+    ? new Date(nextTimeMin).toTimeString().slice(0,5)
+    : null;
+  state.courtNext[chosen.court] = { dateIndex: nextDateIdx, time: nextTime };
+
+  // Oppdater lagenes neste ledige tid med hviletid
+  state.teamNext[home] = endTs + minRest * 60 * 1000;
+  state.teamNext[away] = endTs + minRest * 60 * 1000;
+
+  return {
+    match,
+    court:     chosen.court,
+    date:      dateStr,
+    startTime,
+    endTime,
+    timing
+  };
+}
+
+// Global array der vi lagrer kamp-objektene
+let scheduledMatches = [];
+
+// Hent og parse alle kamper fra Firestore
+// Hent og vis lagrede kamper i UI-et
+async function loadSavedSchedule() {
+  if (!turneringId) return;
+
+  try {
+    // 1) Les alle kamp-dokumenter fra Firestore
+    const snapshot = await db
+      .collection('turneringer')
+      .doc(turneringId)
+      .collection('kamper')
+      .get();
+    if (snapshot.empty) return;
+
+    // 2) Kartlegg Firestore-data til det renderScheduleUI forventer
+    const savedMatches = snapshot.docs.map(doc => {
+      const data = doc.data();
+      // Sørg for at vi alltid har JS Date-objekter
+      const startDate = data.starttid.toDate
+        ? data.starttid.toDate()
+        : new Date(data.starttid);
+      const endDate = data.sluttid.toDate
+        ? data.sluttid.toDate()
+        : new Date(data.sluttid);
+
+      return {
+        id:        doc.id,
+        hjemmelag: data.hjemmelag,
+        bortelag:  data.bortelag,
+        divisjon:  data.divisjon,
+        faseType:  data.faseType,
+        starttid:  startDate,
+        sluttid:   endDate,
+        bane:      data.bane
+      };
+    });
+
+    // 3) Sorter kampene kronologisk etter starttid
+    savedMatches.sort((a, b) => a.starttid - b.starttid);
+
+    // 4) Gjør tilgjengelig globalt og render i UI
+    window.scheduledMatches = savedMatches;
+    await renderScheduleUI(savedMatches);
+    showStep(6);
+
+  } catch (error) {
+    console.error('Kunne ikke laste kamper:', error);
+    // Valgfritt: vis en feilmelding i UI-et
+    const feilEl = document.getElementById('scheduleError');
+    if (feilEl) feilEl.textContent = 'Feil ved lasting av kamper. Se konsollen for detaljer.';
+  }
+}
+
+
+
+// Initialiser baner globalt med en tom liste
+window.baner = [];
+
+// Når DOM er klar: hent turneringsdata, innstillinger, datoer, baner OG kamper
+document.addEventListener('DOMContentLoaded', async () => {
+  await fetchTurneringData();      // → window.turneringData.dates
+  await initializeSettings();      // → window.globalSchedulingSettings
+  loadDateTimesWizard();           // → fyller dato‐/tid‐felter
+
+  // Hent baner FRA Firestore (true kilde) før vi tegner skjemaet
+  window.baner = await hentOgOpprettBaner();  // ← her settes window.baner :contentReference[oaicite:2]{index=2}:contentReference[oaicite:3]{index=3}
+
+  // Til slutt: hent og vis lagrede kamper
+  await loadSavedSchedule();       // nå vil renderScheduleUI finne baner og kamper
+});
+
+function buildPhaseQueue(matchRounds) {
+  const phaseQueue = [];
+
+  // 1) Finn lokale runder og globalt max
+  const roundsByDiv = {};
+  let maxGroupRounds = 0;
+  for (const div in matchRounds) {
+    const localSet = new Set();
+    for (const key in matchRounds[div]) {
+      matchRounds[div][key]
+        .filter(m => m.faseType === 'gruppespill')
+        .forEach(m => localSet.add(m.rundeNummer));
+    }
+    const localRounds = Array.from(localSet).sort((a, b) => a - b);
+    roundsByDiv[div] = localRounds;
+    maxGroupRounds = Math.max(maxGroupRounds, localRounds.length);
+  }
+  console.log('roundsByDiv:', roundsByDiv);
+  console.log('maxGroupRounds:', maxGroupRounds);
+
+  if (maxGroupRounds === 0) {
+    console.log('Ingen gruppespill­runder funnet – returnerer tom kø.');
+    return phaseQueue;
+  }
+
+  // 2) Kartlegg hver lokal runde → global indeks
+  const mapDivToGlobal = {};
+  for (const div in roundsByDiv) {
+    const local = roundsByDiv[div];
+    const L = local.length;
+    const positions = [];
+    if (L === 1) {
+      const mid = Math.floor(maxGroupRounds / 2);
+      console.log(`Divisjon ${div} har 1 runde, plasserer på global idx ${mid}`);
+      positions.push(mid);
+    } else {
+      for (let i = 0; i < L; i++) {
+        const g = Math.round(i * (maxGroupRounds - 1) / (L - 1));
+        console.log(`Divisjon ${div} lokal idx ${i} (runde ${local[i]}) → global idx ${g}`);
+        positions.push(g);
+      }
+    }
+    mapDivToGlobal[div] = positions;
+  }
+  console.log('mapDivToGlobal:', mapDivToGlobal);
+
+  // 3) Bygg globale rundene
+  for (let g = 0; g < maxGroupRounds; g++) {
+    const allMatches = [];
+    console.log(`--- Starter global runde ${g + 1} (idx ${g}) ---`);
+    for (const div in mapDivToGlobal) {
+      const localRounds = roundsByDiv[div];
+      const posArr = mapDivToGlobal[div];
+      posArr.forEach((globIdx, idx) => {
+        if (globIdx === g) {
+          const lokRunde = localRounds[idx];
+          console.log(`Pulje ${div}: henter lokal runde ${lokRunde}`);
+          for (const key in matchRounds[div]) {
+            matchRounds[div][key]
+              .filter(m => m.faseType === 'gruppespill' && m.rundeNummer === lokRunde)
+              .forEach(m => {
+                allMatches.push(m);
+                console.log(`  → Legger til kamp: ${m.home} vs ${m.away}`);
+              });
+          }
+        }
+      });
+    }
+    console.log(`Totalt kamper i global runde ${g + 1}: ${allMatches.length}`);
+    if (allMatches.length) {
+      phaseQueue.push({
+        faseType:    'gruppespill',
+        rundeNummer: g + 1,
+        matches:     allMatches
+      });
+    }
+  }
+
+  // 4) Legg til utslagsfaser
+  const elimMap = new Map();
+  for (const div in matchRounds) {
+    for (const key in matchRounds[div]) {
+      const arr = matchRounds[div][key];
+      if (arr.length && arr[0].faseType === 'utslag') {
+        if (!elimMap.has(key)) elimMap.set(key, []);
+        elimMap.get(key).push(...arr);
+      }
+    }
+  }
+  for (const [faseKey, matches] of elimMap.entries()) {
+    console.log(`Legger til utslagsfase ${faseKey} med ${matches.length} kamper`);
+    phaseQueue.push({
+      faseType: 'utslag',
+      faseKey,
+      matches
+    });
+  }
+
+  console.log('Full phaseQueue:', phaseQueue);
+  return phaseQueue;
+}
+
+// Globalt objekt for feltpreferanser – mappet slik: { "Bane1": ["Elite", "Junior"], "Bane2": ["Senior"] }
+let fieldPreferences = {}; // Dette lagres gjerne i Firestore, men her settes det via avanserte innstillinger
+
+// Funksjon for å hente divisjoner dynamisk og fylle draggable listen
+async function populateDivisionPriorityList() {
+  try {
+    const turneringId = sessionStorage.getItem('turneringId');
+    if (!turneringId) {
+      console.error('Turnerings-ID mangler. Kan ikke hente divisjoner.');
+      return;
+    }
+    const docRef = db.collection('turneringer').doc(turneringId);
+    const doc = await docRef.get();
+    if (!doc.exists) {
+      console.error('Fant ikke turneringsdokumentet.');
+      return;
+    }
+    const tournamentData = doc.data();
+    const divisions = tournamentData.divisions || [];
+    const divisionList = document.getElementById('divisionPriorityList');
+    if (!divisionList) {
+      console.error('Element med ID "divisionPriorityList" ble ikke funnet.');
+      return;
+    }
+    divisionList.innerHTML = '';
+    divisions.forEach(division => {
+      const li = document.createElement('li');
+      li.setAttribute('draggable', 'true');
+      li.setAttribute('data-division', division.name);
+      li.textContent = division.name;
+      divisionList.appendChild(li);
+    });
+    initDivisionPriority();
+  } catch (error) {
+    console.error('Feil ved henting av divisjoner:', error);
+  }
+}
+
+// Initier drag-and-drop for prioritetslisten (som før)
+function initDivisionPriority() {
+  const list = document.getElementById('divisionPriorityList');
+  let dragSrcEl = null;
+  function handleDragStart(e) {
+    dragSrcEl = this;
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/html', this.innerHTML);
+  }
+  function handleDragOver(e) {
+    if (e.preventDefault) e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    return false;
+  }
+  function handleDragEnter(e) {
+    this.classList.add('over');
+  }
+  function handleDragLeave(e) {
+    this.classList.remove('over');
+  }
+  function handleDrop(e) {
+    if (e.stopPropagation) e.stopPropagation();
+    if (dragSrcEl !== this) {
+      const tempHTML = dragSrcEl.innerHTML;
+      const tempDiv = dragSrcEl.getAttribute('data-division');
+      dragSrcEl.innerHTML = this.innerHTML;
+      dragSrcEl.setAttribute('data-division', this.getAttribute('data-division'));
+      this.innerHTML = tempHTML;
+      this.setAttribute('data-division', tempDiv);
+    }
+    return false;
+  }
+  function handleDragEnd(e) {
+    const items = list.querySelectorAll('li');
+    items.forEach(item => item.classList.remove('over'));
+  }
+  const items = list.querySelectorAll('li');
+  items.forEach(item => {
+    item.addEventListener('dragstart', handleDragStart, false);
+    item.addEventListener('dragenter', handleDragEnter, false);
+    item.addEventListener('dragover', handleDragOver, false);
+    item.addEventListener('dragleave', handleDragLeave, false);
+    item.addEventListener('drop', handleDrop, false);
+    item.addEventListener('dragend', handleDragEnd, false);
+  });
+}
+
+// Funksjon for å hente feltpreferanser – her simuleres vi ved å fylle containeren med et input for hver bane
+async function populateFieldPreferences() {
+  // For enkelhets skyld hentes banene via en eksisterende funksjon
+  const baner = await hentBaner(); // Forutsetter at denne funksjonen returnerer en array med banenavn
+  const container = document.getElementById('fieldPreferencesContainer');
+  container.innerHTML = '';
+  // For hver bane lager vi et avsnitt med en multiselect for divisjoner
+  const turneringDoc = await db.collection('turneringer').doc(turneringId).get();
+  const tournamentData = turneringDoc.data();
+  const divisions = (tournamentData.divisions || []).map(div => div.name);
+  baner.forEach(bane => {
+    const divElem = document.createElement('div');
+    divElem.classList.add('fieldPreference');
+    const heading = document.createElement('h4');
+    heading.textContent = bane;
+    divElem.appendChild(heading);
+    const label = document.createElement('label');
+    label.setAttribute('for', 'pref_' + bane);
+    label.textContent = 'Prioriterte divisjoner:';
+    divElem.appendChild(label);
+    const select = document.createElement('select');
+    select.setAttribute('id', 'pref_' + bane);
+    select.setAttribute('multiple', 'multiple');
+    divisions.forEach(divisionName => {
+      const option = document.createElement('option');
+      option.value = divisionName;
+      option.textContent = divisionName;
+      select.appendChild(option);
+    });
+    divElem.appendChild(select);
+    container.appendChild(divElem);
+  });
+}
+
+// Lagre avanserte innstillinger (både divisjonprioritet og feltpreferanser)
+function saveAdvancedSettings() {
+  // Hent den prioriterte rekkefølgen for divisjoner
+  const listItems = document.querySelectorAll('#divisionPriorityList li');
+  const divisionPriority = [];
+  listItems.forEach(item => {
+    divisionPriority.push(item.getAttribute('data-division'));
+  });
+  // Hent valgt kamp-timing (simultant eller sekvensielt)
+  const matchTiming = document.querySelector('input[name="matchTiming"]:checked').value;
+  // Hent minimum hviletid
+  const minHviletid = parseInt(document.getElementById('minHviletid').value, 10);
+  // Hent feltpreferanser fra hver bane
+  const baner = Array.from(document.querySelectorAll('#fieldPreferencesContainer .fieldPreference'));
+  const newFieldPreferences = {};
+  baner.forEach(baneElem => {
+    const baneName = baneElem.querySelector('h4').textContent;
+    const select = baneElem.querySelector('select');
+    const selected = Array.from(select.selectedOptions).map(opt => opt.value);
+    newFieldPreferences[baneName] = selected;
+  });
+  
+  const advancedSettings = {
+    divisionPriority: divisionPriority,
+    matchTiming: matchTiming,
+    minHviletid: minHviletid,
+    fieldPreferences: newFieldPreferences
+  };
+  
+  // Oppdater den globale variabelen for feltpreferanser
+  fieldPreferences = newFieldPreferences;
+  
+  console.log('Lagrede avanserte innstillinger:', advancedSettings);
+  
+  // Her kan du lagre advancedSettings i Firestore om ønskelig
+  
+  closePopup('advancedSettingsPopup');
+}
+
+// Funksjon for å åpne avanserte innstillinger – henter både divisjoner og feltpreferanser
+function openAdvancedSettings() {
+  openPopup('advancedSettingsPopup');
+  populateDivisionPriorityList();
+  populateFieldPreferences();
+}
+
+/**
+ * findEarliestBane
+ * ------------------------------------------------------------------
+ * Velger banen som kan starte tidligst gitt:
+ *   • earliestTime        – absolutt tidligste start for kampen
+ *   • baneOpptattTil[b]   – når banen er ledig igjen
+ *   • dateTimes[b]        – evt. { start, end } som åpningstid
+ *
+ * Returnerer første bane i baneNames som nødløsning dersom alle andre
+ * er utilgjengelige innenfor vinduet som kreves.
+ *
+ * @param {Array<string>} baneNames
+ * @param {Date}          earliestTime
+ * @param {Object}        dateTimes        – { [bane]: {start,end} }
+ * @param {Object}        baneOpptattTil   – { [bane]: Date }
+ * @returns {string} baneNavn
+ */
+ function findEarliestBane(
+  baneNames,
+  earliestTime,
+  dateTimes = {},
+  baneOpptattTil = {}
+) {
+  /* ---------- små hjelpere ---------- */
+  const isValidDate = d => d instanceof Date && !isNaN(d.getTime());
+  const toValidDate = v => {
+    if (!v) return null;
+    const d = new Date(v);
+    return isValidDate(d) ? d : null;
+  };
+
+  let bestBane  = null;
+  let bestStart = null;
+
+  /* ---------- sjekk alle baner ---------- */
+  for (const bane of baneNames) {
+    /* a) grunn-start = earliestTime eller nå */
+    let start = isValidDate(earliestTime) ? earliestTime : new Date();
+
+    /* b) ta hensyn til siste kamp på banen */
+    const opptattTil = baneOpptattTil[bane];
+    if (isValidDate(opptattTil) && opptattTil > start) {
+      start = opptattTil;
+    }
+
+    /* c) begrens med evt. åpningstid-vindu */
+    const vindu        = dateTimes[bane] || {};
+    const vinduStart   = toValidDate(vindu.start);
+    const vinduSlutt   = toValidDate(vindu.end);
+
+    if (vinduStart && start < vinduStart) start = vinduStart;
+    if (vinduSlutt && start > vinduSlutt) continue;   // stengt, prøv neste bane
+
+    /* d) er denne bedre enn beste så langt? */
+    if (!bestBane || start < bestStart) {
+      bestBane  = bane;
+      bestStart = start;
+    }
+  }
+
+  /* e) fall­back hvis alle ble forkastet */
+  return bestBane || baneNames[0];
+}
+
+/**
+ * Planlegger kamper samtidig (flere baner i parallell), men aldri inn i pauser.
+ *
+ * @param {Array}  phaseQueue           - Kø av faser med kamper
+ * @param {Array}  baner                - Liste av banenavn
+ * @param {Object} dateTimes            - { "YYYY-MM-DD": { startTime, endTime } }
+ * @param {number} tidPerKamp           - Varighet per kamp (min)
+ * @param {number} tidMellomKamper      - Pause mellom kamper på samme bane (min)
+ * @param {number} minRestTime          - Minimum hviletid for lag (min)
+ * @param {Object} baneOpptattTil       - { bane: { "YYYY-MM-DD": Date } }
+ * @param {Object} lagOpptattTil        - { lagNavn: Date }
+ * @returns {Array} scheduledMatches    - Planlagte kamper med starttid, sluttid og bane
+ */
+/**
+ * Legger kamper simultant på tilgjengelige baner, runde for runde.
+ *
+ * @param {Array<Object>} matches - Liste av kamper, hver med minst { dateTime: ISO-streng, homeTeam: string, awayTeam: string }
+ * @param {Array<string>} courts  - Liste av banenavn
+ * @param {number} intervalMinutes - Minutt‐intervall mellom hver runde
+ * @returns {Array<Object>} - Samme kamper, men med tilleggsfeltene `scheduledTime` og `court`
+ */
+/**
+ * Legger kamper simultant på tilgjengelige baner, runde for runde,
+ * etter fase-kø (phaseQueue), med respekt for pauser og hviletid.
+ *
+ * @param {Array}  phaseQueue      – kø av { division, faseType, rundeNummer, matches }
+ * @param {Array}  baner           – liste av banenavn
+ * @param {Object} dateTimes       – { "YYYY-MM-DD": { startTime, endTime } }
+ * @param {number} tidPerKamp      – minutter per kamp
+ * @param {number} tidMellomKamper – minutter pause mellom kamper på samme bane
+ * @param {number} minRestTime     – minutter hviletid for lagene
+ * @param {Object} baneOpptattTil  – { bane: { "YYYY-MM-DD": Date } }
+ * @param {Object} lagOpptattTil   – { lagNavn: Date }
+ * @returns {Array} planlagte kamper med starttid, sluttid og bane
+ */
+/**
+ * Legger kamper simultant på tilgjengelige baner, runde for runde,
+ * etter phase‐kø (phaseQueue), med respekt for pauser og hviletid.
+ *
+ * Nå med tillegg av `division`, `faseType`, `rundeNummer` og `faseKey`
+ * på hvert planlagt kamp‐objekt, slik at render‐funksjonen kan gruppere
+ * i fasecontainere og vise divisjonen korrekt.
+ *
+ * @param {Array}  phaseQueue      – kø av { division, faseType, rundeNummer, faseKey?, matches }
+ * @param {Array}  baner           – liste av banenavn
+ * @param {Object} dateTimes       – { "YYYY-MM-DD": { startTime, endTime } }
+ * @param {number} tidPerKamp      – minutter per kamp
+ * @param {number} tidMellomKamper – minutter pause mellom kamper på samme bane
+ * @param {number} minRestTime     – minutter hviletid for lagene
+ * @param {Object} baneOpptattTil  – { bane: { "YYYY-MM-DD": Date } }
+ * @param {Object} lagOpptattTil   – { lagNavn: Date }
+ * @returns {Promise<Array>}       – planlagte kamper med { division, faseType, rundeNummer?, faseKey?, id, hjemmelag, bortelag, starttid, sluttid, bane }
+ */
+/**
+ * Oppdatert scheduleMatchesSimultaneous med interleaving på tvers av divisjoner:
+ * – Samler alle kamper for en gitt runde (rundeNummer)
+ * – Interleaver matchene slik at divisjonene veksler: A, B, A, B, …
+ * – Planlegger dem samtidig på baner med batch‐tidspunkt
+ */
+// Oppdatert findNextValidStart: ruller over til neste dato når gjeldende dag er full
+/**
+ * Ruller over til neste gyldige start‐tid innenfor dateTimes.
+ * (Gitt fra tidligere i koden.)
+ */
+ function findNextValidStart(desiredStart) {
+  const dateKeys = Object.keys(window.dateTimes).sort();
+  let cursor = new Date(desiredStart);
+  let dayIndex = dateKeys.indexOf(cursor.toISOString().slice(0,10));
+  if (dayIndex === -1) dayIndex = 0;
+
+  while (dayIndex < dateKeys.length) {
+    const dayStr = dateKeys[dayIndex];
+    const dt = window.dateTimes[dayStr] || { startTime: '08:00', endTime: '20:00' };
+
+    // Juster opp til dagens start hvis før
+    const currentHHMM = cursor.toTimeString().slice(0,5);
+    if (currentHHMM < dt.startTime) {
+      cursor = new Date(`${dayStr}T${dt.startTime}`);
+    }
+
+    // Hvis etter dagens slutt → neste dag
+    if (cursor.toTimeString().slice(0,5) >= dt.endTime) {
+      dayIndex++;
+      if (dayIndex >= dateKeys.length) {
+        throw new Error('Ingen dager med ledig tid');
+      }
+      const nextDay = dateKeys[dayIndex];
+      const nextStart = window.dateTimes[nextDay]?.startTime || '08:00';
+      cursor = new Date(`${nextDay}T${nextStart}`);
+      continue;
+    }
+
+    // Hopp pauser (fra getBreaksForDate)
+    const hhmm = cursor.toTimeString().slice(0,5);
+    const breaks = getBreaksForDate(cursor);
+    const overlap = breaks.find(b => {
+      const pauseEnd = addMinutesToTime(b.startTime, b.duration);
+      return hhmm >= b.startTime && hhmm < pauseEnd;
+    });
+    if (overlap) {
+      const newTime = addMinutesToTime(overlap.startTime, overlap.duration);
+      cursor = new Date(`${dayStr}T${newTime}`);
+      continue;
+    }
+
+    return cursor;
+  }
+
+  throw new Error('Finner ikke ledig tid på noen dag');
+}
+
+/**
+ * Oppdatert scheduleMatchesSimultaneous
+ */
+
+
+/**
+ * Planlegg alle kamper simultant på tvers av baner, runde for runde,
+ * med interleaving mellom divisjoner og rotasjon av banenavn for hver kamp.
+ *
+ * @param {Array}  phaseQueue      – kø av { division, faseType, rundeNummer, matches }
+ * @param {Array}  baner           – liste av banenavn
+ * @param {Object} dateTimes       – { "YYYY-MM-DD": { startTime, endTime } }
+ * @param {number} tidPerKamp      – minutter per kamp
+ * @param {number} tidMellomKamper – minutter pause mellom kamper på samme bane
+ * @param {number} minRestTime     – minutter hviletid for lagene
+ * @param {Object} baneOpptattTil  – { bane: { "YYYY-MM-DD": Date } }
+ * @param {Object} lagOpptattTil   – { lagNavn: Date }
+ * @returns {Promise<Array>}       – planlagte kamper med { id, division, faseType, rundeNummer, hjemmelag, bortelag, starttid, sluttid, bane }
+ */
+ /**
+ * Planlegger alle kamper parallelt (simultant) på tvers av baner.
+ * TÅLER at phase.date mangler – tomme datoer fylles ut i sekvens
+ * fra listen i dateTimes (roterer hvis flere faser enn datoer).
+ *
+ * @param {Array}  phaseQueue      – [{ division, faseType, rundeNummer, date?, matches }]
+ * @param {Array}  baner           – [{ name }]  eller ["Bane 1", …]
+ * @param {Object} dateTimes       – { "YYYY-MM-DD": { startTime, endTime } }
+ * @param {number} tidPerKamp      – minutter per kamp
+ * @param {number} tidMellomKamper – minutter “banepause” etter kamp
+ * @param {number} minRestTime     – minutter hviletid for lagene
+ * @param {Object} baneOpptattTil  – initieres automatisk om tomt
+ * @param {Object} lagOpptattTil   – initieres automatisk om tomt
+ * @returns {Promise<Array>}       – planlagte kamper [{ …, starttid, sluttid, bane }]
+ */
+ /**
+ * scheduleMatchesSimultaneous
+ * -------------------------------------------------------------
+ * Planlegger kamper slik at rundene fra phaseQueue (interleavet
+ * på tvers av divisjoner) spilles parallelt på de banene som er
+ * tilgjengelige.  Vi fyller opp hver runde så tidlig som mulig,
+ * men tar hensyn til:
+ *   • minimum hviletid for hvert lag
+ *   • kamp-lengde + pauselengde mellom kamper på samme bane
+ *   • spesifikke dato-/tid-vinduer (dateTimes) hvis gitt
+ *
+ *  BUG-FIX 2. mai 2025 ▶︎ Vi trekker først ut en ren streng-liste
+ *  med banenavn (`baneNavn`).  Det er denne listen som sendes til
+ *  findEarliestBane(); sender vi hele bane-objekter blir hver
+ *  objektnøkkel til "[object Object]" og **alle** kamper havner på
+ *  samme bane.
+ *
+ * @param {Array<Object>} phaseQueue  – resultat fra buildPhaseQueue()
+ * @param {Array<string|{name:string}>} baner
+ * @param {Object} dateTimes          – evt. begrensede tidsvinduer
+ * @param {number} kampTidMin         – varighet én kamp i minutter
+ * @param {number} pauseMin           – pause mellom kamper på samme bane
+ * @param {number} minRestMin         – minimum hvile for lag mellom kamper
+ * @returns {Array<Object>} plannedMatches med feltene:
+ *          { ...match, start:Date, slutt:Date, bane:String }
+ */
+/**
+ * Planlegger kamper parallelt på flere baner.
+ * Returnerer Array<{ …, starttid:Date, sluttid:Date, bane:String }>
+ */
+ /**
+ * Planlegger kamper parallelt på flere baner og respekterer
+ *   dateTimes[bane].start / .end  → bruker .start som første ledige tid.
+ *
+ * Returnerer Array<{ …, starttid:Date, sluttid:Date, bane:String }>
+ */
+/**
+ * Planlegger kamper parallelt på flere baner og respekterer
+ *   dateTimes[bane].start / .end → bruker .start som første ledige tid.
+ *
+ * @param {Array<Object>} phaseQueue  – kø av faser med matcher
+ * @param {Array<string|{name:string}>} baner
+ * @param {Object} dateTimes          – evt. { [bane]: { start, end } }
+ * @param {number} kampTidMin         – varighet én kamp i minutter
+ * @param {number} pauseMin           – pause mellom kamper på samme bane
+ * @param {number} minRestMin         – minimum hviletid for lag mellom kamper
+ * @param {string} [breakTiming='afterPhase']
+ * @returns {Array<Object>} Array med planlagte kamper
+ */
+ /**
+ * Planlegger alle kamper “samtidig” – det vil si at hver bane lar neste tilgjengelige kamp starte
+ * så snart den forrige er ferdig + tid mellom kamper.
+ *
+ * @param {Array<Array<Object>>} phaseQueue      – Array av “faser”, hver fase er en liste av kamper
+ * @param {Array<string>}           baner         – Liste med baner/felt-navn, f.eks. ['Elite','1.divisjon']
+ * @param {Object}                   dateTimes     – Objekt { 'YYYY-MM-DD': { startTime, endTime }, … }
+ * @param {number}                   kampTidMin    – Tid (min) hver kamp varer
+ * @param {number}                   pauseMin      – Tid (min) mellom hver kamp på samme bane
+ * @param {number}                   minRestTime   – Minimum hviletid (min) for lag
+ * @param {string}                   matchTiming   – 'simultaneous' eller 'sequential'
+ * @returns {Promise<Array<Object>>}                – Liste med planlagte kamper (med starttid, sluttid, bane)
+ */
+ /**
+ * Planlegger alle kamper i én fase slik at de starter samtidig
+ * når alle kamper i forrige fase er ferdige.
+ *
+ * @param {Array<Object>} matches  – Liste av kamp-objekter med {id, duration, teams, court}
+ * @param {Object} nextAvailableTime – Kart fra bane-navn til Date når den er ledig
+ * @param {Array<Date>} phaseEndTimes   – Akkumulerte slutt-tider fra forrige fase
+ * @returns {{schedule: Array<Object>, phaseEndTimes: Array<Date>}}
+ */
+function scheduleMatchesSimultaneous(matches, nextAvailableTime, phaseEndTimes) {
+  // Finn tidspunktet når alle baner fra forrige fase er ferdige
+  const barrierTime = phaseEndTimes.length
+    ? new Date(Math.max(...phaseEndTimes.map(dt => dt.getTime())))
+    : new Date(); // hvis ingen forrige fase, bruk nå
+
+  // Sett alle baner ledige tid til barrierTime
+  Object.keys(nextAvailableTime).forEach(court => {
+    nextAvailableTime[court] = new Date(barrierTime);
+  });
+
+  const schedule = [];
+  const newPhaseEndTimes = [];
+
+  for (const match of matches) {
+    const { court, duration, teams } = match;
+
+    // Planlegg til første ledige på sin bane (alle er satt til barrierTime)
+    const start = new Date(nextAvailableTime[court]);
+    const end   = new Date(start.getTime() + duration * 60 * 1000);
+
+    schedule.push({
+      ...match,
+      start,
+      end,
+    });
+
+    // Oppdater når denne banen blir ledig igjen
+    nextAvailableTime[court] = new Date(end);
+    newPhaseEndTimes.push(end);
+  }
+
+  return {
+    schedule,
+    phaseEndTimes: newPhaseEndTimes,
+  };
+}
+
+/**
+ * Planlegger kamper sekvensielt, én per bane, 
+ * men sørger for hviletid for lag mellom sine kamper.
+ *
+ * @param {Array<Object>} matches  – Liste av kamp-objekter med {id, duration, teams, court}
+ * @param {Object} nextAvailableTime – Kart fra bane-navn til Date når den er ledig
+ * @param {Number} restMinutes      – Påkrevd hviletid i minutter mellom kamper for samme lag
+ * @returns {{schedule: Array<Object>, phaseEndTimes: Array<Date>}}
+ */
+function scheduleMatchesSequentially(matches, nextAvailableTime, restMinutes = 15) {
+  const schedule = [];
+  const newPhaseEndTimes = [];
+  // Kart fra lagID til siste kamp-slutt
+  const lastForTeam = {};
+
+  for (const match of matches) {
+    const { court, duration, teams } = match;
+
+    // Når er banen ledig?
+    let current = new Date(nextAvailableTime[court]);
+
+    // Når kan lagene spille igjen (hviletid)?
+    const teamRestartTimes = teams.map(team => {
+      if (!lastForTeam[team]) return current;
+      return new Date(Math.max(
+        lastForTeam[team].getTime(),
+        current.getTime()
+      ) + restMinutes * 60 * 1000);
+    });
+
+    // Banen må vente på alle lagene også
+    const readyTime = new Date(Math.max(current.getTime(), ...teamRestartTimes.map(d => d.getTime())));
+    const start = readyTime;
+    const end   = new Date(start.getTime() + duration * 60 * 1000);
+
+    schedule.push({
+      ...match,
+      start,
+      end,
+    });
+
+    // Oppdater tilgjengelighet
+    nextAvailableTime[court] = new Date(end);
+    teams.forEach(team => {
+      lastForTeam[team] = new Date(end);
+    });
+    newPhaseEndTimes.push(end);
+  }
+
+  return {
+    schedule,
+    phaseEndTimes: newPhaseEndTimes,
+  };
+}
+/**
+ * Tegner alle kamper og pauser inne i hver bane-tabell.
+ * – Finner unike baner fra scheduledMatches
+ * – Sorterer kampene stigende på starttid
+ * – Viser både matcher og pauser med dato/tid-formattering
+ */
+ /**
+ * Tegner alle kamper (og pauser) i bane-tabellene.
+ * Legger inn et tomt <p class="referees"></p> i hvert kamp-kort.
+ */
+function renderMatches(scheduledMatches) {
+  const container = document.getElementById('baneContainer');
+  container.innerHTML = '';
+
+  // 1) Unike datoer
+  const dates = [...new Set(
+    scheduledMatches.map(m => m.starttid.toISOString().slice(0, 10))
+  )];
+
+  dates.forEach(date => {
+    /* Dato-container */
+    const dateDiv = document.createElement('div');
+    dateDiv.className = 'date-container';
+    dateDiv.dataset.date = date;
+    dateDiv.innerHTML = `<h2>${date}</h2>`;
+
+    /* Baner den dagen */
+    const lanes = [...new Set(
+      scheduledMatches
+        .filter(m => m.starttid.toISOString().slice(0, 10) === date)
+        .map(m => m.bane)
+    )];
+
+    lanes.forEach(baneNavn => {
+      const laneDiv = document.createElement('div');
+      laneDiv.className = 'bane-tabell';
+      laneDiv.id = baneNavn;
+      laneDiv.innerHTML = `<h3>${baneNavn}</h3>`;
+      dateDiv.appendChild(laneDiv);
+    });
+
+    container.appendChild(dateDiv);
+  });
+
+  // 2) Selve kortene
+  scheduledMatches.forEach(m => {
+    const dateStr = m.starttid.toISOString().slice(0, 10);
+    const dateDiv = container.querySelector(
+      `.date-container[data-date="${dateStr}"]`
+    );
+    const laneDiv = dateDiv.querySelector(`.bane-tabell#${m.bane}`);
+
+    const card = document.createElement('div');
+    card.className = m.faseType === 'pause' ? 'pause-kort' : 'kamp-kort';
+    card.id = m.id;
+    card.draggable = true;
+
+    card.innerHTML = `
+      <div class="kamp-detaljer">
+        <h4>${m.hjemmelag} – ${m.bortelag}</h4>
+        <p>${m.starttid.toTimeString().slice(0, 5)}–${m.sluttid
+          .toTimeString()
+          .slice(0, 5)}</p>
+      </div>
+      <p class="referees"></p>
+    `;
+
+    laneDiv.appendChild(card);
+  });
+
+  /* Eventuelle etter-tasks */
+  setupGlobalDragAndDrop();
+}
+
+
+
+// Resten av planleggingsfunksjonene forblir uendret – det viktige er at alle kall til findEarliestBane nå sender match.divisjon.
+
+
+
+/**
+ * Planlegger kamper sekvensielt for å sikre at kun én kamp spilles per bane samtidig.
+ *
+ * @param {Array} matches - Array med kamper som skal planlegges. Hver kamp forventes å ha minst:
+ *   { id, hjemmelag, bortelag }
+ * @param {Date} roundStartTime - Starttidspunkt for runden.
+ * @param {Array} baner - Array med banenavn.
+ * @param {Object} dateTimes - Objekt med datoer og tilhørende start- og sluttider.
+ * @param {number} tidPerKamp - Kampvarighet i minutter.
+ * @param {number} tidMellomKamper - Pause i minutter mellom kamper på samme bane.
+ * @param {Object} baneOpptattTil - Objekt som sporer når hver bane er ledig.
+ * @param {Object} lagOpptattTil - Objekt som sporer når hvert lag er ledig.
+ * @returns {Array} scheduledMatches - Array med planlagte kamper, hver med starttid, sluttid og tildelt bane.
+ */
+// Funksjon for å hente divisjoner dynamisk og bygge opp prioriteringslisten
+
+// Hovedfunksjon: Planlegg kamper interleaved per runde, der rundene spilles sekvensielt
+async function scheduleMatchesAllPhasesInterleaved(phaseQueue, dateTimes, baner, tidPerKamp, tidMellomKamper, minRestTime) {
+  // Gruppér faser etter runde (bruk runde=1 dersom det ikke er satt)
+  const rounds = {};
+  phaseQueue.forEach(phase => {
+    const runde = phase.runde || 1;
+    if (!rounds[runde]) rounds[runde] = [];
+    rounds[runde].push(phase);
+  });
+
+  let allScheduled = [];
+  const baneOpptattTil = initBaneOpptattTil(baner, dateTimes);
+  const lagOpptattTil = {};
+
+  // Holder oversikt over lagene i den sist planlagte kampen
+  let lastScheduledTeams = new Set();
+
+  const roundKeys = Object.keys(rounds).sort((a, b) => a - b);
+
+  for (const roundKey of roundKeys) {
+    // Kombiner kampene fra alle fasene i denne runden
+    let combinedMatches = [];
+    rounds[roundKey].forEach(phase => {
+      phase.matches.forEach(match => {
+        combinedMatches.push({
+          ...match,
+          faseType: phase.faseType,
+          runde: phase.runde,
+          divisjon: phase.divisjon
+        });
+      });
+    });
+
+    // Gruppér kampene per divisjon for å kunne interleve (én kamp fra hver divisjon etter tur)
+    const matchesByDivision = {};
+    combinedMatches.forEach(match => {
+      const div = match.divisjon;
+      if (!matchesByDivision[div]) matchesByDivision[div] = [];
+      matchesByDivision[div].push(match);
+    });
+    const divisions = Object.keys(matchesByDivision);
+    let interleavedMatches = [];
+    let added = true;
+    while (added) {
+      added = false;
+      for (const div of divisions) {
+        if (matchesByDivision[div] && matchesByDivision[div].length > 0) {
+          interleavedMatches.push(matchesByDivision[div].shift());
+          added = true;
+        }
+      }
+    }
+
+    // Planlegg kampene én etter én for runden
+    while (interleavedMatches.length > 0) {
+      // Prøv å filtrere ut kamper som involverer lag fra forrige planlagte kamp
+      let candidateMatches = [];
+      if (lastScheduledTeams.size > 0) {
+        candidateMatches = interleavedMatches.filter(match => {
+          const teams = new Set([match.hjemmelag, match.bortelag]);
+          // Sjekk om noen av lagene allerede var med i den forrige kampen
+          for (let team of teams) {
+            if (lastScheduledTeams.has(team)) return false;
+          }
+          return true;
+        });
+      }
+      // Hvis ingen kandidater er ledige, bruk alle kampene
+      if (candidateMatches.length === 0) {
+        candidateMatches = interleavedMatches;
+      }
+
+      // Velg den kandidaten med tidligst mulig starttid (beregnet ut fra lagets tilgjengelighet og min hviletid)
+      let earliestMatch = null;
+      let earliestTime = null;
+      const firstDateKey = Object.keys(dateTimes)[0];
+      for (const match of candidateMatches) {
+        if (!lagOpptattTil[match.hjemmelag]) {
+          lagOpptattTil[match.hjemmelag] = new Date(`${firstDateKey}T${dateTimes[firstDateKey].startTime}`);
+        }
+        if (!lagOpptattTil[match.bortelag]) {
+          lagOpptattTil[match.bortelag] = new Date(`${firstDateKey}T${dateTimes[firstDateKey].startTime}`);
+        }
+        let matchEarliest = new Date(Math.max(lagOpptattTil[match.hjemmelag], lagOpptattTil[match.bortelag]));
+        // Juster for minimum hviletid
+        const rest1 = (matchEarliest - lagOpptattTil[match.hjemmelag]) / 60000;
+        const rest2 = (matchEarliest - lagOpptattTil[match.bortelag]) / 60000;
+        const restDeficit = minRestTime - Math.min(rest1, rest2);
+        if (restDeficit > 0) {
+          matchEarliest = new Date(matchEarliest.getTime() + restDeficit * 60000);
+        }
+        if (earliestTime === null || matchEarliest < earliestTime) {
+          earliestTime = matchEarliest;
+          earliestMatch = match;
+        }
+      }
+
+      if (!earliestMatch || !earliestTime) break;
+
+      const assignedBane = findEarliestBane(baner, earliestTime, dateTimes, baneOpptattTil);
+      if (!assignedBane) {
+        console.warn("Ingen bane tilgjengelig for kamp:", earliestMatch.id);
+        interleavedMatches = interleavedMatches.filter(m => m.id !== earliestMatch.id);
+        continue;
+      }
+      const matchEnd = new Date(earliestTime.getTime() + tidPerKamp * 60000);
+
+      // Oppdater lagets og banens tilgjengelighet
+      lagOpptattTil[earliestMatch.hjemmelag] = matchEnd;
+      lagOpptattTil[earliestMatch.bortelag] = matchEnd;
+      const dayStr = earliestTime.toISOString().split("T")[0];
+      baneOpptattTil[assignedBane][dayStr] = new Date(matchEnd.getTime() + tidMellomKamper * 60000);
+
+      const scheduledObj = {
+        id: earliestMatch.id,
+        hjemmelag: earliestMatch.hjemmelag,
+        bortelag: earliestMatch.bortelag,
+        starttid: earliestTime,
+        sluttid: matchEnd,
+        bane: assignedBane,
+        faseType: earliestMatch.faseType,
+        runde: earliestMatch.runde,
+        divisjon: earliestMatch.divisjon,
+        fasenummer: getFasenummer(earliestMatch.faseType)
+      };
+
+      allScheduled.push(scheduledObj);
+      await lagreKampTilFirebase(scheduledObj);
+      kampTabellRad(scheduledObj);
+
+      // Oppdater hvilke lag som spilte i sist planlagte kamp
+      lastScheduledTeams = new Set([earliestMatch.hjemmelag, earliestMatch.bortelag]);
+
+      // Fjern den planlagte kampen fra listen
+      interleavedMatches = interleavedMatches.filter(m => m.id !== earliestMatch.id);
+    }
+  }
+  return allScheduled;
+}
+
+/**
+ * scheduleOnePhase
+ *   - Planlegger kamper for ÉN fase, gitt *eksisterende* baneOpptattTil / lagOpptattTil
+ *
+ * @param {Object} phaseObj - f.eks. { fase:"fase1", divisjon:"elite", matches: [...] }
+ * @param {Object} dateTimes
+ * @param {Array} baner
+ * @param {number} tidPerKamp
+ * @param {number} tidMellomKamper
+ * @param {number} minRestTime
+ * @param {Object} baneOpptattTil - her ligger "når hver bane er ledig" fra forrige fase
+ * @param {Object} lagOpptattTil - her ligger "når hvert lag er ledig" fra forrige fase
+ *
+ * @returns {Array} planlagteKamper (for akkurat denne fasen)
+ */
+// Funksjon for å planlegge alle kamper parallelt (mikset på tvers av fasene)
+// 2) Planlegge alle kamper parallelt, nå med riktig fasenummer fra 'runde'
+async function scheduleMatchesAllPhasesParallel(
+  phaseQueue,
+  dateTimes,
+  baner,
+  tidPerKamp,
+  tidMellomKamper,
+  minRestTime
+) {
+  // Initialiser "når ledig" for baner og lag
+  const baneOpptattTil = initBaneOpptattTil(baner, dateTimes);
+  const lagOpptattTil  = {};
+  let allScheduled     = [];
+
+  // Gå gjennom hver fase i køen
+  for (const phaseObj of phaseQueue) {
+    // Kopier kampene slik at vi kan fjerne etterhvert
+    let interleavedMatches = [...phaseObj.matches];
+    let lastScheduledTeams = new Set();
+
+    while (interleavedMatches.length > 0) {
+      let earliestMatch = null;
+      let earliestTime  = null;
+
+      // Finn match med tidligst mulig start, hensyntatt hviletid
+      for (const match of interleavedMatches) {
+        const rest1 = lagOpptattTil[match.hjemmelag]
+                    ? (new Date() - lagOpptattTil[match.hjemmelag]) / 60000
+                    : Infinity;
+        const rest2 = lagOpptattTil[match.bortelag]
+                    ? (new Date() - lagOpptattTil[match.bortelag]) / 60000
+                    : Infinity;
+        let matchEarliest = new Date(Math.max(
+          lagOpptattTil[match.hjemmelag] || 0,
+          lagOpptattTil[match.bortelag] || 0
+        ));
+
+        // Sørg for minimum hviletid
+        const deficit = minRestTime - Math.min(rest1, rest2);
+        if (deficit > 0) {
+          matchEarliest = new Date(matchEarliest.getTime() + deficit * 60000);
+        }
+
+        if (earliestTime === null || matchEarliest < earliestTime) {
+          earliestTime  = matchEarliest;
+          earliestMatch = match;
+        }
+      }
+
+      if (!earliestMatch || !earliestTime) break;
+
+      // Velg bane
+      const assignedBane = findEarliestBane(
+        baner,
+        earliestTime,
+        dateTimes,
+        baneOpptattTil
+      );
+      if (!assignedBane) {
+        console.warn("Ingen bane tilgjengelig for kamp:", earliestMatch.id);
+        interleavedMatches = interleavedMatches.filter(m => m.id !== earliestMatch.id);
+        continue;
+      }
+
+      // Beregn sluttidspunkt
+      const matchEnd = new Date(earliestTime.getTime() + tidPerKamp * 60000);
+
+      // Oppdater tilgjengelighet
+      lagOpptattTil[earliestMatch.hjemmelag] = matchEnd;
+      lagOpptattTil[earliestMatch.bortelag]  = matchEnd;
+      const dayStr = earliestTime.toISOString().split("T")[0];
+      baneOpptattTil[assignedBane][dayStr] = new Date(matchEnd.getTime() + tidMellomKamper * 60000);
+
+      // Opprett planlagt kampobjekt med korrekt fasenummer
+      const scheduledObj = {
+        id:         earliestMatch.id,
+        hjemmelag:  earliestMatch.hjemmelag,
+        bortelag:   earliestMatch.bortelag,
+        starttid:   earliestTime,
+        sluttid:    matchEnd,
+        bane:       assignedBane,
+        faseType:   earliestMatch.faseType,
+        runde:      earliestMatch.runde,
+        divisjon:   earliestMatch.divisjon,
+        fasenummer: earliestMatch.runde      // HER hentes verdien fra 'runde'
+      };
+
+      allScheduled.push(scheduledObj);
+      await lagreKampTilFirebase(scheduledObj);
+      kampTabellRad(scheduledObj);
+
+      lastScheduledTeams = new Set([earliestMatch.hjemmelag, earliestMatch.bortelag]);
+      interleavedMatches = interleavedMatches.filter(m => m.id !== earliestMatch.id);
+    }
+  }
+
+  return allScheduled;
+}
+
+
+
+/* ============================== HJELPEFUNKSJONER ============================== */
+
+/**
+ * initBaneOpptattTil - 
+ *   baneOpptattTil[bane][dato] = Date (når banen er ledig).
+ */
+ function initBaneOpptattTil(baner, dateTimes) {
+    const baneOpptattTil = {};
+
+    baner.forEach(bane => {
+        baneOpptattTil[bane] = {};
+        for (const day in dateTimes) {
+            const startTimeStr = dateTimes[day].startTime || "08:00";
+            baneOpptattTil[bane][day] = new Date(`${day}T${startTimeStr}`);
+        }
+    });
+
+    return baneOpptattTil;
+}
+
+function capitalizeFirstLetter(string) {
+    return string.charAt(0).toUpperCase() + string.slice(1);
+}
+
+function formatLagNavn(lag) {
+    if (typeof lag === 'object' && lag !== null) {
+        if (lag.gruppeNavn && lag.plassering) {
+            return `Gruppe ${lag.gruppeNavn}, Plassering ${lag.plassering}`;
+        } else if (lag.navn) {
+            return lag.navn;
+        } else if (lag.placeholder) {
+            // Håndter plassholdere for utslagsrunder
+            return formatPlaceholder(lag.placeholder);
+        } else {
+            return JSON.stringify(lag); // Fallback for ukjent struktur
+        }
+    } else if (typeof lag === 'string') {
+        // Håndter strenger som representerer plassholdere
+        return formatPlaceholder(lag);
+    }
+    return lag;
+}
+
+function formatPlaceholder(placeholder) {
+    if (placeholder.startsWith('vinner-')) {
+        const matchInfo = placeholder.replace('vinner-', '').replace(/-/g, ' ');
+        return `Vinner av ${matchInfo}`;
+    } else if (placeholder.startsWith('taper-')) {
+        const matchInfo = placeholder.replace('taper-', '').replace(/-/g, ' ');
+        return `Taper av ${matchInfo}`;
+    } else {
+        return placeholder;
+    }
+}
+
+/**
+ * findEarliestBane
+ *   - Leter i banerListe for en bane der `possibleStart < dayEnd`.
+ *   - Velger bane med lavest (tidligst) possibleStart.
+ *   - Returnerer `null` hvis ingen bane er ledig.
+ */
+ 
+
+function getTeamIdentifier(lag) {
+  if (typeof lag === "object" && lag !== null) {
+    if (lag.navn) return `lag_${lag.navn}`;
+    return JSON.stringify(lag);
+  }
+  if (typeof lag === "string") return lag;
+  return "ukjent_lag";
+}
+
+/**
+ * scheduleMatches
+ * @param {Array} phaseQueue  - Array av faser, hver fasenode har {fase, divisjon, matches: []}
+ * @param {number} tidPerKamp - Antall minutter pr. kamp
+ * @param {number} tidMellomKamper - Antall minutter pause mellom kamper
+ * @param {Array} baner - Liste av banenavn (strings), f.eks. ["bane1", "bane2"]
+ * @param {number} minimumRestTime - Hviletid (i minutter) som lagene må få
+ * @param {number} antallDommerePerKamp - Hvor mange dommere per kamp (valgfritt)
+ * @returns {Array} planlagteKamper - Alle kamper med bane og starttid satt
+ */
+/**
+ * scheduleMatches - Planlegg kamper (fra en phaseQueue) parallelt
+ *
+ * @param {Array} phaseQueue - Array av faser: 
+ *   [
+ *     {
+ *       fase: "fase1",
+ *       divisjon: "elite",
+ *       matches: [
+ *         { lag1: "...", lag2: "...", rundeNummer: 1 },
+ *         ...
+ *       ]
+ *     },
+ *     ...
+ *   ]
+ * @param {Object} dateTimes - F.eks. {
+ *   "2024-12-19": {
+ *     "bane1": { startTime: "08:00", endTime: "20:00" },
+ *     "bane2": { startTime: "09:00", endTime: "18:00" }
+ *   }
+ * }
+ * @param {Array} baner - Array av banenavn, f.eks. ["bane1","bane2"]
+ * @param {number} tidPerKamp - Minutter pr. kamp
+ * @param {number} tidMellomKamper - Minutter “pause” etter hver kamp
+ * @param {number} minRestTime - Minutter hvile for lagene
+ * @returns {Array} planlagteKamper - Liste av {id, hjemmelag, bortelag, starttid, bane, fase, divisjon, rundeNummer}
+ */
+ 
+/**
+ * Eksempelfunksjon for å lage identifikator for laget.
+ * Juster etter hvordan du definerer lag i Firestore.
+ */
+
+
+
+// 1) Lagre kampdata til Firestore uten å default’e fasenummer til 1
+async function lagreKampTilFirebase(kamp) {
+  try {
+    // Sørg for at starttid og sluttid er Date-objekter
+    const startDate = kamp.starttid instanceof Date ? kamp.starttid : new Date(kamp.starttid);
+    const sluttDate = kamp.sluttid instanceof Date ? kamp.sluttid : new Date(kamp.sluttid);
+
+    const kampData = {
+      id:       kamp.id,
+      hjemmelag:kamp.hjemmelag || "Ukjent",
+      bortelag: kamp.bortelag  || "Ukjent",
+      starttid: startDate     ? firebase.firestore.Timestamp.fromDate(startDate) : null,
+      sluttid:  sluttDate     ? firebase.firestore.Timestamp.fromDate(sluttDate) : null,
+      bane:     kamp.bane      || "Ukjent",
+      fase:     kamp.faseType  || "ukjent",
+      divisjon: kamp.divisjon  || "ukjent",
+      dommere:  kamp.dommere   || [],
+      runde:      kamp.runde,        // bruk eksplisitt verdi
+      fasenummer: kamp.fasenummer    // bruk eksplisitt verdi
+    };
+
+    await db
+      .collection("turneringer")
+      .doc(turneringId)
+      .collection("kamper")
+      .doc(kamp.id)
+      .set(kampData);
+
+    console.log(`Kamp ${kamp.id} lagret til Firebase.`);
+  } catch (error) {
+    console.error(`Feil ved lagring av kamp ${kamp.id} til Firebase:`, error);
+  }
+}
+
+
+
+
+// Hjelpefunksjon for å returnere et tall for en gitt fasetype
+function getFasenummer(faseType) {
+  switch (faseType) {
+    case 'gruppespill':
+      return 1;
+    case 'utslag':
+      return 2;
+    case 'enkeltkamp':
+      return 3;
+    default:
+      return 1;
+  }
+}
+
+// Hjelpefunksjon som sorterer alle fase-containerne i en bane etter fasenummer
+function sortFaseContainers(bane) {
+  const baneContainer = document.getElementById(bane);
+  if (!baneContainer) return;
+  // Hent alle elementer med klassen "fase-container" i baneContainer
+  const faseContainers = Array.from(baneContainer.getElementsByClassName('fase-container'));
+  faseContainers.sort((a, b) => {
+    // Forutsetter at overskriften i hver container har formatet "Fase: <fasetype>"
+    const aFaseText = a.querySelector('h4') ? a.querySelector('h4').textContent : '';
+    const bFaseText = b.querySelector('h4') ? b.querySelector('h4').textContent : '';
+    const aFase = aFaseText.replace('Fase: ', '').trim();
+    const bFase = bFaseText.replace('Fase: ', '').trim();
+    return getFasenummer(aFase) - getFasenummer(bFase);
+  });
+  // Legg containerne tilbake i sortert rekkefølge
+  faseContainers.forEach(container => baneContainer.appendChild(container));
+}
+/**
+ * kampTabellRad
+ *   - Oppretter og tegner et .kamp-kort i riktig "fase-container" under en bane.
+ */
+ function kampTabellRad(kamp) {
+  const {
+    id, hjemmelag, bortelag,
+    starttid, bane, faseType, divisjon
+  } = kamp;
+
+  const faseContainer =
+    getOrCreateFaseContainer(bane, faseType);       // ← din egen hjelp-funksjon
+
+  /* ---------- KORT ---------- */
+  const kort = document.createElement("div");
+  kort.className = "kamp-kort";
+  kort.id        = id;
+  kort.dataset.matchId = id;                        // DnD-hjelp
+
+  kort.draggable = true;
+  kort.addEventListener("dragstart", onDragStart);  // gjenbruk de globale
+  kort.addEventListener("dragend",   onDragEnd);
+
+  /*  SIKKER: kortet får ALLTID .kamp-tid  */
+  kort.innerHTML = `
+    <div class="kamp-detaljer">
+      <h4>${hjemmelag} – ${bortelag}</h4>
+      <p class="kamp-divisjon">Divisjon: ${divisjon}</p>
+      <p class="kamp-tid">${formatDateTime(new Date(starttid))}</p>
+    </div>
+    <div class="referees" style="margin-top:5px;font-style:italic;"></div>
+  `;
+
+  faseContainer.appendChild(kort);
+}
+
+/**
+ * sortKampKortByStarttid
+ *  - Sorterer alle .kamp-kort inne i en gitt faseContainer basert på kampenes starttid.
+ *  - Forutsetter at du har en global array "kamper" (som du faktisk har).
+ */
+ function sortKampKortByStarttid(faseContainer) {
+    // Hent alle kamp-kort i denne faseContaineren
+    const kampKortListe = Array.from(faseContainer.querySelectorAll('.kamp-kort'));
+    
+    // Sorter basert på kampens starttid i stigende rekkefølge
+    kampKortListe.sort((a, b) => {
+        // Finn kampdataene fra den globale arrayen "kamper"
+        const kampA = kamper.find(k => k.id === a.id);
+        const kampB = kamper.find(k => k.id === b.id);
+        if (!kampA || !kampB) return 0; // Hvis data mangler, behold rekkefølge
+
+        // Husk at "starttid" kan ligge som en JS Date, en Firestore Timestamp, eller mangle helt
+        let startA = kampA.starttid 
+            ? (kampA.starttid.toDate ? kampA.starttid.toDate() : new Date(kampA.starttid))
+            : null;
+        let startB = kampB.starttid 
+            ? (kampB.starttid.toDate ? kampB.starttid.toDate() : new Date(kampB.starttid))
+            : null;
+
+        const timeA = startA ? startA.getTime() : 0;
+        const timeB = startB ? startB.getTime() : 0;
+
+        return timeA - timeB;  // Vanlig tall-sortering
+    });
+
+    // Legg kamp-kortene tilbake i riktig rekkefølge
+    kampKortListe.forEach(k => faseContainer.appendChild(k));
+}
+
+
+
+
+function formatLagNavn(lag) {
+    if (typeof lag === 'object' && lag !== null) {
+        if (lag.gruppeNavn && lag.plassering) {
+            return `Gruppe ${lag.gruppeNavn}, Plassering ${lag.plassering}`;
+        } else if (lag.navn) {
+            return lag.navn;
+        } else if (lag.placeholder) {
+            // Håndter plassholdere for utslagsrunder
+            return formatPlaceholder(lag.placeholder);
+        } else {
+            return JSON.stringify(lag); // Fallback for ukjent struktur
+        }
+    } else if (typeof lag === 'string') {
+        // Håndter strenger som representerer plassholdere
+        return formatPlaceholder(lag);
+    }
+    return lag;
+}
+
+function formatPlaceholder(placeholder) {
+    if (placeholder.startsWith('vinner-')) {
+        const matchInfo = placeholder.replace('vinner-', '').replace(/-/g, ' ');
+        return `Vinner av ${matchInfo}`;
+    } else if (placeholder.startsWith('taper-')) {
+        const matchInfo = placeholder.replace('taper-', '').replace(/-/g, ' ');
+        return `Taper av ${matchInfo}`;
+    } else {
+        return placeholder;
+    }
+}
+
+
+            function formatDateTime(dateTime) {
+                const options = { 
+                    year: 'numeric', month: 'numeric', day: 'numeric',
+                    hour: '2-digit', minute: '2-digit'
+                };
+                return dateTime.toLocaleString('no-NO', options);
+            }
+
+    
+
+
+            function formatGroupName(gruppe) {
+                if (typeof gruppe === 'string') {
+                    try {
+                        const groupData = JSON.parse(gruppe);
+                        return `${groupData.gruppeNavn} - ${groupData.plassering}`;
+                    } catch (error) {
+                        return gruppe; // Return original string if JSON parsing fails
+                    }
+                }
+                return gruppe;
+            }
+
+            // Drag-and-drop funksjonalitet
+            let placeholder = null;
+
+            let oldBaneContainer;
+
+
+
+function findNearestKampKort(mouseX, mouseY, maxDistance = 30) {
+  const allKort = document.querySelectorAll('.kamp-kort');
+  let nearestElement = null;
+  let nearestDist = Infinity;
+
+  for (const kort of allKort) {
+    const rect = kort.getBoundingClientRect();
+    // Finn midtpunktet av kortet (eller bruk .left, .top for hjørnet)
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+
+    const dx = centerX - mouseX;
+    const dy = centerY - mouseY;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+
+    if (dist < maxDistance && dist < nearestDist) {
+      nearestElement = kort;
+      nearestDist = dist;
+    }
+  }
+
+  return nearestElement;
+}
+
+function dragLeave(event) {
+  // Sjekk om vi faktisk forlater containeren
+  if (!event.currentTarget.contains(event.relatedTarget)) {
+    event.currentTarget.classList.remove('dragover');
+    if (placeholder && placeholder.parentNode === event.currentTarget) {
+      event.currentTarget.removeChild(placeholder);
+    }
+  }
+}
+async function drop(event) {
+    event.preventDefault();
+    const draggedId = event.dataTransfer.getData("text");
+    const draggedElement = document.getElementById(draggedId);
+
+    // Finn ny container (fase-container eller bane-tabell)
+    const newContainer = event.target.closest('.fase-container') 
+                      || event.target.closest('.bane-tabell');
+    if (!newContainer) {
+        console.warn("Drop: Ingen gyldig container funnet");
+        return;
+    }
+
+    // Plasser draggedElement der placeholder er
+    if (placeholder && placeholder.parentNode === newContainer) {
+        newContainer.insertBefore(draggedElement, placeholder);
+        newContainer.removeChild(placeholder);
+        placeholder = null;
+    } else {
+        newContainer.appendChild(draggedElement);
+    }
+
+    // Finn baneDiv for den nye containeren
+    const newBaneDiv = draggedElement.closest('.bane-tabell');
+    const oldBaneDiv = oldBaneContainer; // hvor den kom fra
+
+    // Oppdater gammel bane (hvis endret)
+    if (oldBaneDiv && oldBaneDiv !== newBaneDiv) {
+        await updateBane(oldBaneDiv);
+    }
+
+    // Oppdater ny bane
+    if (newBaneDiv) {
+        await updateBane(newBaneDiv);
+    }
+
+    oldBaneContainer = null;
+}
+
+
+
+
+async function oppdaterTider(container) {
+    if (!container) {
+        console.error("Container er ikke definert.");
+        return;
+    }
+
+    // Hent nærmeste bane-tabell (forutsetter at bane-tabell omslutter fase-container)
+    const baneElement = container.closest('.bane-tabell');
+    if (!baneElement) {
+        console.error("Fant ikke overordnet bane-tabell for container:", container.id);
+        return;
+    }
+
+    const baneId = baneElement.id;
+    const faseId = container.id;
+
+    console.log("Oppdaterer tider for container:", container.id);
+
+    // Hent starttid for banen
+    let currentTime = dateTimes[baneId]?.startTime 
+        ? new Date(`${dateTimes[baneId].date}T${dateTimes[baneId].startTime}`)
+        : new Date(); // Standard starttid hvis ingen er definert
+
+    const kampKortListe = Array.from(container.querySelectorAll('.kamp-kort'));
+    if (kampKortListe.length === 0) {
+        console.warn("Ingen kampkort funnet i container:", container.id);
+        return;
+    }
+
+    for (const kampKort of kampKortListe) {
+        const kampId = kampKort.id;
+
+        // Oppdater visning i DOM
+        const kampTidElement = kampKort.querySelector('.kamp-tid');
+        if (!kampTidElement) {
+            console.warn(`Fant ikke .kamp-tid for kampkort: ${kampId}`);
+            continue;
+        }
+
+        kampTidElement.textContent = formatDateTime(currentTime);
+
+        // Oppdater i Firebase
+        try {
+            await db.collection('turneringer')
+                .doc(turneringId)
+                .collection('kamper')
+                .doc(kampId)
+                .update({
+                    starttid: firebase.firestore.Timestamp.fromDate(currentTime),
+                    bane: baneId,
+                    fase: faseId,
+                });
+            console.log(`Kamp ${kampId} oppdatert med ny tid: ${currentTime}`);
+        } catch (error) {
+            console.error(`Feil ved oppdatering av kamp ${kampId}:`, error);
+        }
+
+        // Øk tiden for neste kamp basert på kampvarighet
+        currentTime = new Date(currentTime.getTime() + (turneringData.tidPerKamp + turneringData.tidMellomKamper) * 60000);
+    }
+}
+
+
+
+async function updateKampData(draggedElement) {
+    console.log(`Oppdaterer kamp: ${draggedElement.id}`);
+    
+    // Finn den nye bane-tabellen (bane2, bane1, bane3, etc.)
+    const newBaneContainer = draggedElement.closest('.bane-tabell');
+    console.log(`Ny bane container: ${newBaneContainer ? newBaneContainer.id : 'ukjent'}`);
+    console.log(`Er newBaneContainer en bane-tabell? ${newBaneContainer ? newBaneContainer.classList.contains('bane-tabell') : false}`);
+    
+    // Oppdater gammel bane hvis den er forskjellig fra ny bane
+    if (oldBaneContainer && oldBaneContainer !== newBaneContainer) {
+        console.log(`Oppdaterer gammel bane: ${oldBaneContainer.id}`);
+        await updateBane(oldBaneContainer);
+    }
+    
+    // Oppdater ny bane
+    if (newBaneContainer) {
+        console.log(`Oppdaterer ny bane: ${newBaneContainer.id}`);
+        await updateBane(newBaneContainer);
+    }
+    
+    // Overlap-sjekk
+    checkForOverlaps(kamper);
+    
+    // Oppdater oldBaneContainer til den nye for neste drag
+    oldBaneContainer = newBaneContainer;
+}
+
+
+function getFieldStartTime(baneId) {
+  // Bruk kun starttidene brukeren har lagt inn
+  if (window.dateTimes && Object.keys(window.dateTimes).length > 0) {
+    // Hent den første (eller den spesifikke) datoen som er definert
+    const dato = Object.keys(window.dateTimes)[0];
+    const startTimeStr = window.dateTimes[dato].startTime;  // f.eks. "08:00"
+    return new Date(`${dato}T${startTimeStr}`);
+  }
+  // Ingen tidspunkter definert – gi beskjed til brukeren
+  alert('Vennligst angi start- og sluttider for dagene før du genererer oppsettet.');
+  throw new Error('Ingen starttider definert');
+}
+
+
+function formatDateTime(dateTime) {
+  if (!dateTime || !(dateTime instanceof Date)) {
+    return "Ukjent tid";
+  }
+  const options = { 
+    year: 'numeric', 
+    month: 'numeric', 
+    day: 'numeric',
+    hour: '2-digit', 
+    minute: '2-digit'
+  };
+  return dateTime.toLocaleString('no-NO', options);
+}
+
+async function reSlotContainer(container) {
+    if (!container) return;
+    const kampKortListe = Array.from(container.querySelectorAll('.kamp-kort'));
+    if (kampKortListe.length === 0) return;
+
+    // 1) Bygg en array av { kampId, oldTime }
+    let arr = kampKortListe.map(k => {
+        const kampId = k.id;
+        const kampData = kamper.find(x => x.id === kampId);
+        return {
+            kampId,
+            oldTime: kampData?.starttid || new Date(0) // fallback hvis noe mangler
+        };
+    });
+
+    // 2) Sorter stigende på oldTime
+    arr.sort((a, b) => a.oldTime - b.oldTime);
+
+    // 3) Tildel disse oldTimes i rekkefølge av kampKortListe
+    for (let i = 0; i < kampKortListe.length; i++) {
+        const kampKort = kampKortListe[i];
+        const kampId = kampKort.id;
+
+        // oldTime = arr[i].oldTime (den i-ende eldste)
+        const oldTime = arr[i].oldTime;
+
+        // Oppdater i global array
+        const kampData = kamper.find(x => x.id === kampId);
+        if (kampData) {
+            kampData.starttid = oldTime;
+            
+            // Oppdater DOM-visning (kamp-tid)
+            const kampTidDiv = kampKort.querySelector('.kamp-tid');
+            if (kampTidDiv) {
+                kampTidDiv.textContent = formatDateTime(oldTime);
+            }
+
+            // Oppdater Firestore
+            const baneDiv = container.closest('.bane-tabell');
+            const baneId = baneDiv ? baneDiv.id : "";
+            const faseId = container.id.split('-').pop(); 
+            // (hvis du bruker `bane-faseType` i ID)
+
+            await db
+                .collection('turneringer')
+                .doc(turneringId)
+                .collection('kamper')
+                .doc(kampId)
+                .update({
+                    starttid: firebase.firestore.Timestamp.fromDate(oldTime),
+                    bane: baneId,
+                    fase: faseId
+                });
+        }
+    }
+
+    console.log(`reSlotContainer ferdig for ${container.id}`);
+}
+
+
+
+function checkForOverlaps(kamper) {
+    // For hver lag, samle deres kamper
+    const teamMatches = {};
+
+    kamper.forEach(kamp => {
+        const hjemmelag = JSON.stringify(kamp.hjemmelag);
+        const bortelag = JSON.stringify(kamp.bortelag);
+
+        [hjemmelag, bortelag].forEach(team => {
+            if (!teamMatches[team]) {
+                teamMatches[team] = [];
+            }
+            teamMatches[team].push(kamp);
+        });
+    });
+
+    // Hent varigheten av en kamp fra turneringData
+    const tidPerKamp = parseInt(turneringData.tidPerKamp, 10) || 35;
+
+    // Sjekk for overlappende kamper for hvert lag
+    const overlappingMatches = new Set();
+
+    for (let team in teamMatches) {
+        const matches = teamMatches[team];
+        // Sorter kampene etter starttid
+        matches.sort((a, b) => a.starttid - b.starttid);
+
+        for (let i = 0; i < matches.length - 1; i++) {
+            const matchA = matches[i];
+            const matchB = matches[i + 1];
+
+            const endTimeA = new Date(matchA.starttid.getTime() + tidPerKamp * 60000);
+            const startTimeB = matchB.starttid;
+
+            if (endTimeA > startTimeB) {
+                // Overlapp funnet
+                overlappingMatches.add(matchA.id);
+                overlappingMatches.add(matchB.id);
+            }
+        }
+    }
+
+    // Oppdater CSS-klasser for kampene basert på overlapp
+    document.querySelectorAll('.kamp-kort').forEach(kampElement => {
+        if (overlappingMatches.has(kampElement.id)) {
+            kampElement.classList.add('overlap-warning');
+        } else {
+            kampElement.classList.remove('overlap-warning');
+        }
+    });
+}
+
+
+       
+
+            let currentBaneNavn = null;
+
+            function openPausePopup(baneNavn) {
+                currentBaneNavn = baneNavn;
+                document.getElementById('pauseNavn').value = ''; // Tøm feltene
+                document.getElementById('pauseVarighet').value = '';
+                openPopup('pausePopup');
+            }
+
+            function leggTilPause() {
+                const pauseNavn = document.getElementById('pauseNavn').value;
+                const pauseVarighet = parseInt(document.getElementById('pauseVarighet').value, 10);
+
+                if (!pauseNavn || isNaN(pauseVarighet)) {
+                    alert("Vennligst oppgi gyldig navn og varighet for pausen.");
+                    return;
+                }
+
+                createPauseBlock(currentBaneNavn, pauseNavn, pauseVarighet);
+
+                // Lukk popup
+                closePopup('pausePopup');
+            }
+
+            function createPauseBlock(baneNavn, pauseNavn, pauseVarighet) {
+                const baneContainer = document.getElementById(baneNavn);
+
+                if (!baneContainer) {
+                    console.error(`Bane med navn ${baneNavn} ble ikke funnet.`);
+                    return;
+                }
+
+                // Opprett pauseblokk-elementet
+                const pauseBlock = document.createElement('div');
+                pauseBlock.className = 'pause-blokk';
+                pauseBlock.draggable = true;
+                pauseBlock.ondragstart = (event) => drag(event);
+                pauseBlock.ondragend = (event) => dragEnd(event);
+                pauseBlock.id = `pause-${Date.now()}`; // Unik ID
+
+                // Legg til innhold i pauseblokken
+                const pauseNavnElement = document.createElement('div');
+                pauseNavnElement.className = 'pause-navn';
+                pauseNavnElement.textContent = pauseNavn;
+
+                const pauseVarighetElement = document.createElement('div');
+                pauseVarighetElement.className = 'pause-varighet';
+                pauseVarighetElement.textContent = `${pauseVarighet} min`;
+
+                pauseBlock.appendChild(pauseNavnElement);
+                pauseBlock.appendChild(pauseVarighetElement);
+
+                // Legg pauseblokken til baneContainer
+                baneContainer.appendChild(pauseBlock);
+
+                // Legg til pauseobjekt i pauses-arrayen
+                const pauseObjekt = {
+                    id: pauseBlock.id,
+                    navn: pauseNavn,
+                    varighet: pauseVarighet,
+                    bane: baneNavn,
+                };
+                pauses.push(pauseObjekt);
+
+                // Lagre pause til Firebase
+                lagrePauseTilFirebase(pauseObjekt);
+
+                // Oppdater banen for å justere tider
+                updateBane(baneContainer);
+            }
+
+            async function lagrePauseTilFirebase(pause) {
+                try {
+                    await db.collection('turneringer').doc(turneringId).collection('pauser').doc(pause.id).set({
+                        navn: pause.navn,
+                        varighet: pause.varighet,
+                        bane: pause.bane,
+                    });
+                    console.log(`Pause ${pause.id} lagret til Firebase.`);
+                } catch (error) {
+                    console.error(`Feil ved lagring av pause ${pause.id} til Firebase: `, error);
+                }
+            }
+
+            async function hentOgVisPauser() {
+                try {
+                    const pauserSnapshot = await db.collection('turneringer').doc(turneringId).collection('pauser').get();
+                    pauses = []; // Tøm global pauses-array
+
+                    pauserSnapshot.forEach(pauseDoc => {
+                        const pauseData = pauseDoc.data();
+                        const pause = {
+                            id: pauseDoc.id,
+                            navn: pauseData.navn,
+                            varighet: pauseData.varighet,
+                            bane: pauseData.bane,
+                        };
+                        pauses.push(pause);
+
+                        // Opprett pauseblokk-elementet
+                        createPauseBlockElement(pause);
+                    });
+
+                    // Etter at alle pauser er lastet, oppdaterer vi banene
+                    const baner = document.querySelectorAll('.bane-tabell');
+                    baner.forEach(baneContainer => {
+
+                    });
+                } catch (error) {
+                    console.error('Feil ved henting av pauser:', error);
+                }
+            }
+
+            function createPauseBlockElement(pause) {
+    const baneContainer = document.getElementById(pause.bane);
+
+    if (!baneContainer) {
+        console.error(`Bane med navn ${pause.bane} ble ikke funnet.`);
+        return;
+    }
+
+    // Opprett pauseblokk-elementet
+    const pauseBlock = document.createElement('div');
+    pauseBlock.className = 'pause-blokk';
+    pauseBlock.draggable = true;
+    pauseBlock.ondragstart = (event) => drag(event);
+    pauseBlock.ondragend = (event) => dragEnd(event);
+    pauseBlock.id = pause.id;
+
+    // Legg til innhold i pauseblokken
+    const pauseNavnElement = document.createElement('div');
+    pauseNavnElement.className = 'pause-navn';
+    pauseNavnElement.textContent = pause.navn;
+
+    const pauseVarighetElement = document.createElement('div');
+    pauseVarighetElement.className = 'pause-varighet';
+    pauseVarighetElement.textContent = `${pause.varighet} min`;
+
+    // Legg til starttid
+    const pauseTidElement = document.createElement('div');
+    pauseTidElement.className = 'pause-tid';
+    pauseTidElement.textContent = formatDateTime(pause.starttid);
+
+    pauseBlock.appendChild(pauseTidElement);
+    pauseBlock.appendChild(pauseNavnElement);
+    pauseBlock.appendChild(pauseVarighetElement);
+
+    // Legg pauseblokken til baneContainer
+    baneContainer.appendChild(pauseBlock);
+}
+/**
+ * Henter dateTimes fra Firestore.
+ * Returnerer et objekt med dato‐nøkler (f.eks. { '2025-05-10': { startTime, endTime }, … })
+ */
+ async function getDateTimesFromFirestore() {
+  const doc = await db
+    .collection('turneringer')
+    .doc(turneringId)
+    .get();
+  const data = doc.exists ? doc.data() : {};
+  console.log('DateTimes hentet:', data.dateTimes);
+  return data.dateTimes || {};
+}
+
+
+
+
+
+
+function setupBaneContainer(baneDiv) {
+    // Sett opp drag-and-drop for baneDiv
+    baneDiv.ondragover = allowDrop;
+    baneDiv.ondragleave = dragLeave;
+    baneDiv.ondrop = async (event) => {
+        await drop(event);
+    };
+
+
+}
+
+
+/**
+ * Henter alle bane-dokumenter under turneringen i Firestore
+ * og returnerer en array med banenavn.
+ */
+ async function hentOgOpprettBaner() {
+  try {
+    const snap = await db
+      .collection('turneringer')
+      .doc(turneringId)
+      .collection('baner')
+      .get();
+
+    // Mapper hvert dokument til feltet "baneNavn"
+    const baner = snap.docs
+      .map(doc => doc.data().baneNavn)
+      .filter(navn => !!navn);  // fjern tomme eller undefined
+
+    console.log('Baner hentet:', baner);
+    return baner;
+  } catch (err) {
+    console.error('Feil ved henting av baner:', err);
+    return [];
+  }
+}
+
+async function slettBane(baneNavn) {
+  const bekreft = confirm(`Er du sikker på at du vil slette banen ${baneNavn}?`);
+  if (!bekreft) return;
+
+  try {
+    // Slett banen fra Firestore – her henter vi alle dokumenter med samme baneNavn
+    const baneQuerySnapshot = await db
+      .collection('turneringer')
+      .doc(turneringId)
+      .collection('baner')
+      .where("baneNavn", "==", baneNavn)
+      .get();
+
+    baneQuerySnapshot.forEach(doc => {
+      doc.ref.delete();
+    });
+
+    // Fjern baneDiv fra DOM
+    const baneDiv = document.getElementById(baneNavn);
+    if (baneDiv) {
+      baneDiv.remove();
+    }
+
+    alert(`Bane ${baneNavn} er slettet.`);
+  } catch (error) {
+    console.error("Feil ved sletting av bane:", error);
+    alert("Kunne ikke slette banen.");
+  }
+}
+
+/**
+ * Henter og viser kampoppsett i UI-et.
+ */
+ /**
+ * Henter og viser kampoppsett i UI-et.
+ */
+/**
+ * Henter og viser kampoppsett i UI-et:
+ * 1) Leser dateTimes fra Firestore
+ * 2) Henter baner fra subkolleksjonen turneringer/{id}/baner
+ * 3) Tegner én <div> per bane
+ * 4) Henter alle kamper fra turneringer/{id}/kamper
+ * 5) Plasserer kampene inne i de opprettede banene
+ */
+ async function hentOgVisKampoppsett() {
+  try {
+    // 1) Hent dateTimes for visning eller tidsakse
+    const dateTimes = await getDateTimesFromFirestore();
+
+    // 2) Hent baner fra subkolleksjonen
+    const baneSnap = await db
+      .collection('turneringer')
+      .doc(turneringId)
+      .collection('baner')
+      .get();
+    const baner = baneSnap.docs
+      .map(doc => doc.data().baneNavn)
+      .filter(Boolean);
+    console.log('Baner hentet:', baner);
+
+    // 3) Render banene i UI
+    const container = document.getElementById('baneContainer');
+    container.innerHTML = '';
+    baner.forEach(baneNavn => {
+      const baneDiv = document.createElement('div');
+      baneDiv.className = 'bane-tabell';
+      baneDiv.id = baneNavn;
+      const heading = document.createElement('h3');
+      heading.textContent = baneNavn;
+      baneDiv.appendChild(heading);
+      container.appendChild(baneDiv);
+    });
+
+    // 4) Hent alle kamper
+    const kamperSnap = await db
+      .collection('turneringer')
+      .doc(turneringId)
+      .collection('kamper')
+      .get();
+    console.log('Antall kamper funnet:', kamperSnap.size);
+
+    const matches = kamperSnap.docs.map(doc => {
+      const d = doc.data();
+      return {
+        id:         doc.id,
+        hjemmelag:  d.hjemmelag,
+        bortelag:   d.bortelag,
+        starttid:   d.starttid.toDate(),
+        sluttid:    d.sluttid.toDate(),
+        bane:       d.bane,
+        faseType:   d.faseType,
+        divisjon:   d.divisjon,
+        rundeNummer:d.rundeNummer
+      };
+    });
+
+    // 5) Render kampene i de eksisterende bane-div’ene
+    renderMatches(matches);
+  } catch (err) {
+    console.error('Feil i hentOgVisKampoppsett:', err);
+    alert('Kunne ikke vise kampoppsettet – sjekk konsollen.');
+  }
+}
+
+async function hentKamperFraFirebase() {
+    try {
+        console.log("Henter kamper fra Firebase...");
+        const kamperSnapshot = await db
+            .collection("turneringer")
+            .doc(turneringId)
+            .collection("kamper")
+            .get();
+
+        const kamper = kamperSnapshot.docs.map(doc => doc.data());
+
+        // Tøm eksisterende banecontainere
+        const baneContainerElementer = document.querySelectorAll(".bane-container");
+        baneContainerElementer.forEach(baneContainer => (baneContainer.innerHTML = ""));
+
+        // Gjenskap kampene i grensesnittet
+        kamper.forEach(kamp => {
+            kampTabellRad(kamp); // Oppretter kamp og fasecontainer om nødvendig
+        });
+
+        console.log("Kamper hentet og gjenskapt i grensesnittet.");
+    } catch (error) {
+        console.error("Feil ved henting av kamper fra Firebase:", error);
+    }
+}
+ 
+async function hentDommere() {
+    try {
+        const dommereSnapshot = await db.collection('turneringer').doc(turneringId).collection('dommere').get();
+
+        if (!dommereSnapshot.empty) {
+            dommere = [];
+            dommereSnapshot.forEach(doc => {
+                const dommerData = doc.data();
+                console.log(`Henter dommer: ${doc.id}`, dommerData); // Legg til denne linjen
+                dommere.push({
+                    id: doc.id,
+                    navn: dommerData.navn // Sørg for at 'navn' eksisterer i Firestore
+                });
+            });
+            console.log("Dommere hentet:", dommere);
+        } else {
+            console.warn("Ingen dommere funnet for denne turneringen.");
+        }
+    } catch (error) {
+        console.error("Feil ved henting av dommere:", error);
+    }
+}
+
+// Kall funksjonene for å hente baner og dommere, og deretter opprett banene
+// Globale variabler
+
+
+async function initializeSettings() {
+    try {
+        const turneringDoc = await db.collection('turneringer').doc(turneringId).get();
+        if (turneringDoc.exists) {
+            turneringData = turneringDoc.data();
+            dateTimes = turneringData.dateTimes || {};
+            antallDommerePerKamp = turneringData.antallDommerePerKamp || 1;
+            minimumRestTime = turneringData.minimumRestTime || 30; // Sett ønsket standard
+            console.log('Innstillinger initialisert:', turneringData);
+        } else {
+            console.error('Turneringen ble ikke funnet.');
+        }
+    } catch (error) {
+        console.error('Feil ved initialisering av innstillinger:', error);
+    }
+}
+
+
+// Funksjon for å bygge runder per divisjon
+function buildRoundsPerDivision(matchRounds) {
+    const divisionRounds = {};
+
+    for (const division in matchRounds) {
+        divisionRounds[division] = {};
+        for (const fase in matchRounds[division]) {
+            const matches = [...matchRounds[division][fase]];
+
+            // Sjekk om fasen er utslag
+            if (fase === 'utslag') {
+                // Gruppér kampene basert på rundenummer
+                const rounds = [];
+                const groupedByRound = {};
+
+                matches.forEach(match => {
+                    const roundNumber = match.rundeNummer !== undefined ? match.rundeNummer : 0; // Start på 0 hvis ikke definert
+                    if (!groupedByRound[roundNumber]) {
+                        groupedByRound[roundNumber] = [];
+                    }
+                    groupedByRound[roundNumber].push(match);
+                });
+
+                // Sorter rundene numerisk (0, 1, 2, ...)
+                const sortedRoundNumbers = Object.keys(groupedByRound)
+                    .map(Number)
+                    .sort((a, b) => a - b);
+
+                sortedRoundNumbers.forEach(roundNumber => {
+                    rounds.push(groupedByRound[roundNumber]);
+                });
+
+                divisionRounds[division][fase] = rounds;
+            } else {
+                // Logikk for andre faser som gruppespill
+                const rounds = [];
+                const matchesCopy = [...matches]; // Lag en kopi for manipulasjon
+
+                while (matchesCopy.length > 0) {
+                    const round = [];
+                    const teamsInRound = new Set();
+
+                    for (let i = matchesCopy.length - 1; i >= 0; i--) {
+                        const match = matchesCopy[i];
+                        const lag1 = getTeamIdentifier(match.lag1);
+                        const lag2 = getTeamIdentifier(match.lag2);
+
+                        if (!teamsInRound.has(lag1) && !teamsInRound.has(lag2)) {
+                            teamsInRound.add(lag1);
+                            teamsInRound.add(lag2);
+                            round.push(match);
+                            matchesCopy.splice(i, 1); // Fjern kampen fra matchesCopy
+                        }
+                    }
+
+                    rounds.push(round);
+                }
+
+                divisionRounds[division][fase] = rounds;
+            }
+        }
+    }
+    console.log("Division Rounds:", divisionRounds);
+    return divisionRounds;
+}
+
+// ─── Hjelpefunksjon: konverter til JS Date uansett format ───
+function asDate(val) {
+  if (val instanceof Date) return val;
+  if (val && typeof val.toDate === 'function') return val.toDate();
+  return new Date(val);
+}
+
+// Henter alle banedokumenter og returnerer en liste STRINGS
+async function hentBaner() {
+  try {
+    const snap = await db
+      .collection('turneringer')
+      .doc(turneringId)
+      .collection('baner')
+      .get();
+
+    // → "Bane 1", "Bane 2", …
+    const baner = snap.docs.map(d => d.data().baneNavn);
+    console.log('Baner hentet:', baner);
+    return baner;
+  } catch (err) {
+    console.error('Error getting baner:', err);
+    return [];
+  }
+}
+
+/**
+ * Sletter alle eksisterende kamper for turneringen i Firestore.
+ * Returnerer en Promise som fullføres når alle slettinger er utført.
+ */
+ async function slettEksisterendeKamper() {
+  try {
+    const kamperRef = db
+      .collection('turneringer')
+      .doc(turneringId)
+      .collection('kamper');
+    const snapshot = await kamperRef.get();
+    const batch = db.batch();
+
+    snapshot.docs.forEach(doc => {
+      batch.delete(doc.ref);
+    });
+
+    await batch.commit();
+    console.log('Alle gamle kamper slettet');
+  } catch (err) {
+    console.error('Feil ved sletting av gamle kamper:', err);
+    throw err;
+  }
+}
+
+function toggleUserMenu() {
+    const userMenu = document.getElementById('user-menu');
+    if (userMenu.style.display === 'none' || userMenu.style.display === '') {
+        userMenu.style.display = 'block';
+    } else {
+        userMenu.style.display = 'none';
+    }
+}
+/**
+ * Henter kamper, genererer dommer‑oppsett, viser det i UI og lagrer det
+ * i hvert kamp-dokument som feltet `dommere`.
+ */
+ async function promptGenerateRefereeSchedule() {
+  try {
+    // 1) Hent kamp‑dokumenter fra Firestore
+    const matchesSnap = await db
+      .collection('turneringer')
+      .doc(turneringId)
+      .collection('kamper')
+      .get();
+
+    // 2) Map Firestore‑data til JS‑objekter med ISO‑strenger
+    const matches = matchesSnap.docs.map(doc => {
+      const data = doc.data();
+      let startIso = null;
+      if (data.starttid && typeof data.starttid.toDate === 'function') {
+        startIso = data.starttid.toDate().toISOString();
+      } else if (typeof data.starttid === 'string') {
+        const d = new Date(data.starttid);
+        startIso = !isNaN(d.getTime()) ? d.toISOString() : null;
+      }
+      return {
+        id: doc.id,
+        hjemmelagId: data.hjemmelagId,
+        bortelagId: data.bortelagId,
+        divisjon: data.divisjon,
+        requiredLevel: data.requiredLevel,
+        starttid: startIso
+      };
+    });
+
+    console.log('Kampene med starttid:', matches);
+
+    // 3) Les antall dommere per kamp fra input‑feltet
+    const numRefsEl = document.getElementById('numRefereesInput');
+    if (!numRefsEl) {
+      console.error('Fant ikke input‑feltet #numRefereesInput');
+      return;
+    }
+    const numRefsPerMatch = parseInt(numRefsEl.value, 10);
+    if (isNaN(numRefsPerMatch) || numRefsPerMatch < 1) {
+      console.error('Ugyldig antall dommere:', numRefsEl.value);
+      return;
+    }
+
+    // 4) Generer oppsettet
+    const schedule = await generateRefereeSchedule(matches, numRefsPerMatch);
+    console.log('Endelig dommeroppsett (navn):', schedule);
+
+    // 5) Render dommere i hvert kamp‑kort
+    renderRefereesOnCards(schedule);
+
+    // 6) Lagre dommere som array i hvert kamp‑dokument
+    const batch = db.batch();
+    const kampRefBase = db
+      .collection('turneringer')
+      .doc(turneringId)
+      .collection('kamper');
+    Object.entries(schedule).forEach(([matchId, refs]) => {
+      const kampDoc = kampRefBase.doc(matchId);
+      batch.update(kampDoc, { dommere: refs });
+    });
+    await batch.commit();
+    console.log('Dommerfeltet "dommere" oppdatert i alle kamper.');
+
+  } catch (err) {
+    console.error('Feil i promptGenerateRefereeSchedule:', err);
+  }
+}
+
+/**
+ * Fyller ut dommer‑navn i hver kamp‑kort basert på schedule.
+ * @param {Object} schedule - matchId → [array av dommernavn]
+ */
+ function renderRefereesOnCards(schedule) {
+  Object.entries(schedule).forEach(([matchId, refs]) => {
+    const card = document.querySelector(`.kamp-kort[data-match-id="${matchId}"]`);
+    if (!card) return;
+    const container = card.querySelector('.referees');
+    container.textContent = ''; // tøm tidligere
+
+    if (refs.length) {
+      const label = document.createElement('strong');
+      label.textContent = 'Dommer(e): ';
+      container.appendChild(label);
+      container.appendChild(document.createTextNode(refs.join(', ')));
+    } else {
+      container.textContent = 'Ingen dommere tildelt';
+    }
+  });
+}/* ──────────────────────────────────────────────────────────── */
+/* 0. Globale variabler                                        */
+/* ──────────────────────────────────────────────────────────── */
+let draggedElement = null;   // kortet som dras akkurat nå
+let sourceBane     = null;   // banen kortet kom fra
+
+/* ──────────────────────────────────────────────────────────── */
+/* 1. Aktiver drag-and-drop etter at kortene er i DOM          */
+/* ──────────────────────────────────────────────────────────── */
+function setupGlobalDragAndDrop() {
+  console.log('[setup] kobler på DnD-lyttere');
+
+  document.querySelectorAll('.kamp-kort, .pause-kort').forEach(card => {
+    card.draggable = true;
+    card.addEventListener('dragstart', onDragStart);
+    card.addEventListener('dragend',   onDragEnd);
+  });
+
+  document.querySelectorAll('.bane-tabell, .fase-container').forEach(cont => {
+    cont.addEventListener('dragover',  onDragOver);
+    cont.addEventListener('dragleave', onDragLeave);
+    cont.addEventListener('drop',      onDrop);
+  });
+}
+
+/* ──────────────────────────────────────────────────────────── */
+/* 2. dragstart                                               */
+/* ──────────────────────────────────────────────────────────── */
+function onDragStart(event) {
+  draggedElement = event.currentTarget;
+  sourceBane     = draggedElement.closest('.bane-tabell, .fase-container');
+
+  event.dataTransfer.effectAllowed = 'move';
+  event.dataTransfer.setData('text/plain', draggedElement.dataset.matchId);
+  draggedElement.classList.add('dragging');
+
+  console.log('[dragstart]', draggedElement.dataset.matchId, 'fra', sourceBane?.id);
+}
+
+/* ──────────────────────────────────────────────────────────── */
+/* 3. dragover – opprett / flytt placeholder                  */
+/* ──────────────────────────────────────────────────────────── */
+function onDragOver(event) {
+  event.preventDefault();                   // nødvendig for å kunne slippe
+  const lane = event.currentTarget;
+
+  let placeholder = lane.querySelector('.kamp-kort.placeholder');
+  if (!placeholder) {
+    placeholder = document.createElement('div');
+    placeholder.classList.add('kamp-kort', 'placeholder');
+    placeholder.style.height = draggedElement.offsetHeight + 'px';
+    lane.appendChild(placeholder);
+    console.log('[dragover]', lane.id, '=> lager placeholder');
+  }
+
+  const after = [...lane.querySelectorAll('.kamp-kort:not(.placeholder)')]
+    .find(el => event.clientY < el.getBoundingClientRect().top + el.offsetHeight / 2);
+
+  lane.insertBefore(placeholder, after || null);
+}
+
+/* ──────────────────────────────────────────────────────────── */
+/* 4. dragleave                                               */
+/* ──────────────────────────────────────────────────────────── */
+function onDragLeave(event) {
+  if (!event.currentTarget.contains(event.relatedTarget)) {
+    const ph = event.currentTarget.querySelector('.kamp-kort.placeholder');
+    if (ph) { ph.remove(); console.log('[dragleave] fjernet placeholder'); }
+  }
+}
+
+/* ──────────────────────────────────────────────────────────── */
+/* 5. drop                                                    */
+/* ──────────────────────────────────────────────────────────── */
+async function onDrop(event) {
+  event.preventDefault();
+
+  const draggedId  = event.dataTransfer.getData('text/plain');
+  const draggedEl  = document.querySelector(`[data-match-id="${draggedId}"]`);
+  const newLaneDiv = event.currentTarget;
+
+  console.log('[drop] id', draggedId, '→', newLaneDiv?.id);
+
+  if (!draggedEl || !newLaneDiv) {
+    console.warn('[drop] mangler draggedEl eller newLaneDiv');
+    return;
+  }
+
+  const ph = newLaneDiv.querySelector('.kamp-kort.placeholder');
+  if (ph) {
+    newLaneDiv.insertBefore(draggedEl, ph);
+    ph.remove();
+  } else {
+    newLaneDiv.appendChild(draggedEl);
+  }
+
+  /* Oppdater tider */
+  await updateBaneTimes(newLaneDiv);
+  if (sourceBane && sourceBane !== newLaneDiv) {
+    await updateBaneTimes(sourceBane);
+  }
+  console.log('[drop] updateBaneTimes ferdig for begge baner');
+
+  draggedEl.classList.remove('dragging');
+  draggedElement = null;
+  sourceBane     = null;
+}
+
+/* ──────────────────────────────────────────────────────────── */
+/* 6. dragend                                                 */
+/* ──────────────────────────────────────────────────────────── */
+function onDragEnd() {
+  const ph = document.querySelector('.kamp-kort.placeholder');
+  if (ph) ph.remove();
+  if (draggedElement) draggedElement.classList.remove('dragging');
+  draggedElement = null;
+  sourceBane     = null;
+
+  console.log('[dragend] avsluttet drag');
+}
+
+/* ──────────────────────────────────────────────────────────── */
+/* 7. Hjelper: dato fra lane-id                               */
+/* ──────────────────────────────────────────────────────────── */
+function getDateFromLaneId(id) {
+  const m = id.match(/\d{4}-\d{2}-\d{2}/);
+  return m ? m[0] : null;
+}
+
+/**
+ * Re‑sekvenserer ALLE kamp-/pause‑kort i laneDiv.
+ * Tar hensyn til tidPerKamp & gapMin for hver enkelt DIVISJON.
+ */
+// Erstatt den eksisterende implementasjonen av updateBaneTimes
+// med denne versjonen.  Den bruker de opprinnelige tidene til
+// kampene/pausene og oppdaterer **kun** banen hvis et kort
+// er flyttet til en ny bane.
+
+/**
+ * Oppdaterer en bane‐kolonne etter drag‑&‑drop uten å endre
+ * start‑/sluttider for kampene eller pausene.
+ *
+ * @param {HTMLElement} laneDiv – <div class="bane-tabell" …>
+ */
+ /**
+ * Rekalkulerer tider for ALLE kamp- og pausekort i laneDiv.
+ *  ✦ Respekterer ulik varighet per divisjon
+ *  ✦ Legger inn globalt mellomrom mellom kamper
+ *  ✦ Oppdaterer Firestore + UI
+ *  ✦ Flytter kortene slik at visuell rekkefølge = tidligst først
+ */
+/**
+ * Re-sekvenserer kamp-/pausekort i laneDiv.
+ * Banen starter på tidligste kamp-start for datoen.
+ * Ulike varigheter per divisjon + globalt gapMin håndteres.
+ */
+ async function updateBaneTimes(laneDiv) {
+  if (!laneDiv) return;
+
+  /* ── 0. Konfig & dato ────────────────────────────── */
+  const dateStr = getDateFromLaneId(laneDiv.id);
+  if (!dateStr) return console.warn('Ingen dato i id', laneDiv.id);
+
+  const cfg               = window.globalSchedulingSettings || {};
+  const gapMin            = cfg.tidMellomKamper   ?? 0;
+  const defaultMatchMin   = cfg.tidPerKamp        ?? 15;
+  const divisionDuration  = cfg.divisionDurations ?? {};    // { Elite: 20, U19: 12, … }
+  const gapMs             = gapMin * 60_000;
+
+  /* ── 1. Finn tidligste hh:mm på datoen ────────────── */
+  function earliestHHMM(dateStr) {
+    const list = (window.scheduledMatches || window.kamper || [])
+      .filter(k => k.starttid && new Date(k.starttid).toISOString().slice(0,10) === dateStr)
+      .map(k => new Date(k.starttid));
+
+    if (list.length === 0) return '08:00';
+
+    const min = new Date(Math.min(...list.map(d => d.getTime())));
+    return min.toTimeString().slice(0,5);            // «HH:MM»
+  }
+  let cursor = new Date(`${dateStr}T${earliestHHMM(dateStr)}`);
+
+  /* ── 2. Kortene i VISUELT oppsett ─────────────────── */
+  const cards = Array.from(
+    laneDiv.querySelectorAll('.kamp-kort:not(.placeholder), .pause-blokk')
+  );
+  if (cards.length === 0) return;
+
+  /* ── 3. Sekvensering ──────────────────────────────── */
+  for (const card of cards) {
+
+    /* ========= KAMP ================================= */
+    if (card.classList.contains('kamp-kort')) {
+      const id   = card.dataset.matchId || card.id;
+      const kamp = (window.scheduledMatches || window.kamper || []).find(k => k.id === id);
+      if (!kamp) continue;
+
+      /* ► varighet: eksisterende ▸ divisjon ▸ default */
+      let kampMs;
+      if (kamp.starttid && kamp.sluttid) {
+        kampMs = new Date(kamp.sluttid) - new Date(kamp.starttid);
+      } else if (divisionDuration[kamp.divisjon]) {
+        kampMs = divisionDuration[kamp.divisjon] * 60_000;
+      } else {
+        kampMs = defaultMatchMin * 60_000;
+      }
+
+      kamp.starttid = new Date(cursor);
+      kamp.sluttid  = new Date(cursor.getTime() + kampMs);
+      kamp.bane     = laneDiv.dataset.bane || laneDiv.id;
+
+      await db.collection('turneringer')
+              .doc(turneringId)
+              .collection('kamper')
+              .doc(id)
+              .update({
+                starttid: firebase.firestore.Timestamp.fromDate(kamp.starttid),
+                sluttid : firebase.firestore.Timestamp.fromDate(kamp.sluttid),
+                bane    : kamp.bane
+              });
+
+      const timeStr =
+        kamp.starttid.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) +
+        '–' +
+        kamp.sluttid .toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+
+      let tidsEls = card.querySelectorAll('.kamp-tid');
+      if (tidsEls.length === 0) {
+        const p = document.createElement('p');
+        p.className = 'kamp-tid';
+        card.appendChild(p);
+        tidsEls = [p];
+      }
+      tidsEls.forEach(el => (el.textContent = timeStr));
+      tidsEls.forEach((el, idx) => { if (idx > 0) el.remove(); });
+
+      cursor = new Date(cursor.getTime() + kampMs + gapMs);
+    }
+
+    /* ========= PAUSE ================================ */
+    else if (card.classList.contains('pause-blokk')) {
+      const id   = card.id;
+      const paus = (window.pauses || []).find(p => p.id === id);
+      if (!paus) continue;
+
+      const pauseMs = (paus.varighet || 0) * 60_000;
+      paus.starttid = new Date(cursor);
+
+      await db.collection('turneringer')
+              .doc(turneringId)
+              .collection('pauser')
+              .doc(id)
+              .update({
+                starttid: firebase.firestore.Timestamp.fromDate(paus.starttid),
+                bane    : laneDiv.dataset.bane || laneDiv.id
+              });
+
+      const pStr = paus.starttid.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+      let tidsEls = card.querySelectorAll('.pause-tid');
+      if (tidsEls.length === 0) {
+        const p = document.createElement('p');
+        p.className = 'pause-tid';
+        card.appendChild(p);
+        tidsEls = [p];
+      }
+      tidsEls.forEach(el => (el.textContent = pStr));
+      tidsEls.forEach((el, idx) => { if (idx > 0) el.remove(); });
+
+      cursor = new Date(cursor.getTime() + pauseMs);
+    }
+  }
+
+  console.log('[updateBaneTimes] ferdig for', laneDiv.id);
+}
+
+// Husk å fjerne/kommentere ut all logikk som kaller getFieldStartTime eller
+// som manipulerer "current"‑pekeren i den gamle versjonen av funksjonen.
+
+
+/* ──────────────────────────────────────────────────────────── */
+/* 9. Kjør oppsett ettter at kortene er laget                  */
+/* ──────────────────────────────────────────────────────────── */
+document.addEventListener('DOMContentLoaded', () => {
+  /* din egen funksjon som lager kortene → renderScheduleUI(); */
+  setupGlobalDragAndDrop();
+});
+
+
+        </script>
+    </body>
+</html>
+

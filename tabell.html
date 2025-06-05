@@ -1,0 +1,817 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+  <meta charset="UTF-8" />
+  <title>Alle divisjons- og fase-tabeller</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
+  <!-- Global stylesheet -->
+  <link rel="stylesheet" href="./style.css" />
+     <link
+  rel="stylesheet"
+  href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+  integrity="sha512-...eksak/oppsett…"
+  crossorigin="anonymous"
+  referrerpolicy="no-referrer"
+/>
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    integrity="sha512-pIVISY5bYfAUGRTeOWOqyv/TKfI9yLxBq2gP11u0uKiLu+5mwW+Ha8MTrbP5xDKV/QvKJi70+E3qzGTQ4M0UgA=="
+    crossorigin="anonymous"
+    referrerpolicy="no-referrer"
+  />
+  <style>
+    /* Sidespesifikk styling (tillegg til style.css) */
+    body {
+      font-family: "Poppins", sans-serif;
+      margin: 0;
+      padding: 0 1rem;
+    }
+    header,
+    footer {
+      text-align: center;
+      padding: 1rem 0;
+    }
+    h1 {
+      margin: 1rem 0;
+    }
+    .table-section {
+      margin-bottom: 2.5rem;
+    }
+    .table-section h2 {
+      font-size: 1.25rem;
+      margin-bottom: 0.5rem;
+    }
+    table.divisjonstabell {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    table.divisjonstabell th,
+    table.divisjonstabell td {
+      padding: 0.45rem;
+      border: 1px solid #ddd;
+      text-align: center;
+    }
+    table.divisjonstabell th {
+      color: #fff;
+    }
+    /* Enkel responsivitet: skjul noen kolonner på mobil */
+    @media (max-width: 768px) {
+      .divisjonstabell th:nth-child(3),
+      .divisjonstabell td:nth-child(3),
+      .divisjonstabell th:nth-child(5),
+      .divisjonstabell td:nth-child(5),
+      .divisjonstabell th:nth-child(6),
+      .divisjonstabell td:nth-child(6),
+      .divisjonstabell th:nth-child(7),
+      .divisjonstabell td:nth-child(7),
+      .divisjonstabell th:nth-child(8),
+      .divisjonstabell td:nth-child(8) {
+        display: none;
+      }
+    }
+    /* Tabs-styling */
+    .division-tabs {
+      margin-bottom: 2rem;
+    }
+    .tabs {
+      list-style: none;
+      display: flex;
+      padding: 0;
+      margin: 0 0 1rem 0;
+      border-bottom: 2px solid #ddd;
+    }
+    .tab {
+      padding: 0.5rem 1rem;
+      cursor: pointer;
+      border: 1px solid #ddd;
+      border-bottom: none;
+      background: #f9f9f9;
+      margin-right: 0.5rem;
+      border-top-left-radius: 4px;
+      border-top-right-radius: 4px;
+    }
+    .tab.active {
+      background: #fff;
+      font-weight: 600;
+      border-color: #ccc;
+      border-bottom: 1px solid #fff;
+    }
+    .tab-content {
+      display: none;
+    }
+    .tab-content.active {
+      display: block;
+    }
+
+
+:root {
+  --round-gap: 4rem;
+  --row-gap: 2rem;
+  --box-width: 16rem;
+  --box-height: 4rem;      /* ny: høyden på hver boks */
+  --box-padding: 1rem;
+  --box-radius: 8px;
+  --connector-color: #ccc;
+  --header-bg: #b2f2e8;
+}
+
+/* ===== Knockout-bracket styling ===== */
+/* ===== Knockout-bracket styling ===== */
+.bracket-container {
+  display: grid;
+  /* --- sentrerer alle kolonner/rader i midten av beholderen --- */
+  align-content: center;
+  grid-template-columns: repeat(auto-fit, minmax(var(--box-width), 1fr));
+  column-gap: var(--round-gap);
+  row-gap: var(--row-gap);
+  padding: var(--round-gap) 0;
+  position: relative;
+}
+
+/* Arv fra kampliste.css: */
+.bracket-container .match {
+  width: var(--box-width);
+  margin-bottom: var(--row-gap);
+}
+
+.round-title {
+  grid-row: 1;
+  height: var(--box-height);
+  line-height: var(--box-height);
+  font-weight: 600;
+  text-align: center;
+}
+.match-box {
+  background: #fff;
+  border-radius: var(--box-radius);
+  padding: var(--box-padding);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+  position: relative;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  width: 100%;
+}
+.match-box.vertical .team-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.25rem 0;
+}
+.match-box .name {
+  font-weight: 600;
+}
+.match-box .score-box {
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+.match-box.vinner .score-box { color: #48bb78; }
+.match-box.taper  .score-box { color: #f56565; opacity: 0.8; }
+/* Canvas-linjer */
+svg.bracket-svg,
+canvas#bracket-canvas {
+  position: absolute;
+  top:0; left:0;
+  width:100%; height:100%;
+  pointer-events: none;
+  z-index:1;
+}
+
+/* SVG-linjene */
+svg.bracket-svg {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  pointer-events: none;
+}
+
+@media (max-width: 768px) {
+  :root {
+    --round-gap:    1rem;   /* redusert avstand mellom kolonner */
+    --row-gap:      0.75rem;/* redusert avstand mellom rader */
+    --box-width:    12rem;  /* smalere bokser */
+    --box-height:   3rem;   /* lavere bokser */
+  }
+
+  /* Gjør match-box enda mer kompakt */
+  .match-box {
+    padding: 0.5rem;
+    font-size: 0.85rem;
+  }
+  .match-box .score {
+    width: 2rem;
+    font-size: 0.85rem;
+  }
+
+  /* Vis selector for å velge runde */
+  .round-selector-wrap {
+    display: block;
+    margin: 0 0 1rem;
+  }
+  .round-selector-wrap label {
+    font-size: 0.9rem;
+  }
+  .round-selector-wrap select {
+    width: 100%;
+    padding: 0.5rem;
+    margin-top: 0.25rem;
+    font-size: 0.9rem;
+  }
+}
+@media (max-width: 768px) {
+  .popup-overlay {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0,0,0,0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+  }
+  .popup-content {
+    background: #fff;
+    padding: 1rem;
+    border-radius: 8px;
+    max-width: 90%;
+    width: 300px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    text-align: left;
+  }
+  .popup-content h3 {
+    margin-top: 0;
+    text-align: center;
+  }
+  .popup-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0.5rem 0;
+  }
+  .popup-table th,
+  .popup-table td {
+    padding: 0.5rem;
+    border-bottom: 1px solid #ddd;
+    text-align: left;
+  }
+  .popup-close {
+    display: block;
+    margin: 1rem auto 0;
+    padding: 0.5rem 1rem;
+    border: none;
+    background: #4caf50;
+    color: white;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+}
+
+  </style>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/8.2.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.2.0/firebase-firestore.js"></script>
+</head>
+<body>
+  <header>
+    <div class="logo-title">
+      <img src="logo.png" alt="Simple Scores Logo" class="logo" />
+    </div>
+  </header>
+
+<nav>
+  <!-- SKJUL SJEKKBOXEN SELV -->
+  <input type="checkbox" id="menu-toggle" />
+
+  <!-- ÉT ENESTE HAMBURGER‐IKON her -->
+  <label for="menu-toggle" id="menu-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </label>
+
+  <!-- Selve menyen -->
+  <ul id="menu">
+    <li><a href="publikum.html" class="nav-link"><i class="fa-solid fa-house"></i><span>Hjem</span></a></li>
+    <li><a href="turnering.html" class="nav-link"><i class="fa-solid fa-circle-info"></i><span>Turneringsdetaljer</span></a></li>
+    <li><a href="kampliste.html" class="nav-link"><i class="fa-solid fa-futbol"></i><span>Kamper</span></a></li>
+    <li><a href="lagoversikt.html" class="nav-link"><i class="fa-solid fa-users"></i><span>Lagoversikt</span></a></li>
+    <li><a href="dommere.html" class="nav-link"><i class="fa-solid fa-gavel"></i><span>Dommere</span></a></li>
+    <li><a href="tabell.html" class="nav-link-active"><i class="fa-solid fa-table-list"></i><span>Tabell</span></a></li>
+  </ul>
+</nav>
+
+
+  <main>
+    <h1>Alle divisjons- og fase-tabeller</h1>
+    <div id="allTablesContainer">
+      <p>Laster tabeller …</p>
+    </div>
+  </main>
+
+  <footer>
+    <p>&copy; 2025 Turneringer. Alle rettigheter reservert.</p>
+  </footer>
+
+  <script>
+    // 1. Firebase init
+    const firebaseConfig = {
+      apiKey: "AIzaSyCLRjYMzbeksCfV1ImdFsyb_sUJsGM0ZH0",
+      authDomain: "resultatservice-d860c.firebaseapp.com",
+      databaseURL: "https://resultatservice-d860c-default-rtdb.europe-west1.firebasedatabase.app",
+      projectId: "resultatservice-d860c",
+      storageBucket: "resultatservice-d860c.appspot.com",
+      messagingSenderId: "649532849758",
+      appId: "1:649532849758:web:74d06f6b79ade1d752becf"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    const urlParams = new URLSearchParams(window.location.search);
+const tournamentId = urlParams.get('tournamentid');
+
+    // 2. Append tournamentId to internal links
+    function appendTournamentIdToLinks(tournamentId) {
+      document.querySelectorAll("a").forEach(link => {
+        const href = link.getAttribute("href");
+        if (href && !href.startsWith("http") && !href.startsWith("mailto:") && !href.includes("tournamentid=")) {
+          const sep = href.includes("?") ? "&" : "?";
+          link.setAttribute("href", `${href}${sep}tournamentid=${tournamentId}`);
+        }
+      });
+    }
+
+    
+    // 3. Format date helper
+    function formatDate(ts) {
+      const d = ts.toDate();
+      return `${d.getDate()}.${d.getMonth()+1}.${d.getFullYear()}`;
+    }
+
+/* Full renderDivisjonFaseTabell with mobile popup table view */
+async function renderDivisjonFaseTabell(division, phaseNum, tournamentId, sortingOrder, parentElement) {
+  // 1) Seksjon + overskrift
+  const section = document.createElement("section");
+  section.className = "table-section";
+  parentElement.appendChild(section);
+  const h2 = document.createElement("h2");
+  h2.textContent = `Divisjon: ${division} – fase ${phaseNum}`;
+  section.appendChild(h2);
+
+  // 2) Bygg tabell
+  const table = document.createElement("table");
+  table.className = "divisjonstabell";
+  table.innerHTML = `
+    <thead>
+      <tr>
+        <th>#</th><th>Lag</th><th>Spilt</th><th>V</th><th>U</th><th>T</th><th>M+</th><th>M–</th><th>Diff</th><th>P</th>
+      </tr>
+    </thead>
+    <tbody><tr><td colspan="10">Laster …</td></tr></tbody>`;
+  section.appendChild(table);
+  const tbody = table.querySelector("tbody");
+
+  // 3) Hent og kalkuler statistikk
+  try {
+    const allSnap = await db.collection("turneringer").doc(tournamentId)
+      .collection("kamper").where("divisjon","==",division)
+      .where("fasenummer","==",phaseNum).get();
+    const teams = new Set();
+    allSnap.forEach(doc => {
+      const d = doc.data();
+      if (d.hjemmelag) teams.add(d.hjemmelag);
+      if (d.bortelag)  teams.add(d.bortelag);
+    });
+    if (!teams.size) {
+      tbody.innerHTML = `<tr><td colspan="10">Ingen lag funnet.</td></tr>`;
+      return;
+    }
+
+    const matchSnap = await db.collection("turneringer").doc(tournamentId)
+      .collection("kamper").where("divisjon","==",division)
+      .where("fasenummer","==",phaseNum)
+      .where("status","in",["startet","ferdig"]).get();
+
+    const stats = {};
+    teams.forEach(lag => stats[lag] = { spilt:0, v:0, u:0, t:0, maalFor:0, maalMot:0, poeng:0 });
+    matchSnap.forEach(doc => {
+      const m = doc.data();
+      const home = m.hjemmelag || "–";
+      const away = m.bortelag  || "–";
+      const sH = Number(m.hjemmelagScore) || 0;
+      const sA = Number(m.bortelagScore)  || 0;
+      stats[home].spilt++; stats[home].maalFor += sH; stats[home].maalMot += sA;
+      stats[away].spilt++; stats[away].maalFor += sA; stats[away].maalMot += sH;
+      if (sH > sA) { stats[home].v++; stats[home].poeng += 3; stats[away].t++; }
+      else if (sA > sH) { stats[away].v++; stats[away].poeng += 3; stats[home].t++; }
+      else { stats[home].u++; stats[away].u++; stats[home].poeng++; stats[away].poeng++; }
+    });
+
+    // 4) Sorter
+    const order = sortingOrder.length ? sortingOrder : ["points","goalDifference","goalsScored","alphabetical"];
+    const sorted = Object.entries(stats).sort(([a,A],[b,B]) => {
+      for (const key of order) {
+        if (key === "points" && B.poeng !== A.poeng) return B.poeng - A.poeng;
+        if (key === "goalDifference") {
+          const diffA = A.maalFor - A.maalMot, diffB = B.maalFor - B.maalMot;
+          if (diffB !== diffA) return diffB - diffA;
+        }
+        if (key === "goalsScored" && B.maalFor !== A.maalFor) return B.maalFor - A.maalFor;
+        if (key === "alphabetical") return a.localeCompare(b);
+      }
+      return 0;
+    });
+
+    // 5) Render rader
+    tbody.innerHTML = sorted.map(([lag,s], idx) => {
+      const diff = s.maalFor - s.maalMot;
+      return `
+        <tr
+          data-lag="${lag}"
+          data-spilt="${s.spilt}"
+          data-maalfor="${s.maalFor}"
+          data-maalmot="${s.maalMot}"
+          data-poeng="${s.poeng}"
+        >
+          <td>${idx + 1}</td>
+          <td>${lag}</td>
+          <td>${s.spilt}</td>
+          <td>${s.v}</td>
+          <td>${s.u}</td>
+          <td>${s.t}</td>
+          <td>${s.maalFor}</td>
+          <td>${s.maalMot}</td>
+          <td>${diff}</td>
+          <td>${s.poeng}</td>
+        </tr>`;
+    }).join("");
+
+    // 6) Klient–håndtering: vis popup i mobil
+    tbody.addEventListener('click', e => {
+      if (window.innerWidth > 768) return;
+      const tr = e.target.closest('tr');
+      if (!tr || !tr.dataset.lag) return;
+      const { lag, spilt, maalfor, maalmot, poeng } = tr.dataset;
+      const diff = Number(maalfor) - Number(maalmot);
+      showDetailPopup({ lag, spilt, maalfor, maalmot, diff, poeng });
+    });
+
+  } catch(err) {
+    console.error(err);
+    tbody.innerHTML = `<tr><td colspan="10">Kunne ikke laste tabell.</td></tr>`;
+  }
+}
+
+// Oppretter og viser detalj-popup med tabell
+function showDetailPopup({ lag, spilt, maalfor, maalmot, diff, poeng }) {
+  const overlay = document.createElement('div');
+  overlay.className = 'popup-overlay';
+
+  const popup = document.createElement('div');
+  popup.className = 'popup-content';
+  popup.innerHTML = `
+    <h3>${lag}</h3>
+    <table class="popup-table">
+      <tbody>
+        <tr><th>Spilt</th><td>${spilt}</td></tr>
+        <tr><th>M+</th><td>${maalfor}</td></tr>
+        <tr><th>M–</th><td>${maalmot}</td></tr>
+        <tr><th>Diff</th><td>${diff}</td></tr>
+        <tr><th>P</th><td>${poeng}</td></tr>
+      </tbody>
+    </table>
+    <button class="popup-close">OK</button>
+  `;
+
+  overlay.appendChild(popup);
+  document.body.appendChild(overlay);
+
+  // Lukk ved klikk utenfor eller knapp
+  overlay.addEventListener('click', e => {
+    if (e.target === overlay || e.target.classList.contains('popup-close')) {
+      overlay.remove();
+    }
+  });
+}
+
+
+
+/* Legg til følgende CSS i din stilblokk for å style detaljvisningen */
+/*
+
+*/
+
+function createTabsForDivision(divisionName, phases, tournamentId, sortingOrder) {
+  const container = document.getElementById("allTablesContainer");
+  const divisionContainer = document.createElement("div");
+  divisionContainer.className = "division-tabs";
+  container.appendChild(divisionContainer);
+
+  const title = document.createElement("h2");
+  title.textContent = `Divisjon: ${divisionName}`;
+  divisionContainer.appendChild(title);
+
+  const tabs = document.createElement("ul");
+  tabs.className = "tabs";
+  divisionContainer.appendChild(tabs);
+
+  const contents = document.createElement("div");
+  contents.className = "tab-contents";
+  divisionContainer.appendChild(contents);
+
+  phases.forEach((p, idx) => {
+    const tab = document.createElement("li");
+    tab.className = "tab";
+    tab.textContent = p.type === "utslag" ? `Utslagsfase ${p.num}` : `Fase ${p.num}`;
+    tab.dataset.phase = p.num;
+    tab.dataset.type = p.type;
+    if (idx === 0) tab.classList.add("active");
+    tabs.appendChild(tab);
+
+    const contentDiv = document.createElement("div");
+    contentDiv.className = "tab-content";
+    contentDiv.dataset.phase = p.num;
+    contentDiv.dataset.type = p.type;
+    if (idx === 0) contentDiv.classList.add("active");
+    contents.appendChild(contentDiv);
+
+    if (p.type === "utslag") {
+      // Korrekt kall uten tournamentId-argument
+      renderKnockoutBracket(divisionName, p.num, contentDiv, p.utslagsrunder);
+    } else {
+      renderDivisjonFaseTabell(divisionName, p.num, tournamentId, sortingOrder, contentDiv);
+    }
+  });
+
+  tabs.addEventListener("click", e => {
+    if (e.target.classList.contains("tab")) {
+      const selPhase = e.target.dataset.phase;
+      const selType  = e.target.dataset.type;
+      Array.from(tabs.children).forEach(t => t.classList.toggle("active", t.dataset.phase === selPhase));
+      Array.from(contents.children).forEach(c => c.classList.toggle("active",
+        c.dataset.phase === selPhase && c.dataset.type === selType
+      ));
+    }
+  });
+}
+
+
+async function renderKnockoutBracket(division, phaseNum, parentElement, utslagsrunder) {
+  // Seksjon + overskrift
+  const section = document.createElement('section');
+  section.className = 'table-section';
+  parentElement.appendChild(section);
+  const h2 = document.createElement('h2');
+  h2.textContent = `Divisjon: ${division} – utslagsfase ${phaseNum}`;
+  section.appendChild(h2);
+
+  // Grid-container
+  const bracket = document.createElement('div');
+  bracket.className = 'bracket-container';
+  section.appendChild(bracket);
+
+  // Hent kamper fra Firestore
+  let matchesByNumber = {};
+  try {
+    const snap = await db
+      .collection('turneringer').doc(tournamentId)
+      .collection('kamper')
+      .where('divisjon','==',division)
+      .where('fasenummer','==',phaseNum)
+      .where('status','in',['startet','ferdig'])
+      .get();
+    snap.forEach(doc => {
+      matchesByNumber[doc.data().kampNummer] = doc.data();
+    });
+  } catch {
+    bracket.innerHTML = '<p>Kunne ikke laste utslagsfasen.</p>';
+    return;
+  }
+
+  // Del opp i runder (ikke bronse)
+  const normalRounds = utslagsrunder
+    .filter(r => typeof r.runde === 'number')
+    .sort((a,b) => a.runde - b.runde);
+
+  // Runde-titler
+  normalRounds.forEach((runde, ri) => {
+    const title = document.createElement('div');
+    title.className = 'round-title';
+    title.textContent = `Runde ${runde.runde}`;
+    title.style.gridColumnStart = ri + 1;
+    bracket.appendChild(title);
+  });
+
+  // Kamp-bokser
+  normalRounds.forEach((runde, ri) => {
+    runde.kamper.forEach((kampDef, mi) => {
+      const data = matchesByNumber[kampDef.kampNummer] || {};
+      const hjem = data.hjemmelag  || kampDef.lag1 || '–';
+      const bort = data.bortelag  || kampDef.lag2 || '–';
+      const sH = data.hjemmelagScore ?? '';
+      const sA = data.bortelagScore  ?? '';
+
+      const box = document.createElement('div');
+      box.className = 'match-box vertical';
+      box.dataset.roundIndex = ri;
+      box.dataset.matchIndex = mi;
+      box.style.gridColumnStart = ri + 1;
+      box.style.gridRowStart = (mi * Math.pow(2, ri)) + 2;
+      box.innerHTML = `
+        <div class="team-row"><span class="name">${hjem}</span><span class="score-box">${sH}</span></div>
+        <div class="team-row"><span class="name">${bort}</span><span class="score-box">${sA}</span></div>
+      `;
+
+      if (sH !== '' && sA !== '') {
+        if (sH > sA) box.classList.add('vinner');
+        else if (sA > sH) box.classList.add('taper');
+      }
+
+      bracket.appendChild(box);
+    });
+  });
+
+  // Tegn linjer etter at DOM er oppdatert
+  setTimeout(drawBracketConnections, 100);
+
+  // Bronsefinale (hvis definert)
+  const bronze = utslagsrunder.find(r => typeof r.runde !== 'number');
+  if (bronze) {
+    const bc = document.createElement('div');
+    bc.className = 'bronze-final';
+    section.appendChild(bc);
+    const bt = document.createElement('h3');
+    bt.textContent = 'Bronsefinale';
+    bc.appendChild(bt);
+
+    const kampDef = bronze.kamper[0];
+    const data = matchesByNumber[kampDef.kampNummer] || {};
+    const hjem = data.hjemmelag || kampDef.lag1 || '–';
+    const bort = data.bortelag || kampDef.lag2 || '–';
+    const sH = data.hjemmelagScore ?? '';
+    const sA = data.bortelagScore  ?? '';
+
+    const box = document.createElement('div');
+    box.className = 'match-box vertical';
+    box.innerHTML = `
+      <div class="team-row"><span class="name">${hjem}</span><span class="score-box">${sH}</span></div>
+      <div class="team-row"><span class="name">${bort}</span><span class="score-box">${sA}</span></div>
+    `;
+    if (sH !== '' && sA !== '') {
+      if (sH > sA) box.classList.add('vinner');
+      else if (sA > sH) box.classList.add('taper');
+    }
+    bc.appendChild(box);
+  }
+}
+
+
+
+
+// 6. Init hoved
+document.addEventListener("DOMContentLoaded", async () => {
+  const params       = new URLSearchParams(window.location.search);
+  const tournamentId = params.get("tournamentid");
+  if (!tournamentId) return window.location.href = "nyTurnering.html";
+  appendTournamentIdToLinks(tournamentId);
+
+  const turnSnap = await db.collection("turneringer").doc(tournamentId).get();
+  if (!turnSnap.exists) {
+    document.getElementById("allTablesContainer").innerHTML = "<p>Ingen turnering funnet.</p>";
+    return;
+  }
+  const turn         = turnSnap.data();
+  const divisions    = turn.divisions || [];
+  const sortingOrder = turn.sortingOrder || ["points","goalDifference","goalsScored","alphabetical"];
+
+  document.getElementById("allTablesContainer").innerHTML = "";
+
+  for (const div of divisions) {
+    // Hent fase-dokumentene
+    const phaseDocs = await db.collection("turneringer").doc(tournamentId)
+      .collection(`${div.name}_format`).get();
+
+    // Bygg liste med utslags-metadata
+    const phases = phaseDocs.docs
+      .map(d => ({
+        num: parseInt(d.id.replace(/\D/g,''), 10),
+        type: d.data().type || "roundrobin",
+        utslagsrunder: d.data().utslagsrunder || []
+      }))
+      .filter(p => !isNaN(p.num));
+
+    if (phases.length) {
+      createTabsForDivision(div.name, phases, tournamentId, sortingOrder);
+    }
+  }
+});
+/**
+ * Tegner forbindelseslinjer mellom match-boksene i bracket-container.
+ * Legger et <canvas> helt bak grid-elementene for selve tegningen.
+ */
+/**
+ * Tegner myke, avrundede linjer bak .match-box i .bracket-container
+ * ved å bruke offsetLeft/Top for korrekte koordinater.
+ */
+function drawBracketConnections() {
+  const container = document.querySelector('.bracket-container');
+  if (!container) return;
+
+  // Finn/lag canvas
+  let canvas = container.querySelector('#bracket-canvas');
+  if (!canvas) {
+    canvas = document.createElement('canvas');
+    canvas.id = 'bracket-canvas';
+    canvas.style.position       = 'absolute';
+    canvas.style.top            = '0';
+    canvas.style.left           = '0';
+    canvas.style.pointerEvents  = 'none';
+    canvas.style.zIndex         = '1';
+    container.insertBefore(canvas, container.firstChild);
+  }
+
+  // Sett størrelsen til å dekke hele container
+  canvas.width  = container.clientWidth;
+  canvas.height = container.clientHeight;
+
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // Stil
+  ctx.strokeStyle = '#E2E8F0';  // samme som boks-border
+  ctx.lineWidth   = 2;
+  ctx.lineCap     = 'round';
+  ctx.lineJoin    = 'round';
+
+  // Samle bokser per runde
+  const boxes = Array.from(container.querySelectorAll('.match-box'));
+  const rounds = boxes.reduce((acc, box) => {
+    const ri = +box.dataset.roundIndex;
+    (acc[ri] = acc[ri] || []).push(box);
+    return acc;
+  }, {});
+
+  // Tegn fra hver runde til neste
+  Object.keys(rounds).map(Number).forEach(roundIndex => {
+    const curr = rounds[roundIndex];
+    const next = rounds[roundIndex + 1];
+    if (!next) return;
+
+    curr.forEach(box => {
+      const mi = +box.dataset.matchIndex;
+      const targetIdx = Math.floor(mi / 2);
+      const target = next.find(nb => +nb.dataset.matchIndex === targetIdx);
+      if (!target) return;
+
+      // Startpunkt: midten på høyre kant
+      const startX = box.offsetLeft + box.offsetWidth;
+      const startY = box.offsetTop + box.offsetHeight / 2;
+
+      // Sluttpunkt: midten på venstre kant
+      const endX   = target.offsetLeft;
+      const endY   = target.offsetTop + target.offsetHeight / 2;
+
+      // Tegn med en liten Bezier-bue
+      const midX = (startX + endX) / 2;
+      ctx.beginPath();
+      ctx.moveTo(startX, startY);
+      ctx.bezierCurveTo(midX, startY, midX, endY, endX, endY);
+      ctx.stroke();
+    });
+  });
+}
+
+// Kjør på oppstart og ved resizing
+window.addEventListener('load',  drawBracketConnections);
+window.addEventListener('resize', drawBracketConnections);
+
+
+/**
+ * Oversetter placeholder-strenger til lesbar tekst:
+ * - "vinner-runde-0-kamp-1" → "Vinner runde 1, kamp 2"
+ * - "taper-runde-1-kamp-0"  → "Taper runde 2, kamp 1"
+ * - tom eller undefined     → "–"
+ */
+function formatTeamName(name) {
+  if (!name || name === '') return '–';
+  let m;
+  if (m = name.match(/^vinner-runde-(\d+)-kamp-(\d+)$/)) {
+    const r = parseInt(m[1], 10) + 1;
+    const k = parseInt(m[2], 10) + 1;
+    return `Vinner runde ${r}, kamp ${k}`;
+  }
+  if (m = name.match(/^taper-runde-(\d+)-kamp-(\d+)$/)) {
+    const r = parseInt(m[1], 10) + 1;
+    const k = parseInt(m[2], 10) + 1;
+    return `Taper runde ${r}, kamp ${k}`;
+  }
+  return name;
+}
+
+
+  </script>
+</body>
+</html>

@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- Bruk den generelle CSS-filen -->
+  <link rel="stylesheet" type="text/css" href="./admin.css">
+  <title>Generelle Innstillinger</title>
+  <style>
+    /* Egendefinert styling for denne siden */
+    .settings-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 30px;
+      justify-content: space-around;
+      padding: 20px;
+      margin-top: 20px;
+    }
+    .settings-card {
+      background-color: #fff;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      flex: 1 1 400px;
+      max-width: 500px;
+    }
+    .settings-card h2 {
+      margin-bottom: 20px;
+      font-size: 24px;
+      color: #2d3e50;
+    }
+    .settings-card label {
+      margin-top: 10px;
+      display: block;
+      font-weight: bold;
+    }
+    .settings-card input[type="text"],
+    .settings-card input[type="email"] {
+      width: 100%;
+      padding: 12px;
+      margin-top: 5px;
+      border: 1px solid #68d391;
+      border-radius: 8px;
+      font-size: 16px;
+    }
+    .settings-card input[type="checkbox"] {
+      margin-right: 10px;
+    }
+    .settings-card button {
+      margin-top: 15px;
+    }
+    /* Styling for listeelementer med sletteknapp */
+    .settings-card ul {
+      margin-top: 15px;
+      padding-left: 0;
+    }
+    .settings-card ul li {
+      list-style-type: none;
+      margin-top: 5px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #f9f9f9;
+      padding: 8px 12px;
+      border-radius: 5px;
+    }
+    .delete-button {
+      background-color: #c53030;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      padding: 5px 10px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: background-color 0.3s ease, transform 0.2s;
+    }
+    .delete-button:hover {
+      background-color: #a52828;
+      transform: scale(1.05);
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="logo-title">
+      <a href="nyTurnering.html">
+        <img src="logo.png" alt="Simple Scores Logo" class="logo">
+      </a>
+    </div>
+    <button id="user-button" class="user-button" onclick="toggleUserMenu()">Bruker</button>
+    <div id="user-menu" class="user-menu">
+      <p>Logget inn som <span id="mail"></span></p>
+      <button id="loggut" onclick="loggut()">Logg ut</button>
+    </div>
+    <button onclick="displaysidebar()" type="button">Q&A</button>
+  </header>
+  
+  <nav>
+    <button class="meny-ikon" id="meny-knapp" aria-label="Åpne meny" aria-expanded="false" aria-controls="meny"></button>
+    <ul id="meny">
+      <li><a href="slideshow.html">Slideshow</a></li>
+      <li><a href="instillinger.html">Innstillinger</a></li>
+      <li><a href="leggtillag.html">Legg til lag</a></li>
+      <li><a href="format.html">Format</a></li>
+      <li><a href="kampoppsett.html">Kampoppsett</a></li>
+      <li><a href="kamper.html">Kamper</a></li>
+    </ul>
+  </nav>
+  
+  <main>
+    <!-- Innstillingssiden med to kort -->
+    <div class="settings-container">
+      <div class="settings-card">
+        <h2>Informasjon om turneringen</h2>
+        <label for="infoText">Infotekst:</label>
+        <textarea id="infoText"
+                  placeholder="Skriv inn info om turneringen her"
+                  style="width:100%; height:120px; padding:12px; border:1px solid #68d391; border-radius:8px; font-size:16px;"></textarea>
+        <button type="button" onclick="updateInfoText()">Lagre infotekst</button>
+      </div>
+      <div class="settings-card" id="publish-card">
+        <h2>Publisering</h2>
+        <button type="button" id="publishBtn">Laster …</button>
+      </div>
+      
+    
+      <div class="settings-card">
+        <h2>Arrangør og Co-arrangører</h2>
+        <label for="organizer">Arrangør:</label>
+        <input type="email" id="organizer" name="organizer" disabled placeholder="arrangor@example.com">
+        
+        <h3>Legg til co-arrangører</h3>
+        <input type="email" id="coOrganizerEmail" placeholder="Co-arrangør e-post">
+        <button type="button" onclick="addCoOrganizer()">Legg til co-arrangør</button>
+        <ul id="coOrganizerList"></ul>
+      </div>
+      
+      <div class="settings-card">
+        <h2>Divisjoner</h2>
+        <label for="divisionName">Divisjonsnavn:</label>
+        <input type="text" id="divisionName" name="divisionName" placeholder="Divisjonsnavn">
+        <label>
+          <input type="checkbox" id="hideResults"> Skjul resultater fra offentligheten
+        </label>
+        <button type="button" onclick="addDivision()">Legg til Divisjon</button>
+        <ul id="divisionList"></ul>
+      </div>
+    </div>
+
+  </main>
+  <!-- Q&A Seksjon -->
+  <div id="qa-section">
+    <button class="close-btn" onclick="closeSection()">&times;</button>
+    <div class="question" onclick="toggleAnswer(0)">Hvordan oppretter jeg en ny turnering?</div>
+    <div class="answer">For å opprette en ny turnering, gå til "Opprett Turnering" siden og fyll ut navn, datoer og arrangørinformasjon. Deretter kan du legge til divisjoner og lag.</div>
+    <!-- Flere spørsmål/svar... -->
+  </div>
+  
+  <!-- Firebase og skript -->
+  <script src="https://www.gstatic.com/firebasejs/8.2.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.2.0/firebase-firestore.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.2.0/firebase-auth.js"></script>
+  <script>
+    // Firebase-konfigurasjon
+    const firebaseConfig = {
+      apiKey: "AIzaSyCLRjYMzbeksCfV1ImdFsyb_sUJsGM0ZH0",
+      authDomain: "resultatservice-d860c.firebaseapp.com",
+      databaseURL: "https://resultatservice-d860c-default-rtdb.europe-west1.firebasedatabase.app",
+      projectId: "resultatservice-d860c",
+      storageBucket: "resultatservice-d860c.appspot.com",
+      messagingSenderId: "649532849758",
+      appId: "1:649532849758:web:74d06f6b79ade1d752becf"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    const auth = firebase.auth();
+    
+    const params = new URLSearchParams(window.location.search);
+    const turneringId = params.get('id');
+     
+
+  document.addEventListener('DOMContentLoaded', function() {
+    // Hent turnerings-ID fra URL-querystring
+    if (!turneringId){
+      window.location.href = 'nyTurnering.html'
+    }
+
+    if (turneringId) {
+      // Gå gjennom alle interne <a>-lenker og legg til query-parametere
+      const links = document.querySelectorAll('a');
+      links.forEach(link => {
+        let href = link.getAttribute('href');
+        // Sjekk at href finnes og at det er en relativ lenke
+        if (href && !href.startsWith('http') && !href.startsWith('mailto:') && !href.startsWith('#')) {
+          const separator = href.includes('?') ? '&' : '?';
+          // Legg kun til parameteren hvis den ikke allerede er der
+          if (!href.includes('id=')) {
+            link.setAttribute('href', href + separator + 'id=' + turneringId);
+          }
+        }
+      });
+    }
+  });
+    const turneringRef = db.collection('turneringer').doc(turneringId);
+    
+    auth.onAuthStateChanged((user) => {
+      if (user) {
+        document.getElementById('mail').textContent = user.email;
+      } else {
+        window.location.href = 'login.html';
+      }
+    });
+    
+    function loggut() {
+      auth.signOut().then(() => {
+        window.location.href = 'login.html';
+      }).catch((error) => {
+        console.error("Feil ved utlogging:", error);
+      });
+    }
+    
+    function toggleUserMenu() {
+      const userMenu = document.getElementById('user-menu');
+      userMenu.style.display = (userMenu.style.display === 'block') ? 'none' : 'block';
+    }
+    
+    function adjustSidebarPosition() {
+      const header = document.querySelector('header');
+      const nav = document.querySelector('nav');
+      const qaSection = document.getElementById('qa-section');
+      if (header && nav && qaSection) {
+        const totalHeight = header.offsetHeight + nav.offsetHeight;
+        qaSection.style.top = totalHeight + "px";
+        qaSection.style.maxHeight = "calc(100vh - " + totalHeight + "px)";
+      }
+    }
+    document.addEventListener('DOMContentLoaded', adjustSidebarPosition);
+    window.addEventListener('resize', adjustSidebarPosition);
+    
+    function displaysidebar() {
+      const qaSection = document.getElementById('qa-section');
+      if (qaSection) {
+        qaSection.style.display = "block";
+        setTimeout(() => {
+          qaSection.style.transform = "translateX(0)";
+          qaSection.style.opacity = "1";
+        }, 10);
+      } else {
+        console.error("Element med id 'qa-section' ble ikke funnet.");
+      }
+    }
+    
+    function closeSection() {
+      const qaSection = document.getElementById('qa-section');
+      if (qaSection) {
+        qaSection.style.transform = "translateX(100%)";
+        qaSection.style.opacity = "0";
+        qaSection.addEventListener('transitionend', function handler() {
+          qaSection.style.display = "none";
+          qaSection.removeEventListener('transitionend', handler);
+        });
+      } else {
+        console.error("Element med id 'qa-section' ble ikke funnet.");
+      }
+    }
+    // --- Håndter publisering ---
+const publishBtn = document.getElementById('publishBtn');
+let isPublished = false;
+
+async function loadPublishState() {
+  try {
+    const doc = await turneringRef.get();
+    if (doc.exists) {
+      isPublished = !!doc.data().published;
+      publishBtn.textContent = isPublished
+        ? 'Trekk tilbake publisering'
+        : 'Publiser';
+    }
+  } catch (e) {
+    console.error('Feil ved henting av publiseringsstatus:', e);
+    publishBtn.textContent = 'Publiser';
+  }
+}
+
+publishBtn.addEventListener('click', async () => {
+  const newState = !isPublished;
+  try {
+    await turneringRef.update({ published: newState });
+    isPublished = newState;
+    publishBtn.textContent = isPublished
+      ? 'Trekk tilbake publisering'
+      : 'Publiser';
+    alert(`Turneringen er nå ${isPublished ? '' : 'ikke '}publisert.`);
+  } catch (e) {
+    console.error('Feil ved oppdatering av publiseringsstatus:', e);
+    alert('Kunne ikke oppdatere publisering. Sjekk konsollen.');
+  }
+});
+
+    
+    function toggleAnswer(index) {
+      const answers = document.querySelectorAll('#qa-section .answer');
+      if (answers[index]) {
+        answers[index].style.display = (answers[index].style.display === "block") ? "none" : "block";
+      }
+    }
+    
+    // Hjelpefunksjon for å opprette listeelementer med slett-knapp
+    function createListItem(text) {
+      const li = document.createElement('li');
+      const span = document.createElement('span');
+      span.textContent = text;
+      li.appendChild(span);
+      const btn = document.createElement('button');
+      btn.textContent = "Slett";
+      btn.className = "delete-button";
+      btn.onclick = function() {
+        li.remove();
+        // Her kan du evt. oppdatere Firestore for å fjerne elementet
+      };
+      li.appendChild(btn);
+      return li;
+    }
+    
+    // DOM-referanser for innstillingsfeltene
+    const organizerInput = document.getElementById('organizer');
+    const divisionNameInput = document.getElementById('divisionName');
+    const hideResultsCheckbox = document.getElementById('hideResults');
+    const divisionList = document.getElementById('divisionList');
+    const coOrganizerEmailInput = document.getElementById('coOrganizerEmail');
+    const coOrganizerList = document.getElementById('coOrganizerList');
+    
+    // Last inn eksisterende innstillinger
+    async function loadOrganizer() {
+      try {
+        const doc = await turneringRef.get();
+        if (doc.exists) {
+          const data = doc.data();
+          if (data.organizer) {
+            organizerInput.value = data.organizer;
+          }
+        }
+      } catch (error) {
+        console.error("Feil ved lasting av arrangør:", error);
+      }
+    }
+    
+    async function loadDivisions() {
+      try {
+        const doc = await turneringRef.get();
+        if (doc.exists) {
+          const data = doc.data();
+          if (data.divisions) {
+            divisionList.innerHTML = "";
+            data.divisions.forEach(division => {
+              const li = createListItem(division.name);
+              divisionList.appendChild(li);
+            });
+          }
+        }
+      } catch (error) {
+        console.error("Feil ved lasting av divisjoner:", error);
+      }
+    }
+    
+    async function loadCoOrganizers() {
+      try {
+        const doc = await turneringRef.get();
+        if (doc.exists) {
+          const data = doc.data();
+          coOrganizerList.innerHTML = "";
+          if (data.coOrganizers && Array.isArray(data.coOrganizers)) {
+            data.coOrganizers.forEach(email => {
+              const li = createListItem(email);
+              coOrganizerList.appendChild(li);
+            });
+          }
+        }
+      } catch (error) {
+        console.error("Feil ved lasting av co-arrangører:", error);
+      }
+    }
+    
+    async function loadAudienceSettings() {
+      console.log("Laster publikumsinnstillinger...");
+      // Implementer etter behov
+    }
+    
+    async function loadSortingOrder() {
+      console.log("Laster sorteringsrekkefølge...");
+      // Implementer etter behov
+    }
+    
+    function setupListeners() {
+      console.log("Setter opp lyttere...");
+      // Legg til event listeners om nødvendig
+    }
+    
+    // Oppdaterte funksjoner som også lagrer til Firestore
+    function addCoOrganizer() {
+      const email = coOrganizerEmailInput.value.trim();
+      if (email === "") {
+        alert("Vennligst skriv inn en e-post for co-arrangør.");
+        return;
+      }
+      // Oppdater Firestore med arrayUnion
+      turneringRef.update({
+        coOrganizers: firebase.firestore.FieldValue.arrayUnion(email)
+      }).then(() => {
+        const li = createListItem(email);
+        coOrganizerList.appendChild(li);
+        coOrganizerEmailInput.value = "";
+      }).catch(error => {
+        console.error("Feil ved oppdatering av co-arrangører:", error);
+      });
+    }
+    
+    function addDivision() {
+      const divisionName = divisionNameInput.value.trim();
+      if (divisionName === "") {
+        alert("Vennligst skriv inn et navn for divisjonen.");
+        return;
+      }
+      const newDivision = {
+        name: divisionName,
+        hideResults: hideResultsCheckbox.checked
+      };
+      // Oppdater Firestore med arrayUnion
+      turneringRef.update({
+        divisions: firebase.firestore.FieldValue.arrayUnion(newDivision)
+      }).then(() => {
+        const li = createListItem(divisionName);
+        divisionList.appendChild(li);
+        divisionNameInput.value = "";
+      }).catch(error => {
+        console.error("Feil ved oppdatering av divisjoner:", error);
+      });
+    }
+    
+    window.onload = async () => {
+  await loadPublishState();
+  await loadOrganizer();
+  await loadDivisions();
+  await loadCoOrganizers();
+  await loadInfoText();          // ← ny linje
+  await loadAudienceSettings();
+  await loadSortingOrder();
+  setupListeners();
+};
+
+// --- Håndter infotekst ---
+const infoTextInput = document.getElementById('infoText');
+
+async function loadInfoText() {
+  try {
+    const doc = await turneringRef.get();
+    if (doc.exists && doc.data().infoText) {
+      infoTextInput.value = doc.data().infoText;
+    }
+  } catch (e) {
+    console.error('Feil ved lasting av infotekst:', e);
+  }
+}
+
+function updateInfoText() {
+  const text = infoTextInput.value.trim();
+  turneringRef.update({ infoText: text })
+    .then(() => {
+      alert('Infotekst lagret ✅');
+    })
+    .catch(error => {
+      console.error('Feil ved lagring av infotekst:', error);
+      alert('Kunne ikke lagre infotekst. Se konsollen.');
+    });
+}
+
+  </script>
+</body>
+</html>

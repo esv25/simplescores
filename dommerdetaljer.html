@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dommerdetaljer - Turnering</title>
+    <link rel="stylesheet" type="text/css" href="./style.css">
+    <script src="https://www.gstatic.com/firebasejs/8.2.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.2.0/firebase-firestore.js"></script>
+</head>
+<body>
+    <header>
+        <div class="logo-title">
+            <img src="logo.png" alt="Simple Scores-logo" class="logo">
+        </div>
+    </header>
+
+<nav>
+  <!-- SKJUL SJEKKBOXEN SELV -->
+  <input type="checkbox" id="menu-toggle" />
+
+  <!-- ÉT ENESTE HAMBURGER‐IKON her -->
+  <label for="menu-toggle" id="menu-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </label>
+
+  <!-- Selve menyen -->
+  <ul id="menu">
+    <li><a href="publikum.html" class="nav-link"><i class="fa-solid fa-house"></i><span>Hjem</span></a></li>
+    <li><a href="turnering.html" class="nav-link"><i class="fa-solid fa-circle-info"></i><span>Turneringsdetaljer</span></a></li>
+    <li><a href="kampliste.html" class="nav-link"><i class="fa-solid fa-futbol"></i><span>Kamper</span></a></li>
+    <li><a href="lagoversikt.html" class="nav-link"><i class="fa-solid fa-users"></i><span>Lagoversikt</span></a></li>
+    <li><a href="dommere.html" class="nav-link-active"><i class="fa-solid fa-gavel"></i><span>Dommere</span></a></li>
+    <li><a href="tabell.html" class="nav-link"><i class="fa-solid fa-table-list"></i><span>Tabell</span></a></li>
+  </ul>
+</nav>
+
+    <main>
+        <section class="referee-info">
+            <h2 id="refName">Dommer: ...</h2>
+        </section>
+        <section class="match-list">
+            <h3>Kampene denne dommeren dømmer:</h3>
+            <div id="matchList">
+                <!-- Kampkort lastes her -->
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2024 Turneringer. Alle rettigheter reservert.</p>
+    </footer>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyCLRjYMzbeksCfV1ImdFsyb_sUJsGM0ZH0",
+            authDomain: "resultatservice-d860c.firebaseapp.com",
+            databaseURL: "https://resultatservice-d860c-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "resultatservice-d860c",
+            storageBucket: "resultatservice-d860c.appspot.com",
+            messagingSenderId: "649532849758",
+            appId: "1:649532849758:web:74d06f6b79ade1d752becf"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        const refNameEl = document.getElementById('refName');
+        const matchListEl = document.getElementById('matchList');
+
+        let refNameStr = '';
+        const params = new URLSearchParams(window.location.search);
+        const refId = params.get('id');
+        const tournamentId = params.get('tournamentid');
+
+        if (!refId || !tournamentId) {
+            window.location.href = 'publikum.html';
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // Oppdater interne lenker
+            document.querySelectorAll('a').forEach(link => {
+                const href = link.getAttribute('href');
+                if (href && !href.startsWith('http') && !href.startsWith('mailto:') && !href.startsWith('#')) {
+                    const sep = href.includes('?') ? '&' : '?';
+                    if (!href.includes('tournamentid=')) {
+                        link.setAttribute('href', href + sep + 'tournamentid=' + tournamentId);
+                    }
+                }
+            });
+            fetchReferee();
+        });
+
+        async function fetchReferee() {
+            try {
+                const docSnap = await db
+                    .collection('turneringer')
+                    .doc(tournamentId)
+                    .collection('dommere')
+                    .doc(refId)
+                    .get();
+                if (!docSnap.exists) {
+                    refNameEl.textContent = 'Dommer ikke funnet';
+                    return;
+                }
+                const data = docSnap.data();
+                refNameStr = data.dommer || '';
+                refNameEl.textContent = `Dommer: ${refNameStr}`;
+                fetchMatches();
+            } catch (e) {
+                refNameEl.textContent = 'Feil ved lasting av dommer';
+            }
+        }
+
+        async function fetchMatches() {
+            try {
+                const snap = await db
+                    .collection('turneringer')
+                    .doc(tournamentId)
+                    .collection('kamper')
+                    .get();
+                const allMatches = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+                // Filtrer kamper for denne dommeren
+                const matches = allMatches.filter(match =>
+                    Array.isArray(match.dommere) && match.dommere.includes(refNameStr)
+                );
+
+                if (matches.length === 0) {
+                    matchListEl.innerHTML = '<p>Ingen kamper funnet for denne dommeren.</p>';
+                    return;
+                }
+
+                // Sorter kamper etter starttid, og deretter sluttid hvis starttid er lik
+                matches.sort((a, b) => {
+                    const startA = a.starttid.toDate ? a.starttid.toDate() : new Date(a.starttid);
+                    const startB = b.starttid.toDate ? b.starttid.toDate() : new Date(b.starttid);
+                    if (startA < startB) return -1;
+                    if (startA > startB) return 1;
+                    const endA = a.sluttid.toDate ? a.sluttid.toDate() : new Date(a.sluttid);
+                    const endB = b.sluttid.toDate ? b.sluttid.toDate() : new Date(b.sluttid);
+                    return endA - endB;
+                });
+
+                // Generer HTML for hver kamp og sett inn i listen
+                matchListEl.innerHTML = matches.map(match => {
+                    const start = match.starttid?.toDate ? match.starttid.toDate().toLocaleString('nb-NO') : new Date(match.starttid).toLocaleString('nb-NO');
+                    const end = match.sluttid?.toDate ? match.sluttid.toDate().toLocaleString('nb-NO') : new Date(match.sluttid).toLocaleString('nb-NO');
+                    return `
+                    <div class="match-card">
+                        <h4>${match.hjemmelag} vs ${match.bortelag}</h4>
+                        <p><strong>Divisjon:</strong> ${match.divisjon}</p>
+                        <p><strong>Start:</strong> ${start}</p>
+                        <p><strong>Bane:</strong> ${match.bane}</p>
+                        <a href="kampdetaljer.html?id=${match.id}&tournamentid=${tournamentId}" class="details-button">Se detaljer</a>
+                    </div>`;
+                }).join('');
+            } catch (e) {
+                matchListEl.innerHTML = '<p>En feil oppstod ved henting av kamper.</p>';
+            }
+        }
+    </script>
+</body>
+</html>

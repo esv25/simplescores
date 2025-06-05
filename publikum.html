@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Turneringsoversikt</title>
+    <link rel="stylesheet" type="text/css" href="./style.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/8.2.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.2.0/firebase-firestore.js"></script>
+</head>
+<body>
+    <header>
+        <div class="logo-title">
+            <img src="logo.png" alt="Simple Scores Logo" class="logo">
+        </div>
+    </header>
+
+    <main>
+        <h2>Alle Turneringer</h2>
+        <div id="tournamentsList" class="tournaments-list">
+            <!-- Turneringer vises her -->
+        </div>
+    </main>
+
+    <footer>
+        <p>&copy; 2024 Turneringer. Alle rettigheter reservert.</p>
+    </footer>
+
+    <script>
+        // Firebase-konfigurasjon
+        const firebaseConfig = {
+            apiKey: "AIzaSyCLRjYMzbeksCfV1ImdFsyb_sUJsGM0ZH0",
+            authDomain: "resultatservice-d860c.firebaseapp.com",
+            databaseURL: "https://resultatservice-d860c-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "resultatservice-d860c",
+            storageBucket: "resultatservice-d860c.appspot.com",
+            messagingSenderId: "649532849758",
+            appId: "1:649532849758:web:74d06f6b79ade1d752becf"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        // Elementer
+        const tournamentsList = document.getElementById('tournamentsList');
+
+        // Hent alle turneringer fra Firestore
+// Hent alle publiserte turneringer fra Firestore
+async function fetchTournaments() {
+    try {
+        // Legg på where-filter på published
+        const tournamentsSnapshot = await db
+            .collection('turneringer')
+            .where('published', '==', true)
+            .get();
+
+        if (tournamentsSnapshot.empty) {
+            tournamentsList.innerHTML = "<p>Ingen publiserte turneringer funnet.</p>";
+            return;
+        }
+
+        const tournaments = tournamentsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        displayTournaments(tournaments);
+    } catch (error) {
+        console.error("Feil ved henting av turneringer:", error);
+        tournamentsList.innerHTML = "<p>En feil oppstod ved henting av turneringer.</p>";
+    }
+}
+
+// Vis turneringer på siden
+function displayTournaments(tournaments) {
+    tournamentsList.innerHTML = tournaments.map(tournament => `
+        <div class="tournament-card">
+            <h3>${tournament.tournamentName || 'Ukjent Turnering'}</h3>
+            <p><strong>Arrangør:</strong> ${tournament.organizer || 'Ukjent Arrangør'}</p>
+            <p><strong>Datoer:</strong> ${formatDates(tournament.dates)}</p>
+            <p><strong>Sted:</strong> ${tournament.location || 'Ukjent Sted'}</p>
+            <a href="turnering.html?tournamentid=${tournament.id}" class="details-button">Se Detaljer</a>
+        </div>
+    `).join('');
+}
+
+
+        // Formater datoer til lesbar form
+        function formatDates(dates) {
+            if (!Array.isArray(dates) || dates.length === 0) {
+                return 'Ukjent Dato';
+            }
+
+            return dates.map(dateStr => {
+                const date = new Date(dateStr);
+                if (isNaN(date)) {
+                    console.warn(`Ugyldig datoformat: ${dateStr}`);
+                    return 'Ukjent Dato';
+                }
+                return date.toLocaleDateString('no-NO', { year: 'numeric', month: 'long', day: 'numeric' });
+            }).join(', ');
+        }
+
+        // Initialiser siden
+        document.addEventListener('DOMContentLoaded', fetchTournaments);
+    </script>
+</body>
+</html>

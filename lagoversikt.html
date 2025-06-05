@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lagoversikt - Turnering</title>
+    <link rel="stylesheet" type="text/css" href="./style.css">
+    <style>
+        .team-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1rem;
+            padding: 1rem;
+        }
+        .team-card {
+            display: block;
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 1rem;
+            text-decoration: none;
+            color: inherit;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .team-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+        .team-card h3 {
+            margin: 0 0 0.5rem;
+            font-size: 1.2rem;
+        }
+        .team-card p {
+            margin: 0;
+            font-size: 0.9rem;
+            color: #555;
+        }
+    </style>
+    <script src="https://www.gstatic.com/firebasejs/8.2.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.2.0/firebase-firestore.js"></script>
+</head>
+<body>
+    <header>
+        <div class="logo-title">
+            <img src="logo.png" alt="Simple Scores Logo" class="logo">
+        </div>
+    </header>
+
+<nav>
+  <!-- SKJUL SJEKKBOXEN SELV -->
+  <input type="checkbox" id="menu-toggle" />
+
+  <!-- ÉT ENESTE HAMBURGER‐IKON her -->
+  <label for="menu-toggle" id="menu-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </label>
+
+  <!-- Selve menyen -->
+  <ul id="menu">
+    <li><a href="publikum.html" class="nav-link"><i class="fa-solid fa-house"></i><span>Hjem</span></a></li>
+    <li><a href="turnering.html" class="nav-link"><i class="fa-solid fa-circle-info"></i><span>Turneringsdetaljer</span></a></li>
+    <li><a href="kampliste.html" class="nav-link"><i class="fa-solid fa-futbol"></i><span>Kamper</span></a></li>
+    <li><a href="lagoversikt.html" class="nav-link-active"><i class="fa-solid fa-users"></i><span>Lagoversikt</span></a></li>
+    <li><a href="dommere.html" class="nav-link"><i class="fa-solid fa-gavel"></i><span>Dommere</span></a></li>
+    <li><a href="tabell.html" class="nav-link"><i class="fa-solid fa-table-list"></i><span>Tabell</span></a></li>
+  </ul>
+</nav>
+
+    
+    <main>
+        <div id="teamList" class="team-list">
+            <!-- Dynamiske lag-kort kommer her -->
+        </div>
+    </main>
+
+    <footer>
+        <p>&copy; 2024 Turneringer. Alle rettigheter reservert.</p>
+    </footer>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyCLRjYMzbeksCfV1ImdFsyb_sUJsGM0ZH0",
+            authDomain: "resultatservice-d860c.firebaseapp.com",
+            databaseURL: "https://resultatservice-d860c-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "resultatservice-d860c",
+            storageBucket: "resultatservice-d860c.appspot.com",
+            messagingSenderId: "649532849758",
+            appId: "1:649532849758:web:74d06f6b79ade1d752becf"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        const teamList = document.getElementById('teamList');
+        const params = new URLSearchParams(window.location.search);
+        const tournamentId = params.get('tournamentid');
+
+        if (!tournamentId) {
+            window.location.href = 'publikum.html';
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            document.querySelectorAll('a').forEach(link => {
+                let href = link.getAttribute('href');
+                if (href && !href.startsWith('http') && !href.startsWith('mailto:') && !href.startsWith('#')) {
+                    const separator = href.includes('?') ? '&' : '?';
+                    if (!href.includes('tournamentid=')) {
+                        link.setAttribute('href', href + separator + 'tournamentid=' + tournamentId);
+                    }
+                }
+            });
+            fetchTeams();
+        });
+
+        async function fetchTeams() {
+            try {
+                const teamsSnapshot = await db.collection('turneringer').doc(tournamentId).collection('lag').get();
+                const teams = teamsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+                if (teams.length === 0) {
+                    teamList.innerHTML = "<p>Ingen lag funnet.</p>";
+                    return;
+                }
+
+                teamList.innerHTML = teams.map(team => `
+                    <a href="lagdetaljer.html?id=${team.id}&tournamentid=${tournamentId}" class="team-card">
+                        <h3>${team.lagNavn || 'Ukjent Lag'}</h3>
+                        <p>Divisjon: ${team.divisjon || 'Ikke oppgitt'}</p>
+                    </a>
+                `).join('');
+            } catch (error) {
+                console.error("Feil ved henting av lag:", error);
+                teamList.innerHTML = "<p>En feil oppstod ved henting av lag.</p>";
+            }
+        }
+    </script>
+</body>
+</html>

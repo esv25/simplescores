@@ -1,0 +1,1352 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Turneringspresentasjon</title>
+  <link rel="stylesheet" type="text/css" href="./admin.css">
+  <style>
+/* Wrapper rundt hele braketten */
+.bracket-container {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  overflow-x: auto;
+  padding: 20px;
+}
+
+/* Selve bracket‑wrapperen (for evt. ekstra styling) */
+.bracket {
+  display: flex;
+}
+
+/* Hver rundekolonne */
+.bracket-round {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 0 40px;
+  position: relative;
+}
+
+/* Hvert enkelt oppgjør */
+.kamp-item {
+  position: relative;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 10px 20px;
+  margin: 30px 0;
+  min-width: 120px;
+  text-align: center;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* Linje fra match til neste runde */
+.bracket-round:not(:last-child) .kamp-item::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  right: -20px;
+  width: 20px;
+  height: 2px;
+  background: #bbb;
+}
+
+/* Linje fra forrige runde inn til match */
+.bracket-round:not(:first-child) .kamp-item::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: -20px;
+  width: 20px;
+  height: 2px;
+  background: #bbb;
+}
+
+/* Litt ekstra luft rundt «vs» og lagnavn */
+.vs {
+  margin: 8px 0;
+  color: #666;
+}
+.lag-navn {
+  display: block;
+  margin: 5px 0;
+}
+/* Selve brakett‑wrapperen: midtstilt hele veien */
+.bracket {
+  display: flex;
+  justify-content: center; /* midtstill rundene horisontalt */
+  align-items: flex-start;
+  gap: 40px; /* avstand mellom rundene */
+}
+
+/* Hver runde midtstilt */
+.bracket-round {
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* midtstill kampene i kolonnen */
+  justify-content: flex-start;
+}
+
+/* Kamp‑tabell */
+.kamp-table {
+  border-collapse: collapse;
+  background: #fff;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.06);
+  border-radius: 6px;
+  overflow: hidden;
+  width: 160px;
+  margin: 24px 0;
+  transition: transform .2s;
+}
+.kamp-table:hover {
+  transform: translateY(-4px);
+}
+.kamp-table td {
+  padding: 6px 8px;
+  text-align: center;
+  font-size: 0.95rem;
+  color: #2d3e50;
+}
+.kamp-table tr:not(:last-child) td {
+  border-bottom: 1px solid #e2e8f0;
+}
+.kamp-table .team-name {
+  font-weight: 500;
+}
+.kamp-table .team-score {
+  font-weight: 700;
+  width: 32px;
+  color: #1a202c;
+}
+
+/* Connector‑linjer */
+.bracket-round:not(:last-child) .kamp-table::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  right: -20px;
+  width: 20px;
+  height: 2px;
+  background: #cbd5e0;
+}
+.bracket-round:not(:first-child) .kamp-table::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: -20px;
+  width: 20px;
+  height: 2px;
+  background: #cbd5e0;
+}
+
+/* Container rundt tabellen for posisjon */
+.kamp-wrapper {
+  position: relative;
+}
+
+
+
+    /* Ekstra styling for slideshow-siden */
+
+    /* Slides-containeren plasseres øverst og fyller mesteparten av skjermen */
+    #slides {
+      position: relative;
+      height: 80vh;
+      width: 100%;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background: #f0f2f5;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    /* Fullskjerms-knapp i øverste høyre hjørne av slides */
+    #fullscreenBtn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background-color: #4c51bf;
+      color: white;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      z-index: 10;
+    }
+    /* Slide styling med fade-overgang */
+    .slide {
+      position: absolute;
+      width: 90%;
+      max-width: 1000px;
+      padding: 20px;
+      text-align: center;
+      opacity: 0;
+      transition: opacity 1s ease-in-out;
+    }
+    .slide.active {
+      opacity: 1;
+    }
+    /* Loader styling */
+    .loader {
+      border: 8px solid #f3f3f3;
+      border-top: 8px solid #48bb78;
+      border-radius: 50%;
+      width: 60px;
+      height: 60px;
+      animation: spin 1s linear infinite;
+      margin: 20px auto;
+    }
+    /* Selve kamp‑boksen */
+.kamp-item {
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+  padding: 12px 16px;
+  margin: 30px 0;
+  min-width: 180px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: relative;
+  transition: transform .2s ease;
+}
+.kamp-item:hover {
+  transform: translateY(-4px);
+}
+
+/* Lag + score-gruppe */
+.team {
+  display: flex;
+  align-items: center;
+}
+.lag-navn {
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: #2d3e50;
+  margin-right: 6px;
+}
+.score {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #1a202c;
+}
+
+/* «vs» eller connector */
+.vs {
+  font-size: 1.1rem;
+  font-weight: bold;
+  color: #a0aec0;
+  margin: 0 8px;
+}
+
+/* Connector‑linjer mellom runder */
+.bracket-round:not(:last-child) .kamp-item::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  right: -20px;
+  width: 20px;
+  height: 2px;
+  background: #cbd5e0;
+}
+.bracket-round:not(:first-child) .kamp-item::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: -20px;
+  width: 20px;
+  height: 2px;
+  background: #cbd5e0;
+}
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    /* Oversikt over slides og kontrollpanel */
+    #slidesOverview {
+      padding: 20px;
+      background: #fff;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      margin: 20px auto;
+      max-width: 1000px;
+      border-radius: 10px;
+    }
+    .slide-overview-item {
+      border: 1px solid #48bb78;
+      padding: 10px;
+      margin: 5px 0;
+      border-radius: 5px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+    }
+    .slide-overview-item button {
+      margin-left: 5px;
+    }
+    /* Popup styling (justert for moderne utseende) */
+    .popup {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0.8);
+      background-color: #fff;
+      padding: 25px;
+      border: 2px solid #48bb78;
+      border-radius: 10px;
+      z-index: 1001;
+      transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
+      max-width: 90%;
+      max-height: 90vh;
+      overflow-y: auto;
+      opacity: 0;
+    }
+    .popup.active {
+      transform: translate(-50%, -50%) scale(1);
+      opacity: 1;
+    }
+    #popupOverlay, #previewOverlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0,0,0,0.5);
+      z-index: 1000;
+      display: none;
+    }
+    #popupOverlay.active, #previewOverlay.active {
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="logo-title">
+        <a href="nyTurnering.html"><img src="logo.png" alt="Simple Scores Logo" class="logo"></a>
+    </div>
+    <div class="nav2">
+        <button id="user-button" onclick="toggleUserMenu()">Bruker</button>
+        <div id="user-menu" class="user-menu" style="display: none;">
+            <p>Logget inn som <span id="mail"></span></p>
+            <button id="loggut" onclick="loggut()">Logg ut</button>
+        </div>
+        <button onclick="displaysidebar()" type="button">Q&A</button>
+    </div>
+</header>
+
+    
+<nav>
+    <button class="meny-ikon" id="meny-knapp" aria-label="Åpne meny" aria-expanded="false" aria-controls="meny"></button>
+    <ul id="meny">
+        <li><a href="slideshow.html">Slideshow</a></li>
+        <li><a href="instillinger.html">Instillinger</a></li>
+        <li><a href="leggtillag.html">Legg til lag</a></li>
+        <li><a href="format.html">Format</a></li>
+        <li><a href="kampoppsett.html">Kampoppsett</a></li>
+        <li><a href="kamper.html">Kamper</a></li>
+    </ul>
+</nav>
+  <!-- Slide-innholdet vises øverst -->
+  <div id="slides">
+    <button id="fullscreenBtn" onclick="toggleFullScreen()">Fullskjerm</button>
+  </div>
+  
+  <!-- Oversikt og kontrollpanel -->
+  <div id="slidesOverview">
+    <h2>Oversikt over Slides</h2>
+    <div id="slideList"></div>
+    <button class="add-slide-button" onclick="openSlideConfigPopup()">Legg til ny Slide</button>
+    <button class="start-slideshow-button" onclick="startPresentation()">Start Slideshow</button>
+  </div>
+
+  <!-- Slide konfigurasjons-popup -->
+  <div id="slideConfigPopup" class="popup">
+    <h2 id="popupTitle">Konfigurer Slide</h2>
+    <div id="slideConfig"></div>
+    <div style="margin-top:10px;">
+      <button onclick="previewSlideConfig()">Forhåndsvis</button>
+      <button onclick="saveSlideConfig()">Lagre</button>
+      <button onclick="closePopup()">Avbryt</button>
+    </div>
+  </div>
+  <div id="popupOverlay"></div>
+
+  <!-- Forhåndsvisnings-popup -->
+  <div id="previewPopup" class="popup">
+    <h2>Forhåndsvisning av Slide</h2>
+    <div id="previewContent"></div>
+    <button onclick="closePreviewPopup()">Lukk Forhåndsvisning</button>
+  </div>
+  <div id="previewOverlay"></div>
+
+  <!-- Q&A Seksjon -->
+  <div id="qa-section" style="display: none;">
+    <button class="close-btn" onclick="closeSection()">&times;</button>
+    <div class="question" onclick="toggleAnswer(0)">Hvordan oppretter jeg en ny turnering?</div>
+    <div class="answer">For å opprette en ny turnering, gå til "Opprett Turnering" siden og fyll ut navn, datoer og arrangørinformasjon. Deretter kan du legge til divisjoner og lag.</div>
+    <!-- Flere spørsmål/svar ... -->
+  </div>
+
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/8.2.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.2.0/firebase-firestore.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.2.0/firebase-auth.js"></script>
+  <script>
+    // Firebase-konfigurasjon og initialisering
+    const firebaseConfig = {
+      apiKey: "AIzaSyCLRjYMzbeksCfV1ImdFsyb_sUJsGM0ZH0",
+      authDomain: "resultatservice-d860c.firebaseapp.com",
+      databaseURL: "https://resultatservice-d860c-default-rtdb.europe-west1.firebasedatabase.app",
+      projectId: "resultatservice-d860c",
+      storageBucket: "resultatservice-d860c.appspot.com",
+      messagingSenderId: "649532849758",
+      appId: "1:649532849758:web:74d06f6b79ade1d752becf"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    const auth = firebase.auth();
+
+    // Hent turnerings-ID fra sessionStorage
+        // Hent turnerings-ID fra URL-querystring
+    const params = new URLSearchParams(window.location.search);
+    const turneringId = params.get('id');
+
+    document.addEventListener('DOMContentLoaded', function() {
+
+
+    if (turneringId) {
+      // Gå gjennom alle interne <a>-lenker og legg til query-parametere
+      const links = document.querySelectorAll('a');
+      links.forEach(link => {
+        let href = link.getAttribute('href');
+        // Sjekk at href finnes og at det er en relativ lenke
+        if (href && !href.startsWith('http') && !href.startsWith('mailto:') && !href.startsWith('#')) {
+          const separator = href.includes('?') ? '&' : '?';
+          // Legg kun til parameteren hvis den ikke allerede er der
+          if (!href.includes('id=')) {
+            link.setAttribute('href', href + separator + 'id=' + turneringId);
+          }
+        }
+      });
+    }
+  });
+
+
+    if (!turneringId) {
+      alert('Ingen turnerings-ID funnet. Omdirigerer til nyTurnering.html.');
+      window.location.href = 'nyTurnering.html';
+    }
+
+// 1) Globale variabler og DOMContentLoaded
+let slides = [];
+let currentSlideIndex = 0;
+let editingSlide = null;
+
+// Elementreferanser (settes når DOM er ferdig lastet)
+let slideList, slidesOverview, slidesContainer;
+
+document.addEventListener('DOMContentLoaded', () => {
+  slideList       = document.getElementById('slideList');
+  slidesOverview  = document.getElementById('slidesOverview');
+  slidesContainer = document.getElementById('slides');
+
+  loadSlides();  // først når alle elementer finnes
+});
+
+
+// 2) renderSlidesOverview()
+function renderSlidesOverview() {
+  if (!slideList) {
+    console.warn('renderSlidesOverview: #slideList ikke funnet');
+    return;
+  }
+  slideList.innerHTML = '';
+
+  slides.forEach((slide, index) => {
+    const slideItem = document.createElement('div');
+    slideItem.className = 'slide-overview-item';
+    slideItem.innerHTML = `
+      <div>
+        <strong>Slide ${index + 1}</strong>: ${slide.title || "Uten tittel"} –
+        Divisjon: ${slide.division}, Fase: ${slide.fase},
+        Innhold: ${slide.elements.join(', ')}
+      </div>
+    `;
+    const editBtn = document.createElement('button');
+    editBtn.textContent = 'Rediger';
+    editBtn.onclick     = () => openSlideConfigPopup(slide);
+    const deleteBtn = document.createElement('button');
+    deleteBtn.textContent = 'Slett';
+    deleteBtn.onclick     = () => deleteSlide(slide.id);
+
+    slideItem.append(editBtn, deleteBtn);
+    slideList.appendChild(slideItem);
+  });
+}
+
+
+// 3) previewSlideConfig()
+function previewSlideConfig() {
+  // Hent input‑verdier
+  const division   = document.getElementById('divisionSelection')?.value || '-';
+  const fase       = document.getElementById('faseSelection')?.value      || '-';
+  const title      = document.getElementById('slideTitle')?.value         || 'Slide Tittel';
+  const duration   = document.getElementById('durationSelection')?.value  || 'n/a';
+  const transition = document.getElementById('transitionSelection')?.value|| 'fade';
+
+  const elements = [];
+  if (document.getElementById('kamperCheckbox')?.checked)          elements.push('kamper');
+  if (document.getElementById('tabellerCheckbox')?.checked)        elements.push('tabeller');
+  if (document.getElementById('kommendeKamperCheckbox')?.checked)  elements.push('kommendeKamper');
+
+  // Bygg HTML
+  let previewHTML = `
+    <div class="slide active">
+      <h2>${title}</h2>
+      <p><strong>Divisjon:</strong> ${division} | <strong>Fase:</strong> ${fase}</p>
+      <p><strong>Varighet:</strong> ${duration} sekunder | <strong>Overgang:</strong> ${transition}</p>
+  `;
+  if (elements.length) {
+    previewHTML += `<p><strong>Elementer:</strong> ${elements.join(', ')}</p>`;
+  }
+  previewHTML += `</div>`;
+
+  // Sett inn i DOM
+  const previewContainer = document.getElementById('previewContent');
+  if (previewContainer) {
+    previewContainer.innerHTML = previewHTML;
+  } else {
+    console.warn('previewSlideConfig: #previewContent ikke funnet');
+  }
+
+  document.getElementById('previewPopup')?.classList.add('active');
+  document.getElementById('previewOverlay')?.classList.add('active');
+}
+
+
+function showSlide(index) {
+  if (!slidesContainer) {
+    console.warn('showSlide: #slides ikke funnet');
+    return;
+  }
+
+  // Tøm ut eksisterende slide
+  slidesContainer.innerHTML = '';
+  const slide = slides[index];
+
+  // Bygg nytt innhold
+  let content = `
+    <div class="slide active">
+      <h2>${slide.title || 'Slide'}</h2>
+      <p><strong>Divisjon:</strong> ${slide.division} | <strong>Fase:</strong> ${slide.fase}</p>
+  `;
+
+  // Legg til tabell eller ubrakett-placeholder
+  if (slide.elements.includes('tabeller')) {
+    if (slide.fase === 'utslag') {
+      content += `
+        <div class="divisjonstabell-container bracket-container">
+          <h2>Utslagsbrakett: ${slide.division} – ${slide.fase}</h2>
+          <div class="loader"></div>
+        </div>
+      `;
+    } else {
+      content += `
+        <div class="divisjonstabell-container">
+          <table id="divisjonTabell">
+            <thead>
+              <tr>
+                <th>Plass</th><th>Lag</th><th>Spilt</th><th>Vunnet</th>
+                <th>Uavgjort</th><th>Tapt</th><th>Mål+</th><th>Mål-</th><th>Poeng</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td colspan="9"><div class="loader"></div></td></tr>
+            </tbody>
+          </table>
+        </div>
+      `;
+    }
+  }
+
+  // Avslutt slide-DIV
+  content += `</div>`;
+  slidesContainer.innerHTML = content;
+
+  // Last inn data for tabell eller bracket
+  if (slide.elements.includes('tabeller')) {
+    if (slide.fase === 'utslag') {
+      loadBracket(slide.division, slide.fase);
+    } else {
+      loadTabeller(slide.division, slide.fase);
+    }
+  }
+}
+
+
+    // Autentisering
+    auth.onAuthStateChanged((user) => {
+      if (user) {
+      } else {
+        window.location.href = 'login.html';
+      }
+    });
+    function loggut() {
+      auth.signOut().then(() => {
+        window.location.href = 'index.html';
+      }).catch((error) => {
+        console.error("Feil ved utlogging:", error);
+      });
+    }
+    /**
+ * Bygg og vis en utslagsbrakett for en gitt divisjon og fase (elimineringsfase).
+ * Henter kampdata fra databasen, strukturerer dem per runde, og genererer HTML.
+ * Forutsetter at fase-typen er "utslag" (elimineringsrunde).
+ */
+/**
+ * Bygg og vis en utslagsbrakett for en gitt divisjon og fase (elimineringsfase).
+ * Forutsetter at fase-navnet er "utslag".
+ */
+/**
+ * Bygg og vis en utslagsbrakett for en gitt divisjon og fase (elimineringsfase).
+ * Forutsetter at fase-navnet er "utslag".
+ */
+ 
+ async function loadBracket(divisjon, faseType) {
+  try {
+    const snapshot = await db
+      .collection('turneringer')
+      .doc(turneringId)
+      .collection('kamper')
+      .where('divisjon', '==', divisjon)
+      .where('faseType', '==', faseType)
+      .get();
+
+    const container = document.querySelector('.bracket-container');
+    if (!container) return;
+
+    if (snapshot.empty) {
+      container.innerHTML = '<p>Ingen kamper tilgjengelig for utslagsfasen.</p>';
+      return;
+    }
+
+    // Gruppér per runde og bronsekamper
+    const roundsMap = {};
+    const bronzeRu = [];
+    snapshot.forEach(doc => {
+      const k = doc.data();
+      if (k.bronsekamp) bronzeRu.push(k);
+      else {
+        const r = k.rundeNummer ?? 0;
+        roundsMap[r] = roundsMap[r] || [];
+        roundsMap[r].push(k);
+      }
+    });
+
+    // Bygg HTML
+    let html = '<div class="bracket">';
+    Object.keys(roundsMap)
+      .map(n => parseInt(n))
+      .sort((a,b) => a-b)
+      .forEach(r => {
+        html += `<div class="bracket-round round-${r}">`;
+
+        roundsMap[r]
+          .sort((a,b) => (a.kampIndeks||0) - (b.kampIndeks||0))
+          .forEach(k => {
+            const fmt = navn => navn
+              ? navn.replace(/-/g,' ')
+                     .replace(/\b\w/g, c => c.toUpperCase())
+              : '';
+
+            html += `
+              <div class="kamp-wrapper">
+                <table class="kamp-table">
+                  <tr>
+                    <td class="team-name">${fmt(k.hjemmelag)}</td>
+                    <td class="team-score">${k.hjemmelagScore ?? '-'}</td>
+                  </tr>
+                  <tr>
+                    <td class="team-name">${fmt(k.bortelag)}</td>
+                    <td class="team-score">${k.bortelagScore ?? '-'}</td>
+                  </tr>
+                </table>
+              </div>
+            `;
+          });
+
+        html += '</div>';
+      });
+
+    // Bronsefinale bakerst
+    if (bronzeRu.length) {
+      html += `<div class="bracket-round bronze-round"><h3>Bronsefinale</h3>`;
+      bronzeRu
+        .sort((a,b) => (a.kampIndeks||0) - (b.kampIndeks||0))
+        .forEach(k => {
+          const fmt = navn => navn
+            ? navn.replace(/-/g,' ')
+                   .replace(/\b\w/g, c => c.toUpperCase())
+            : '';
+          html += `
+            <div class="kamp-wrapper">
+              <table class="kamp-table">
+                <tr>
+                  <td class="team-name">${fmt(k.hjemmelag)}</td>
+                  <td class="team-score">${k.hjemmelagScore ?? '-'}</td>
+                </tr>
+                <tr>
+                  <td class="team-name">${fmt(k.bortelag)}</td>
+                  <td class="team-score">${k.bortelagScore ?? '-'}</td>
+                </tr>
+              </table>
+            </div>
+          `;
+        });
+      html += '</div>';
+    }
+
+    html += '</div>';
+    container.innerHTML = html;
+
+  } catch (e) {
+    console.error('Feil ved generering av utslagsbrakett:', e);
+    document.querySelector('.bracket-container').innerHTML =
+      '<p>Kunne ikke laste bracket. ☹️</p>';
+  }
+}
+
+    // Juster Q&A sidebar posisjon
+    function adjustSidebarPosition() {
+      const header = document.querySelector('header');
+      const nav = document.querySelector('nav');
+      const qaSection = document.getElementById('qa-section');
+      if (header && nav && qaSection) {
+        const totalHeight = header.offsetHeight + nav.offsetHeight;
+        qaSection.style.top = `${totalHeight}px`;
+        qaSection.style.maxHeight = `calc(100vh - ${totalHeight}px)`;
+      }
+    }
+    document.addEventListener('DOMContentLoaded', adjustSidebarPosition);
+    window.addEventListener('resize', adjustSidebarPosition);
+
+    // Q&A-funksjoner
+    function displaysidebar(){
+      const qaSection = document.getElementById('qa-section');
+      if (qaSection) {
+        qaSection.style.display = "block";
+        setTimeout(() => {
+          qaSection.style.transform = "translateX(0)";
+          qaSection.style.opacity = "1";
+        }, 10);
+      }
+    }
+    function closeSection(){
+      const qaSection = document.getElementById('qa-section');
+      if (qaSection) {
+        qaSection.style.transform = "translateX(100%)";
+        qaSection.style.opacity = "0";
+        qaSection.addEventListener('transitionend', function handler() {
+          qaSection.style.display = "none";
+          qaSection.removeEventListener('transitionend', handler);
+        });
+      }
+    }
+    function toggleAnswer(index) {
+      const answers = document.querySelectorAll('#qa-section .answer');
+      if (answers[index]) {
+        answers[index].style.display = (answers[index].style.display === "block") ? "none" : "block";
+      }
+    }
+
+    // Fullskjermsmodus: toggle full screen
+    function toggleFullScreen() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(err => {
+          alert(`Feil ved fullskjermsmodus: ${err.message} (${err.name})`);
+        });
+      } else {
+        if (document.exitFullscreen) {
+          document.exitFullscreen();
+        }
+      }
+    }
+
+    // Hente slides fra Firestore
+    function loadSlides() {
+      db.collection('turneringer').doc(turneringId).collection('slides').get().then(snapshot => {
+        slides = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        if (slides.length > 0) {
+          renderSlidesOverview();
+        } else {
+          openSlideConfigPopup();
+        }
+      }).catch(error => {
+        console.error('Feil ved henting av slides:', error);
+        openSlideConfigPopup();
+      });
+    }
+
+    // Åpne slide-konfigurasjons-popup
+    function openSlideConfigPopup(slide = null) {
+      editingSlide = slide;
+      const slideConfigPopup = document.getElementById('slideConfigPopup');
+      const popupOverlay = document.getElementById('popupOverlay');
+      if (slideConfigPopup && popupOverlay) {
+        slideConfigPopup.classList.add('active');
+        popupOverlay.classList.add('active');
+        document.getElementById('popupTitle').textContent = editingSlide ? "Rediger Slide" : "Konfigurer Slide";
+        renderSlideConfigForm();
+      }
+    }
+
+    // Render slide-konfigurasjonsformular
+    function renderSlideConfigForm() {
+      const slideConfig = document.getElementById('slideConfig');
+      if (slideConfig) {
+        slideConfig.innerHTML = `
+          <div>
+            <label for="divisionSelection">Velg divisjon:</label>
+            <select id="divisionSelection">
+              <option value="">Velg divisjon</option>
+            </select>
+          </div>
+          <div>
+            <label for="faseSelection">Velg fase:</label>
+            <select id="faseSelection" disabled>
+              <option value="">Velg fase</option>
+            </select>
+          </div>
+          <div>
+            <label for="slideTitle">Slide Tittel:</label>
+            <input type="text" id="slideTitle" placeholder="F.eks. Divisjonsoversikt">
+          </div>
+          <div>
+            <label for="durationSelection">Slide Varighet (sekunder):</label>
+            <input type="number" id="durationSelection" value="10" min="5" max="60">
+          </div>
+          <div>
+            <label for="transitionSelection">Overgangseffekt:</label>
+            <select id="transitionSelection">
+              <option value="fade">Fade</option>
+              <option value="slide">Slide</option>
+              <option value="none">Ingen</option>
+            </select>
+          </div>
+          <div>
+            <label>Velg elementer:</label>
+            <label><input type="checkbox" value="kamper" id="kamperCheckbox"> Kamper</label>
+            <label><input type="checkbox" value="tabeller" id="tabellerCheckbox"> Tabeller</label>
+            <label><input type="checkbox" value="kommendeKamper" id="kommendeKamperCheckbox"> Kommende Kamper</label>
+          </div>
+        `;
+        loadDivisionsForPopup();
+        addDivisionChangeListener();
+        if(editingSlide) {
+          document.getElementById('divisionSelection').value = editingSlide.division;
+          loadFaser(editingSlide.division).then(() => {
+            document.getElementById('faseSelection').value = editingSlide.fase;
+          });
+          document.getElementById('slideTitle').value = editingSlide.title || "";
+          document.getElementById('durationSelection').value = editingSlide.duration || 10;
+          document.getElementById('transitionSelection').value = editingSlide.transition || "fade";
+          if(editingSlide.elements) {
+            document.getElementById('kamperCheckbox').checked = editingSlide.elements.includes('kamper');
+            document.getElementById('tabellerCheckbox').checked = editingSlide.elements.includes('tabeller');
+            document.getElementById('kommendeKamperCheckbox').checked = editingSlide.elements.includes('kommendeKamper');
+          }
+        }
+      }
+    }
+
+    // Hent divisjoner for popup
+    function loadDivisionsForPopup() {
+      db.collection('turneringer').doc(turneringId).get().then(doc => {
+        if (doc.exists) {
+          const data = doc.data();
+          const divisions = data.divisions || [];
+          const divisionSelection = document.getElementById('divisionSelection');
+          if (divisionSelection) {
+            divisions.forEach(division => {
+              const option = document.createElement('option');
+              option.value = division.name;
+              option.textContent = division.name;
+              divisionSelection.appendChild(option);
+            });
+          }
+        }
+      }).catch(error => {
+        console.error('Feil ved henting av divisjoner:', error);
+      });
+    }
+
+    // Lytter for divisjonsendring
+    function addDivisionChangeListener() {
+      const divisionSelection = document.getElementById('divisionSelection');
+      const faseSelection = document.getElementById('faseSelection');
+      if (divisionSelection && faseSelection) {
+        divisionSelection.addEventListener('change', function() {
+          const selectedDivision = this.value;
+          if (selectedDivision) {
+            faseSelection.disabled = true;
+            faseSelection.innerHTML = '<option value="">Laster faser...</option>';
+            loadFaser(selectedDivision);
+          } else {
+            faseSelection.innerHTML = '<option value="">Velg fase</option>';
+            faseSelection.disabled = true;
+          }
+        });
+      }
+    }
+
+
+    // Lagre slide-konfigurasjon
+    function saveSlideConfig() {
+      const divisionSelection = document.getElementById('divisionSelection').value;
+      const faseSelection = document.getElementById('faseSelection').value;
+      const slideTitle = document.getElementById('slideTitle').value;
+      const duration = parseInt(document.getElementById('durationSelection').value) || 10;
+      const transition = document.getElementById('transitionSelection').value;
+      const kamperChecked = document.getElementById('kamperCheckbox').checked;
+      const tabellerChecked = document.getElementById('tabellerCheckbox').checked;
+      const kommendeKamperChecked = document.getElementById('kommendeKamperCheckbox').checked;
+
+      if (!divisionSelection) {
+        alert('Velg en divisjon.');
+        return;
+      }
+      if (!faseSelection) {
+        alert('Velg en fase.');
+        return;
+      }
+
+      let slideData = {
+        division: divisionSelection,
+        fase: faseSelection,
+        title: slideTitle,
+        duration: duration,
+        transition: transition,
+        elements: []
+      };
+      if (kamperChecked) slideData.elements.push('kamper');
+      if (tabellerChecked) slideData.elements.push('tabeller');
+      if (kommendeKamperChecked) slideData.elements.push('kommendeKamper');
+
+      if(editingSlide) {
+        db.collection('turneringer').doc(turneringId).collection('slides').doc(editingSlide.id)
+          .update(slideData)
+          .then(() => {
+            const index = slides.findIndex(s => s.id === editingSlide.id);
+            if(index !== -1) {
+              slides[index] = { id: editingSlide.id, ...slideData };
+            }
+            renderSlidesOverview();
+            closePopup();
+          }).catch(error => {
+            console.error('Feil ved oppdatering av slide:', error);
+            alert('Feil ved oppdatering.');
+          });
+      } else {
+        db.collection('turneringer').doc(turneringId).collection('slides').add(slideData).then(docRef => {
+          slides.push({ id: docRef.id, ...slideData });
+          renderSlidesOverview();
+          closePopup();
+        }).catch(error => {
+          console.error('Feil ved lagring av slide:', error);
+          alert('Feil ved lagring.');
+        });
+      }
+    }
+
+ 
+
+    // Slett slide
+    function deleteSlide(slideId) {
+      if(confirm("Er du sikker på at du vil slette denne sliden?")) {
+        db.collection('turneringer').doc(turneringId).collection('slides').doc(slideId).delete().then(() => {
+          slides = slides.filter(slide => slide.id !== slideId);
+          renderSlidesOverview();
+        }).catch(error => {
+          console.error("Feil ved sletting av slide:", error);
+          alert("Feil ved sletting.");
+        });
+      }
+    }
+
+    function closePreviewPopup() {
+      document.getElementById('previewPopup').classList.remove('active');
+      document.getElementById('previewOverlay').classList.remove('active');
+    }
+    function closePopup() {
+      document.getElementById('slideConfigPopup').classList.remove('active');
+      document.getElementById('popupOverlay').classList.remove('active');
+      editingSlide = null;
+    }
+
+    let slideTimer;  // holder referansen til timeout’en
+
+function startPresentation() {
+  slidesOverview.style.display = 'none';
+  currentSlideIndex = 0;
+  showSlide(currentSlideIndex);
+  scheduleNextSlide();
+}
+
+// Setter opp neste automatisk slide-switch basert på slide.duration (i sekunder)
+function scheduleNextSlide() {
+  // Avbryt eventuell eksisterende timeout
+  clearTimeout(slideTimer);
+
+  // Hent gjeldende slide, bruk standard 10s hvis ikke satt
+  const slide = slides[currentSlideIndex];
+  const durationMs = (slide.duration || 10) * 1000;
+
+  slideTimer = setTimeout(() => {
+    // Øk index, wrap rundt til 0 når vi kommer til enden
+    currentSlideIndex = (currentSlideIndex + 1) % slides.length;
+    showSlide(currentSlideIndex);
+    // Planlegg neste
+    scheduleNextSlide();
+  }, durationMs);
+}
+
+// Hvis du vil stoppe slideshowet manuelt:
+function stopPresentation() {
+  clearTimeout(slideTimer);
+}
+
+// Oppdatert loadKamper for å inkludere 'bane'-feltet
+function loadKamper(divisjon, fase, callback) {
+  db.collection('turneringer').doc(turneringId).collection('kamper')
+    .where('divisjon', '==', divisjon)
+    .where('fase', '==', fase)
+    .get()
+    .then(snapshot => {
+      if (snapshot.empty) {
+        callback('<li>Ingen kamper funnet.</li>');
+        return;
+      }
+      let kamperContent = '';
+      snapshot.forEach(doc => {
+        const data = doc.data();
+        const tidspunkt = data.starttid
+          ? new Date(data.starttid.seconds * 1000)
+              .toLocaleString('no-NO', { dateStyle: 'short', timeStyle: 'short' })
+          : 'Ukjent tid';
+        const bane = data.bane || 'Ukjent bane';
+        kamperContent += `
+          <li class="kamp-item">
+            <div class="kamp-info">
+              <div class="lag">${data.hjemmelag} vs ${data.bortelag}</div>
+              <div class="bane">Bane: ${bane}</div>
+              <div class="kamp-tid">${tidspunkt}</div>
+            </div>
+          </li>
+        `;
+      });
+      callback(kamperContent);
+    })
+    .catch(error => {
+      console.error('Feil ved henting av kamper:', error);
+      callback('<li>Feil ved henting av kamper.</li>');
+    });
+}
+
+// --- Hjelpefunksjoner ---
+// Fisher–Yates shuffle
+function shuffleArray(array) {
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+}
+
+// Standard sorteringsrekkefølge (kan overskrives fra Firestore)
+let sortingOrderLocal = ["points", "goalDifference", "goalsScored", "alphabetical"];
+
+// Dynamisk sammenligning ut fra sortingOrderLocal
+function dynamicSort(a, b) {
+  for (let c of sortingOrderLocal) {
+    switch (c) {
+      case "points":
+        if (b.poeng !== a.poeng) return b.poeng - a.poeng;
+        break;
+      case "goalDifference":
+        if (b.målDifferanse !== a.målDifferanse)
+          return b.målDifferanse - a.målDifferanse;
+        break;
+      case "goalsScored":
+        if (b.målScoret !== a.målScoret)
+          return b.målScoret - a.målScoret;
+        break;
+      case "alphabetical":
+        return a.lagNavn.localeCompare(b.lagNavn);
+    }
+  }
+  return 0;
+}
+
+// -----------------------------------------------------------------------------
+// Henter alle lag i divisjon/fase og akkumulerer statistikk kun for
+// kamper med status 'startet'. Øvrige lag vises med 0 i alle kolonner.
+// -----------------------------------------------------------------------------
+async function loadTabeller(divisjon, fase) {
+  // 1) Konverter fase (streng eller tall) til et tall som matcher feltet 'fasenummer'
+  const phaseNum = Number(fase.toString().replace(/\D/g, ''));
+
+  // 2) Hent alle kamper i denne divisjonen og fasen, uavhengig av status
+  const allSnap = await db
+    .collection('turneringer').doc(turneringId)
+    .collection('kamper')
+    .where('divisjon',   '==', divisjon)
+    .where('fasenummer', '==', phaseNum)
+    .get();
+
+  // 3) Finn alle unike lagnavn
+  const teams = new Set();
+  allSnap.forEach(doc => {
+    const d = doc.data();
+    if (d.hjemmelag) teams.add(d.hjemmelag);
+    if (d.bortelag)  teams.add(d.bortelag);
+  });
+
+  // 4) Init stats for hvert lag med nullverdier
+  const stats = {};
+  teams.forEach(lag => {
+    stats[lag] = {
+      spilt:   0,
+      v:       0,
+      u:       0,
+      t:       0,
+      maalFor: 0,
+      maalMot: 0,
+      poeng:   0
+    };
+  });
+
+  // 5) Akkumuler statistikk kun for kamper med status 'startet'
+  allSnap.forEach(doc => {
+    const d = doc.data();
+    if (d.status !== 'startet') return;
+
+    const hjem = d.hjemmelag  || 'Ukjent';
+    const bort = d.bortelag   || 'Ukjent';
+    const sH   = Number(d.hjemmelagScore) || 0;
+    const sB   = Number(d.bortelagScore)   || 0;
+
+    // Oppdater spilt og mål
+    stats[hjem].spilt++;
+    stats[bort].spilt++;
+    stats[hjem].maalFor  += sH;
+    stats[hjem].maalMot  += sB;
+    stats[bort].maalFor   += sB;
+    stats[bort].maalMot   += sH;
+
+    // Poeng og V/U/T
+    if (sH > sB) {
+      stats[hjem].v++;    stats[hjem].poeng += 3;
+      stats[bort].t++;
+    } else if (sH === sB) {
+      stats[hjem].u++;    stats[hjem].poeng += 1;
+      stats[bort].u++;    stats[bort].poeng += 1;
+    } else {
+      stats[bort].v++;    stats[bort].poeng += 3;
+      stats[hjem].t++;
+    }
+  });
+
+  // 6) Sorter lagene: poeng → måldifferanse → alfabetisk
+  const sorted = Object.entries(stats).sort(
+    ([lagA, statA], [lagB, statB]) => {
+      if (statB.poeng !== statA.poeng) {
+        return statB.poeng - statA.poeng;
+      }
+      const diffA = statA.maalFor - statA.maalMot;
+      const diffB = statB.maalFor - statB.maalMot;
+      if (diffB !== diffA) {
+        return diffB - diffA;
+      }
+      return lagA.localeCompare(lagB);
+    }
+  );
+
+  // 7) Render tabellen i DOM
+  const table = document.getElementById('divisjonTabell');
+  const thead = table.querySelector('thead');
+  const tbody = table.querySelector('tbody');
+
+  thead.innerHTML = `
+    <tr>
+      <th>Plass</th><th>Lag</th><th>Spilt</th><th>V</th>
+      <th>U</th><th>T</th><th>M+</th><th>M–</th><th>Diff</th><th>P</th>
+    </tr>`;
+
+  tbody.innerHTML = sorted.map(([lag, s], i) => {
+    const diff = s.maalFor - s.maalMot;
+    return `
+      <tr>
+        <td>${i + 1}</td>
+        <td>${lag}</td>
+        <td>${s.spilt}</td>
+        <td>${s.v}</td>
+        <td>${s.u}</td>
+        <td>${s.t}</td>
+        <td>${s.maalFor}</td>
+        <td>${s.maalMot}</td>
+        <td>${diff}</td>
+        <td>${s.poeng}</td>
+      </tr>`;
+  }).join('');
+}
+
+// --- Hent og vis divisjonstabell basert på kamp.faseNummer ---
+async function fetchDivisjonTabell(divisjon, faseNummer) {
+  try {
+    const table = document.getElementById("divisjonTabell");
+    if (!table) {
+      console.error("Tabell ikke funnet for divisjon:", divisjon);
+      return;
+    }
+
+    // Sett opp kolonne­hoder
+    table.querySelector("thead").innerHTML = `
+      <tr>
+        <th>Plass</th><th>Lag</th><th>Spilt</th><th>Vunnet</th>
+        <th>Uavgjort</th><th>Tapt</th><th>Mål+</th><th>Mål-</th><th>Poeng</th>
+      </tr>
+    `;
+
+    // Spørr Firestore
+    const snap = await db
+      .collection("turneringer")
+      .doc(turneringId)
+      .collection("kamper")
+      .where("divisjon", "==", divisjon)
+      .where("faseNummer", "==", faseNummer)
+      .get();
+
+    const tbody = table.querySelector("tbody");
+    if (snap.empty) {
+      console.log("📋 Ingen kamper med faseNummer =", faseNummer);
+      tbody.innerHTML = '<tr><td colspan="9">Ingen kamper funnet.</td></tr>';
+      return;
+    }
+    console.log("📋 Fant kamper:", snap.size);
+
+    // Beregn statistikk
+    const lagStat = {};
+    snap.forEach(doc => {
+      const k = doc.data();
+      if (k.hjemmelag) lagStat[k.hjemmelag] ??= {
+        lagNavn: k.hjemmelag, spilt:0, vunnet:0, uavgjort:0, tapt:0,
+        målScoret:0, målSluppetInn:0, poeng:0
+      };
+      if (k.bortelag)  lagStat[k.bortelag]  ??= {
+        lagNavn: k.bortelag,  spilt:0, vunnet:0, uavgjort:0, tapt:0,
+        målScoret:0, målSluppetInn:0, poeng:0
+      };
+    });
+    snap.forEach(doc => {
+      const k = doc.data();
+      if (k.hjemmelagScore != null && k.bortelagScore != null) {
+        const h = k.hjemmelag, b = k.bortelag, hs = k.hjemmelagScore, bs = k.bortelagScore;
+        lagStat[h].spilt++; lagStat[h].målScoret += hs; lagStat[h].målSluppetInn += bs;
+        lagStat[b].spilt++; lagStat[b].målScoret += bs; lagStat[b].målSluppetInn += hs;
+        if (hs > bs)      { lagStat[h].vunnet++; lagStat[h].poeng += 3; lagStat[b].tapt++; }
+        else if (hs < bs) { lagStat[b].vunnet++; lagStat[b].poeng += 3; lagStat[h].tapt++; }
+        else              { lagStat[h].uavgjort++; lagStat[b].uavgjort++; lagStat[h].poeng++; lagStat[b].poeng++; }
+      }
+    });
+
+    // Til array + beregn diff
+    const arr = Object.values(lagStat).map(l => ({
+      ...l,
+      målDifferanse: l.målScoret - l.målSluppetInn
+    }));
+
+    // Oppdater sorteringsrekkefølge om satt i Firestore
+    const tourn = await db.collection("turneringer").doc(turneringId).get();
+    if (tourn.exists && Array.isArray(tourn.data().sortingOrder)) {
+      sortingOrderLocal = tourn.data().sortingOrder;
+    }
+
+    // Sorter og evt. kast lodd
+    arr.sort(dynamicSort);
+    if (sortingOrderLocal.includes("drawLots")) shuffleArray(arr);
+
+    // Render rader
+    tbody.innerHTML = "";
+    arr.forEach((l, i) => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${i+1}</td><td>${l.lagNavn}</td><td>${l.spilt}</td>
+        <td>${l.vunnet}</td><td>${l.uavgjort}</td><td>${l.tapt}</td>
+        <td>${l.målScoret}</td><td>${l.målSluppetInn}</td>
+        <td class="points-cell">${l.poeng}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+
+  } catch (err) {
+    console.error("Feil ved henting av divisjonstabell:", err);
+  }
+}
+
+
+    function toggleUserMenu() {
+      const userMenu = document.getElementById('user-menu');
+      userMenu.style.display = (userMenu.style.display === "block") ? "none" : "block";
+    }
+    window.addEventListener('DOMContentLoaded', function() {
+  const menyKnapp = document.getElementById('meny-knapp');
+  const meny      = document.getElementById('meny');
+  if (menyKnapp && meny) {
+    menyKnapp.addEventListener('click', function() {
+      meny.classList.toggle('meny-åpen');
+      menyKnapp.classList.toggle('åpen');
+      const erApen = meny.classList.contains('meny-åpen');
+      menyKnapp.setAttribute('aria-expanded', erApen);
+      menyKnapp.setAttribute('aria-label', erApen ? 'Lukk meny' : 'Åpne meny');
+    });
+  }
+});
+// --- Last inn faser i popup (bruker doc.id som verdi) ---
+async function loadFaser(divisionName) {
+  const sel = document.getElementById('faseSelection');
+  sel.innerHTML = '<option value="">Velg fase</option>';
+  const col = `${divisionName}_format`;
+
+  try {
+    const snap = await db.collection('turneringer')
+      .doc(turneringId)
+      .collection(col)
+      .get();
+
+    if (!snap.empty) {
+      snap.forEach(doc => {
+        const data = doc.data();
+        const opt = document.createElement('option');
+        opt.value = doc.id; // doc.id er fasenavnet som matcher kamp.fase
+        opt.textContent = `${doc.id} (${data.type || 'ukjent'})`;
+        sel.appendChild(opt);
+      });
+      sel.disabled = false;
+    } else {
+      sel.innerHTML = '<option>Ingen faser funnet.</option>';
+      sel.disabled = true;
+    }
+  } catch (err) {
+    console.error('Feil ved henting av faser:', err);
+    sel.innerHTML = '<option>Feil ved henting.</option>';
+    sel.disabled = true;
+  }
+}
+    window.onload = loadSlides;
+  </script>
+</body>
+</html>

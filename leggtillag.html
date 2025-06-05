@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf8">
+  <link rel="stylesheet" type="text/css" href="./admin.css">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    /* Sørg for at header og nav alltid ligger over sidebaren */
+    header, nav {
+      position: relative;
+      z-index: 2000;
+    }
+    /* Oppdatert stil for FAQ-sidebar på høyre side */
+    #sidebar {
+      position: fixed;
+      top: 310px; /* Starter under header og nav – juster verdien ved behov */
+      right: 0;
+      width: 250px;
+      height: calc(100vh - 280px);
+      background: #f4f4f4;
+      padding: 20px;
+      box-shadow: -2px 0 5px rgba(0,0,0,0.1);
+      transform: translateX(100%); /* Skjult til høyre */
+      transition: transform 0.3s ease-in-out;
+      z-index: 1500;
+    }
+    #sidebar.open {
+      transform: translateX(0);
+    }
+    /* Juster hovedinnholdet slik at header og nav ikke dekkes */
+    main {
+      padding: 40px;
+      margin-top: 20px;
+    }
+    /* Eksempel på styling for lenker i sidebar */
+    #sidebar ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    #sidebar ul li {
+      margin-bottom: 10px;
+    }
+    #sidebar ul li a {
+      text-decoration: none;
+      color: #333;
+    }
+    /* Stil for toggle-knappen (kan justeres etter behov) */
+    #sidebar-toggle {
+      margin-left: 10px;
+    }
+/* Overlay */
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 3000;
+  inset: 0; /* top:0; right:0; bottom:0; left:0; */
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+/* Selve boksen */
+.modal-content {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 400px;
+  max-width: 90%;
+  background-color: #fff;
+  padding: 24px;
+  border-radius: 8px;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+  font-family: "Roboto", sans-serif;
+}
+
+/* Close-knapp */
+.modal-content .close {
+  position: absolute;
+  right: 16px;
+  top: 12px;
+  font-size: 22px;
+  cursor: pointer;
+}
+
+/* Form‑elementer */
+.modal-content form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.modal-content label {
+  font-weight: 700;
+}
+.modal-content input[type="text"],
+.modal-content textarea {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 0.95rem;
+}
+
+/* Knapp i form */
+.modal-content button {
+  align-self: center;
+  padding: 10px 20px;
+  background-color: #596bff;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 1rem;
+}
+.modal-content button:hover {
+  background-color: #4a5ddd;
+}
+
+    /* Container for spillerliste */
+    #spillereListe {
+      margin-bottom: 20px;
+      max-height: 300px;    /* Eventuelt for scroll */
+      overflow-y: auto;     /* Rull hvis mange spillere */
+    }
+    /* Hvert spiller-element på en egen linje */
+    #spillereListe > div {
+      display: flex;
+      align-items: center;
+      justify-content: space-between; /* Navn til venstre, knapp til høyre */
+      margin-bottom: 10px;
+    }
+    /* Delete-knappen */
+    #spillereListe > div > button {
+      background-color: #596bff; 
+      color: #fff;
+      border: none;
+      padding: 6px 10px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.9rem;
+    }
+    #spillereListe > div > button:hover {
+      background-color: #4a5ddd;
+    }
+    /* Området for å legge til ny spiller */
+    .modal-content .add-player-container {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+      align-items: center;
+    }
+    .modal-content .add-player-container input[type="text"] {
+      flex: 1;
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    .modal-content .add-player-container button {
+      background-color: #596bff;
+      color: #fff;
+      border: none;
+      padding: 8px 14px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.9rem;
+    }
+    .modal-content .add-player-container button:hover {
+      background-color: #4a5ddd;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="logo-title">
+      <a href="nyTurnering.html"><img src="logo.png" alt="Simple Scores Logo" class="logo"></a>
+    </div>
+    <div class="nav2">
+      <button id="user-button" onclick="toggleUserMenu()">User</button>
+      <div id="user-menu" class="user-menu" style="display: none;">
+        <p>Logget inn som <span id="mail"></span></p>
+        <button id="loggut" onclick="loggut()">Sign out</button>
+      </div>
+      <!-- Toggle-knapp for sidebar -->
+      <button id="sidebar-toggle" onclick="toggleSidebar()">Help</button>
+    </div>
+  </header>
+  <nav>
+    <button class="meny-ikon" id="meny-knapp" aria-label="Åpne meny" aria-expanded="false" aria-controls="meny"></button>
+    <ul id="meny">
+      <li><a href="slideshow.html">Slideshow</a></li>
+      <li><a href="instillinger.html">Instillinger</a></li>
+      <li><a href="leggtillag.html">Legg til lag</a></li>
+      <li><a href="format.html">Format</a></li>
+      <li><a href="kampoppsett.html">Kampoppsett</a></li>
+      <li><a href="kamper.html">Kamper</a></li>
+    </ul>
+  </nav>
+  
+  <aside id="sidebar">
+    <ul>
+      <li><a href="faq.html">FAQ</a></li>
+      <li><a href="omoss.html">Om oss</a></li>
+      <li><a href="kontakt.html">Kontakt</a></li>
+      <!-- Flere lenker kan legges til -->
+    </ul>
+  </aside>
+  
+  <main>
+<!-- Team Popup -->
+<div id="teamPopup" class="modal">
+  <div class="modal-content">
+    <span class="close" onclick="document.getElementById('teamPopup').style.display='none'">&times;</span>
+    <form id="addTeamForm">
+      <label for="teamName">Team name:</label>
+      <input type="text" id="teamName" name="teamName" placeholder="Skriv lagnavn"><br>
+      <label for="spillerliste">Playerlist:</label>
+      <textarea id="spillerliste" rows="5" placeholder="Type in playernames, one per line" name="spillerliste"></textarea>
+      <button onclick="addTeam()" type="button">Add team</button>
+    </form>
+  </div>
+</div>
+
+    
+    <!-- The Modal for spillere -->
+    <div id="myModal" class="modal" style="display: none;">
+      <div class="modal-content">
+        <span class="close" onclick="document.getElementById('myModal').style.display='none'">&times;</span>
+        <h2>Players on the team:</h2>
+        <div id="spillereListe"></div>
+        <input type="text" id="nySpillerNavn" placeholder="Player name">
+        <button onclick="leggTilSpiller()" id="addplayer" type="button">Add player</button>
+      </div>
+    </div>
+    
+<!-- Referee Form Popup -->
+<div id="refereeForm" class="modal">
+  <div class="modal-content">
+    <span class="close" onclick="document.getElementById('refereeForm').style.display='none'">&times;</span>
+    <form id="addRefForm">
+      <label for="refereeName">Name</label>
+      <input type="text" id="refereeName" name="refereeName" placeholder="Referee Name">
+
+      <label for="refereeTeam">Team</label>
+      <select id="refereeTeam" name="refereeTeam">
+        <option value="">—</option>
+        <!-- Teams legges til dynamisk via JS -->
+      </select>
+
+      <label>Divisions</label>
+      <div id="refereeDivisionsContainer" class="checkbox-group">
+        <!-- JS fyller ut én checkbox per divisjon -->
+      </div>
+
+      <button type="button" onclick="addReferee()">Add Referee</button>
+    </form>
+  </div>
+</div>
+
+
+    
+    <!-- Innhold for lag og dommere -->
+    <div class="legg-til-lag-container">
+      <div class="tabell">
+        <table id="lagTabell">
+          <thead>
+            <!-- Rad for divisjonsvalg og Legg til Lag-knappen -->
+            <tr>
+              <th>
+                <select id="divisionDropdown" onchange="hentOgVisLag()">
+                  <!-- Divisjoner vil bli populert her av JavaScript -->
+                </select>
+              </th>
+              <th>
+                <button id="addTeamBtn" onclick="Endre()">Add team</button>
+              </th>
+            </tr>
+            <!-- Rad for overskriftene i tabellen -->
+            <tr>
+              <th>Teamname</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Lagdata vil bli injisert her -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+    
+    <div class="tabell">
+      <table id="dommeroversikt">
+        <thead>
+          <tr>
+            <th colspan="4">
+              <button id="addref" onclick="visform()">Add referee</button>
+            </th>
+          </tr>
+          <tr>
+            <th>Name</th>
+            <th>Team</th>
+            <th>Divisions</th>
+            <th>Delete</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- ... -->
+        </tbody>
+      </table>
+      
+      
+    </div>
+    
+  </main>
+  <footer class="site-footer">
+    <div class="footer-container">
+      <p>Contact us: <a href="mailto:contact@example.com">contact@example.com</a></p>
+      <p>Phone: +47 12345678</p>
+    </div>
+  </footer>
+    
+  <!-- Firebase og øvrig JavaScript -->
+  <script src="https://www.gstatic.com/firebasejs/8.2.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.2.0/firebase-firestore.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.2.0/firebase-auth.js"></script>
+  
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyCLRjYMzbeksCfV1ImdFsyb_sUJsGM0ZH0",
+      authDomain: "resultatservice-d860c.firebaseapp.com",
+      databaseURL: "https://resultatservice-d860c-default-rtdb.europe-west1.firebasedatabase.app",
+      projectId: "resultatservice-d860c",
+      storageBucket: "resultatservice-d860c.appspot.com",
+      messagingSenderId: "649532849758",
+      appId: "1:649532849758:web:74d06f6b79ade1d752becf"
+    };
+    
+    // Hent turnerings-ID fra querystring
+    const turneringId = new URLSearchParams(window.location.search).get('id');
+    console.log(turneringId);
+    
+    // Initialize Firebase
+    const app = firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    const auth = firebase.auth();
+    
+    auth.onAuthStateChanged((user) => {
+      if (user) {
+        const email = user.email;
+        document.getElementById('mail').innerHTML = email;
+      } else {
+        window.location.href = 'login.html';
+      }
+    });
+    
+    function loggut() {
+      auth.signOut().then(() => {
+        window.location.href = 'login.html';
+      }).catch((error) => {
+        console.error("Feil ved utlogging:", error);
+      });
+    }
+    async function populateTeamsDropdown() {
+  const select = document.getElementById('refereeTeam');
+  select.innerHTML = '<option value="">—</option>';
+  const snapshot = await db
+    .collection('turneringer')
+    .doc(turneringId)
+    .collection('lag')
+    .get();
+  snapshot.forEach(doc => {
+    const { lagNavn } = doc.data();
+    const opt = document.createElement('option');
+    opt.value = doc.id;
+    opt.textContent = lagNavn;
+    select.appendChild(opt);
+  });
+}
+
+    // Funksjoner for lag og dommere
+    function Endre(){
+      document.getElementById("teamPopup").style.display = "block";
+    }
+    
+    async function populateDivisionDropdown() {
+      try {
+        if (!turneringId) {
+          console.error('Turnerings-ID mangler. Kan ikke hente divisjoner.');
+          return;
+        }
+        const docRef = db.collection('turneringer').doc(turneringId);
+        const doc = await docRef.get();
+        if (!doc.exists) {
+          console.error('Fant ikke turneringsdokumentet.');
+          return;
+        }
+        const tournamentData = doc.data();
+        const divisions = tournamentData.divisions || [];
+        const divisionDropdown = document.getElementById('divisionDropdown');
+        if (!divisionDropdown) {
+          console.error('Dropdown med ID "divisionDropdown" ble ikke funnet.');
+          return;
+        }
+        divisionDropdown.innerHTML = '';
+        const defaultOption = document.createElement('option');
+        defaultOption.textContent = 'Velg divisjon';
+        defaultOption.value = '';
+        divisionDropdown.appendChild(defaultOption);
+        divisions.forEach(division => {
+          const option = document.createElement('option');
+          option.textContent = division.name;
+          option.value = division.name;
+          divisionDropdown.appendChild(option);
+        });
+      } catch (error) {
+        console.error('Feil ved henting av divisjoner:', error);
+      }
+    }
+    
+    document.addEventListener('DOMContentLoaded', populateDivisionDropdown);
+// 1) Fyll ut checkbox-lista ved oppstart
+async function populateDivisionsCheckboxes() {
+  const container = document.getElementById('refereeDivisionsContainer');
+  container.innerHTML = '';  // tøm for sikkerhets skyld
+
+  const tourSnap = await db
+    .collection('turneringer')
+    .doc(turneringId)
+    .get();
+  const divisions = tourSnap.data().divisions || [];
+
+  divisions.forEach(div => {
+    const label = document.createElement('label');
+    label.style.display = 'block';  // én rad per checkbox
+
+    const cb = document.createElement('input');
+    cb.type = 'checkbox';
+    cb.name = 'refereeDivisions';
+    cb.value = div.name;  // eller div.id hvis du heller vil
+
+    label.appendChild(cb);
+    label.appendChild(document.createTextNode(' ' + div.name));
+    container.appendChild(label);
+  });
+}
+
+// 2) Kjør ved DOMContentLoaded
+document.addEventListener('DOMContentLoaded', () => {
+  populateTeamsDropdown();           // eksisterende
+  populateDivisionsCheckboxes();     // nye funksjonen
+});
+
+    async function populateDivisionsDropdown() {
+  const select = document.getElementById('refereeDivisions');
+  select.innerHTML = '';  // tømmer evt. tidligere options
+
+  const tourSnap = await db
+    .collection('turneringer')
+    .doc(turneringId)
+    .get();
+
+  const divisions = tourSnap.data().divisions || [];
+  divisions.forEach(div => {
+    const opt = document.createElement('option');
+    opt.value = div.name;      // eller div.id hvis du har
+    opt.textContent = div.name;
+    select.appendChild(opt);
+  });
+}
+
+
+    function visform(){
+      document.getElementById("refereeForm").style.display= "block";
+    }
+    
+    function addTeam() {
+  // Hent og nullstill skjema
+  const lagNavn = document.forms["addTeamForm"]["teamName"].value.trim();
+  document.forms["addTeamForm"]["teamName"].value = '';
+
+  // Hent spillerliste fra textarea, én spiller per linje
+  const spillerliste = document.getElementById('spillerliste')
+    .value
+    .split('\n')
+    .map(spiller => spiller.trim())
+    .filter(spiller => spiller);
+  document.forms["addTeamForm"]["spillerliste"].value = '';
+
+  // Velg divisjon
+  const div = document.getElementById("divisionDropdown").value;
+
+  // Bygg objektet som skal lagres
+  const lagData = {
+    lagNavn: lagNavn,
+    spillere: spillerliste,
+    divisjon: div,
+  };
+
+  // Referanse til samlingen
+  const teamsRef = db
+    .collection('turneringer')
+    .doc(turneringId)
+    .collection('lag');
+
+  // .add() gir deg en tilfeldig, godkjent ID — uavhengig av innholdet i lagNavn
+  teamsRef.add(lagData)
+    .then(docRef => {
+      console.log('Lag lagret med tilfeldig ID:', docRef.id);
+      // Sett dropdown tilbake til det valget brukeren hadde
+      document.getElementById('divisionDropdown').value = div;
+      hentOgVisLag();
+    })
+    .catch(error => {
+      console.error('Feil ved lagring av lag med add():', error);
+    });
+}
+
+    function hentOgVisLag() {
+      if (!turneringId) {
+        console.error('No tournament ID provided');
+        return;
+      }
+      const selectedDivision = document.getElementById('divisionDropdown').value;
+      if (!selectedDivision) {
+        console.log('Ingen divisjon valgt');
+        return;
+      }
+      db.collection('turneringer').doc(turneringId).collection('lag')
+        .where('divisjon', '==', selectedDivision)
+        .get()
+        .then(snapshot => {
+          const lagTabell = document.getElementById('lagTabell');
+          const tbody = lagTabell.querySelector('tbody');
+          tbody.innerHTML = '';
+          snapshot.forEach(doc => {
+            const lag = doc.data();
+            const row = tbody.insertRow();
+            const lagNavnCell = row.insertCell(0);
+            lagNavnCell.textContent = lag.lagNavn;
+            const lagId = doc.id;
+            const knappCell = row.insertCell(1);
+            knappCell.classList.add('knapper-cell');
+            const visSpillereKnapp = document.createElement('button');
+            visSpillereKnapp.textContent = 'Show players';
+            visSpillereKnapp.onclick = function() {
+              visSpillere(lagId);
+            };
+            visSpillereKnapp.classList.add('handlingsknapp');
+            knappCell.appendChild(visSpillereKnapp);
+            const slettKnapp = document.createElement('button');
+            slettKnapp.textContent = 'Delete';
+            slettKnapp.classList.add('handlingsknapp');
+            slettKnapp.onclick = function() {
+              slettLag(lagId);
+            };
+            knappCell.appendChild(slettKnapp);
+          });
+        })
+        .catch(error => {
+          console.error("Error fetching teams: ", error);
+        });
+    }
+    
+    function visSpillere(lagId) {
+      if (!lagId) {
+        console.error("lagId is undefined or empty");
+        return;
+      }
+      var modal = document.getElementById("myModal");
+      var spillereListe = document.getElementById("spillereListe");
+      spillereListe.innerHTML = '';
+      
+      db.collection('turneringer').doc(turneringId)
+        .collection('lag').doc(lagId).get()
+        .then(doc => {
+          if (doc.exists) {
+            const teamData = doc.data();
+            const spillereArray = teamData.spillere || [];
+            spillereArray.forEach((spiller, index) => {
+              const spillerElement = document.createElement("div");
+              spillerElement.textContent = spiller;
+              const slettKnapp = document.createElement("button");
+              slettKnapp.textContent = "Delete";
+              slettKnapp.onclick = function() {
+                slettSpiller(spiller, lagId);
+              };
+              spillerElement.appendChild(slettKnapp);
+              spillereListe.appendChild(spillerElement);
+            });
+            modal.style.display = "block";
+            let addButton = document.getElementById("addplayer");
+            addButton.onclick = function() {
+              let spillernavnet = document.getElementById("nySpillerNavn").value; 
+              leggTilSpiller(spillernavnet, lagId);
+              document.getElementById("nySpillerNavn").value ='';
+            };
+          } else {
+            console.error("Ingen data funnet for laget");
+          }
+        })
+        .catch(error => console.error("Error fetching team data: ", error));
+    }
+    
+    function slettSpiller(spillerNavn, lagId) {
+      db.collection('turneringer').doc(turneringId).collection('lag').doc(lagId).get().then(doc => {
+        if (!doc.exists) {
+          console.error('No such document!');
+          return;
+        }
+        let oppdaterteSpillere = doc.data().spillere.filter(spiller => spiller !== spillerNavn);
+        db.collection('turneringer').doc(turneringId).collection('lag').doc(lagId).update({
+          spillere: oppdaterteSpillere
+        }).then(() => {
+          console.log('Player successfully deleted');
+          visSpillere(oppdaterteSpillere, lagId);
+        }).catch(error => {
+          console.error('Error removing player: ', error);
+        });
+      }).catch(error => {
+        console.error('Error getting document:', error);
+      });
+    }
+    
+    function toggleSidebar() {
+      const sidebar = document.getElementById('sidebar');
+      sidebar.classList.toggle('open');
+    }
+    
+    function leggTilSpiller(spillerNavn, lagId) {
+      const lagRef = db.collection('turneringer').doc(turneringId).collection('lag').doc(lagId);
+      lagRef.get().then(doc => {
+        if (!doc.exists) {
+          console.log('No such document!');
+          return;
+        }
+        let spillereArray = doc.data().spillere || [];
+        spillereArray.push(spillerNavn);
+        lagRef.update({
+          spillere: spillereArray
+        }).then(() => {
+          console.log("Spiller lagt til");
+          visSpillere(spillereArray, lagId);
+        }).catch(error => {
+          console.error("Error adding player: ", error);
+        });
+      }).catch(error => {
+        console.error("Error getting document:", error);
+      });
+    }
+    
+    function slettLag(lagId) {
+      db.collection('turneringer').doc(turneringId).collection('lag').doc(lagId).delete().then(() => {
+        console.log('Lag slettet');
+        hentOgVisLag();
+      }).catch(error => {
+        console.error('Feil ved sletting av lag:', error);
+      });
+    }
+    
+  // 3) Les av valgte divisjoner i addReferee()
+function addReferee(){
+  const name       = document.getElementById('refereeName').value;
+  const teamEl     = document.getElementById('refereeTeam');
+  const teamId     = teamEl.value;
+  const teamName   = teamId ? teamEl.selectedOptions[0].text : null;
+
+  const checkedEls = Array.from(
+    document.querySelectorAll(
+      '#refereeDivisionsContainer input[name="refereeDivisions"]:checked'
+    )
+  );
+  const divisions  = checkedEls.map(cb => cb.value);
+
+  const dommerdata = {
+    dommer:    name,
+    teamId:    teamId,
+    teamName:  teamName,
+    divisions: divisions
+  };
+
+  // nullstill skjema
+  document.getElementById('refereeName').value = '';
+  teamEl.value                             = '';
+  checkedEls.forEach(cb => cb.checked       = false);
+
+  db.collection('turneringer')
+    .doc(turneringId)
+    .collection('dommere')
+    .doc()
+    .set(dommerdata)
+    .then(hentDommere)
+    .catch(console.error);
+}
+
+
+function hentDommere() {
+  db.collection('turneringer')
+    .doc(turneringId)
+    .collection('dommere')
+    .get()
+    .then(snapshot => {
+      const table = document.getElementById('dommeroversikt');
+      while (table.rows.length > 2) table.deleteRow(2);
+
+      snapshot.forEach(doc => {
+        const data = doc.data();
+        const row = table.insertRow();
+
+        row.insertCell(0).textContent = data.dommer;
+        row.insertCell(1).textContent = data.teamName || '—';
+
+        const divCell = row.insertCell(2);
+        divCell.textContent = (data.divisions && data.divisions.length)
+          ? data.divisions.join(', ')
+          : '—';
+
+        const delCell = row.insertCell(3);
+        const btn = document.createElement('button');
+        btn.textContent = 'Delete';
+        btn.onclick = () => deleteReferee(doc.id);
+        delCell.appendChild(btn);
+      });
+    })
+    .catch(console.error);
+}
+
+    
+    function deleteReferee(dommer){
+      db.collection('turneringer').doc(turneringId).collection('dommere').doc(dommer).delete().then(() => {
+        console.log('Dommer slettet');
+        hentDommere();
+      }).catch(error => {
+        console.error('Feil ved sletting av dommer:', error);
+      });
+    }
+    
+    function toggleUserMenu() {
+      const userMenu = document.getElementById('user-menu');
+      if (userMenu.style.display === 'none' || userMenu.style.display === '') {
+        userMenu.style.display = 'block';
+      } else {
+        userMenu.style.display = 'none';
+      }
+    }
+    
+    document.addEventListener('DOMContentLoaded', function() {
+      var menyKnapp = document.getElementById('meny-knapp');
+      var meny = document.getElementById('meny');
+      menyKnapp.addEventListener('click', function() {
+        meny.classList.toggle('meny-åpen');
+        menyKnapp.classList.toggle('åpen');
+        var erApen = meny.classList.contains('meny-åpen');
+        menyKnapp.setAttribute('aria-expanded', erApen);
+        if (erApen) {
+          menyKnapp.setAttribute('aria-label', 'Lukk meny');
+        } else {
+          menyKnapp.setAttribute('aria-label', 'Åpne meny');
+        }
+      });
+    });
+    
+    hentDommere();
+  </script>
+  
+  <!-- Ekstra script for å bevare query-parametere på alle interne lenker -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Gå gjennom alle interne <a>-elementer og legg til "id" parameteren
+      if (turneringId) {
+        const anchors = document.querySelectorAll('a');
+        anchors.forEach(link => {
+          let href = link.getAttribute('href');
+          // Sjekk at href eksisterer og at det er en relativ lenke
+          if (href && !href.startsWith('http') && !href.startsWith('mailto:') && !href.startsWith('#')) {
+            const separator = href.includes('?') ? '&' : '?';
+            if (!href.includes('id=')) {
+              link.setAttribute('href', href + separator + 'id=' + turneringId);
+            }
+          }
+        });
+      }
+    });
+  </script>
+</body>
+</html>

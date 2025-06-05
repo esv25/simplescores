@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Basic Scoreboard</title>
+    <style>
+    /* Generell Styling */
+    body {
+        font-family: 'Poppins', sans-serif;
+        background-color: #f7f9fc;
+        color: #2d3e50;
+        margin: 0;
+        padding: 0;
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
+
+    /* Header */
+    header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 20px 40px;
+        background-color: #1a202c;
+        color: white;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        border-bottom: 3px solid #68d391;
+    }
+    header h1 {
+        font-size: 36px;
+        font-weight: 700;
+        color: #68d391;
+        text-transform: uppercase;
+        letter-spacing: 3px;
+    }
+
+    /* Main Layout */
+    main {
+        flex: 1;
+        display: flex;
+        background: #e9ecef;
+        overflow: hidden;
+    }
+
+    /* Side Panels: smale */
+    .side-panel {
+        flex: 0 0 140px;
+        background: #1a202c;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 1rem 0;
+        box-sizing: border-box;
+    }
+    .side-panel button {
+        margin: 1rem 0;
+        padding: .75rem 1rem;
+        font-size: 1.25rem;
+        border: none;
+        border-radius: 10px;
+        background: #007bff;
+        color: #fff;
+        cursor: pointer;
+        width: 100%;
+        max-width: 140px;
+        transition: background .3s, transform .2s;
+    }
+    .side-panel button:hover { background: #0056b3; transform: scale(1.05); }
+
+    /* Center: mer plass */
+    .scoreboard-container {
+        flex: 1;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 1rem;
+    }
+    .scoreboard {
+        background: #fff;
+        padding: 2rem;
+        border-radius: 20px;
+        width: 100%;
+        max-width: none;
+        box-sizing: border-box;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    /* Timer og omgangen */
+    #timer { font-size: 6vw; margin-bottom: .5rem; letter-spacing: 4px; }
+    #period { font-size: 3vw; margin-bottom: 1rem; text-transform: uppercase; }
+
+    /* Score-seksjon */
+    .scores { display: flex; justify-content: space-between; width: 100%; }
+    .score-section { flex: 1; display: flex; flex-direction: column; align-items: center; margin: 0 .5rem; }
+    .score { font-size: 9vw; color: #007bff; margin-bottom: .5rem; }
+    .team-name { font-size: 3vw; margin-bottom: 1rem; text-transform: uppercase; }
+
+    /* Knapp-styling */
+    .score-button, .controls button { font-size: 1.25rem; padding: .75rem 1rem; border: none; border-radius: 10px; background: #007bff; color: #fff; cursor: pointer; transition: background .3s, transform .2s; }
+    .score-button:hover, .controls button:hover { background: #0056b3; transform: scale(1.05); }
+
+    .controls { display: flex; gap: 1rem; margin-top: 1rem; }
+
+    /* Modal */
+    .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); justify-content: center; align-items: center; }
+    .modal-content { background: #fff; padding: 1.5rem; border-radius: 10px; text-align: center; }
+
+    @media(max-width:768px) {
+        #timer, .score { font-size: 12vw; }
+        #period, .team-name { font-size: 5vw; }
+        .score-button, .controls button, .side-panel button { width: 120px; height: 50px; font-size: 1.5rem; padding: .5rem .75rem; }
+        .scoreboard { max-width: 90%; }
+    }
+    </style>
+</head>
+<body>
+    <header><h1>Scoreboard</h1></header>
+    <main>
+        <div class="side-panel">
+            <button id="startBtn">Start</button>
+            <button id="stopBtn">Stopp</button>
+            <button id="resetBtn">Reset</button>
+        </div>
+        <div class="scoreboard-container">
+            <div class="scoreboard" id="scoreboard">
+                <div id="timer">00:00</div>
+                <div id="period">1. omgang</div>
+                <div class="scores">
+                    <div class="score-section">
+                        <div id="scoreHome" class="score">0</div>
+                        <div class="team-name">Hjemme</div>
+                        <div class="adjust-buttons">
+                            <button class="score-button" id="incHome">+</button>
+                            <button class="score-button" id="decHome">-</button>
+                        </div>
+                    </div>
+                    <div class="score-section">
+                        <div id="scoreAway" class="score">0</div>
+                        <div class="team-name">Borte</div>
+                        <div class="adjust-buttons">
+                            <button class="score-button" id="incAway">+</button>
+                            <button class="score-button" id="decAway">-</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="controls">
+                    <button id="startCtrl">Start</button>
+                    <button id="stopCtrl">Stopp</button>
+                    <button id="resetCtrl">Reset</button>
+                </div>
+            </div>
+        </div>
+        <div class="side-panel"></div>
+    </main>
+
+    <!-- Settings Modal -->
+    <div id="settingsModal" class="modal">
+        <div class="modal-content">
+            <h2>Sett tid og omganger</h2>
+            <label>Tid (min): <input id="inputTime" type="number" min="1" value="15"></label><br><br>
+            <label>Omganger: <input id="inputPeriods" type="number" min="1" value="2"></label><br><br>
+            <button id="setupBtn">Start kamp</button>
+        </div>
+    </div>
+
+    <script>
+        const settingsModal = document.getElementById('settingsModal');
+        const scoreboard = document.getElementById('scoreboard');
+        let initialTime, totalPeriods, currentPeriod, timeLeft, timerInterval;
+        document.addEventListener('DOMContentLoaded', ()=>{
+            settingsModal.style.display = 'flex';
+            scoreboard.style.display = 'none';
+        });
+        document.getElementById('setupBtn').onclick = ()=>{
+            const minutes = parseInt(document.getElementById('inputTime').value, 10);
+            totalPeriods = parseInt(document.getElementById('inputPeriods').value, 10);
+            if(minutes>0&&totalPeriods>0) {
+                initialTime = minutes * 60;
+                currentPeriod = 1;
+                timeLeft = initialTime;
+                updateDisplay();
+                settingsModal.style.display = 'none';
+                scoreboard.style.display = 'flex';
+            }
+        };
+        function updateDisplay() {
+            const m = String(Math.floor(timeLeft/60)).padStart(2,'0');
+            const s = String(timeLeft%60).padStart(2,'0');
+            document.getElementById('timer').textContent = `${m}:${s}`;
+            document.getElementById('period').textContent = `${currentPeriod}. omgang`;
+        }
+        document.getElementById('startCtrl').onclick = startTimer;
+        document.getElementById('stopCtrl').onclick = stopTimer;
+        document.getElementById('resetCtrl').onclick = resetGame;
+        function startTimer(){ if(timerInterval)return; timerInterval = setInterval(()=>{ if(timeLeft>0){ timeLeft--; updateDisplay(); } else { clearInterval(timerInterval); if(currentPeriod<totalPeriods){ currentPeriod++; timeLeft = initialTime; updateDisplay(); startTimer(); } else alert('Kamp ferdig'); } }, 1000); }
+        function stopTimer(){ clearInterval(timerInterval); timerInterval = null; }
+        function resetGame(){ stopTimer(); currentPeriod = 1; timeLeft = initialTime; updateDisplay(); document.getElementById('scoreHome').textContent='0'; document.getElementById('scoreAway').textContent='0'; }
+        document.getElementById('incHome').onclick = ()=>{ document.getElementById('scoreHome').textContent = Number(document.getElementById('scoreHome').textContent)+1; };
+        document.getElementById('decHome').onclick = ()=>{ let v=Number(document.getElementById('scoreHome').textContent)-1; document.getElementById('scoreHome').textContent = v>0?v:0; };
+        document.getElementById('incAway').onclick = ()=>{ document.getElementById('scoreAway').textContent = Number(document.getElementById('scoreAway').textContent)+1; };
+        document.getElementById('decAway').onclick = ()=>{ let v=Number(document.getElementById('scoreAway').textContent)-1; document.getElementById('scoreAway').textContent = v>0?v:0; };
+    </script>
+</body>
+</html>

@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">    
+    <link rel="stylesheet" type="text/css" href="./admin.css">
+    <title>Opprett Turnering</title>
+    <style>
+        /* Reset CSS */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Body */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f4f9; /* Light grey background */
+            color: #2802d2;
+            margin: 0;
+        }
+
+        /* Hide steps by default */
+        .step {
+            display: none;
+        }
+
+        /* Show only the active step */
+        .step.active {
+            display: block;
+            background-color: #ffffff; /* White background */
+            border: 1px solid #dee2e6; /* Light grey border */
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            width: 100%;
+            max-width: 600px;
+            margin: 20px auto;
+        }
+
+        .step h2 {
+            color: #333; /* Dark grey text */
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #333;
+            font-weight: bold;
+        }
+
+        input {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+
+        }
+
+        button {
+
+            color: #FFEFEF;
+            border: none;
+            padding: 10px;
+            width: 100%;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            background-color: #1c115d; /* Darker shade for hover */
+        }
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        li {
+            background-color: #f4f4f9; /* Lys grå bakgrunn */
+            padding: 15px;
+            margin-bottom: 10px;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Gir en lett skyggeeffekt */
+        }
+
+        /* Legg til litt plass mellom teksten og knappen */
+        li span {
+            font-size: 16px;
+            color: #333; /* Mørk tekstfarge */
+            font-weight: bold;
+            margin-right: 50px; /* Legger til plass mellom tekst og knapp */
+            flex-grow: 1; /* Sørger for at teksten tar opp tilgjengelig plass */
+        }
+
+        /* Stiler for "Fjern"-knappen i listen */
+        li button {
+            background-color: #E83C00; /* Rød bakgrunn */
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            font-size: 14px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        li button:hover {
+            background-color: #c32a00; /* Mørkere rød for hover */
+        }
+
+    </style>
+
+</head>
+<body>
+    <header>
+        <div class="logo-title">
+          <a href="nyTurnering.html"><img src="logo.png" alt="Simple Scores Logo" class="logo"></a>
+        </div>
+        <div class="nav2">
+          <button id="user-button" onclick="toggleUserMenu()">Bruker</button>
+          <div id="user-menu" class="user-menu" style="display: none;">
+            <p>Logget inn som <span id="mail"></span></p>
+            <button id="loggut" onclick="loggut()">Logg ut</button>
+          </div>
+          <button onclick="displaysidebar()" type="button">Q&A</button>
+        </div>
+      </header>
+      
+    <div id="step1" class="step active">
+        <h2>Turneringens navn og datoer</h2>
+        <label for="tournamentName">Turneringsnavn:</label>
+        <input type="text" id="tournamentName" name="tournamentName"><br><br>
+
+        <h3>Legg til datoer</h3>
+        <input type="date" id="tournamentDate">
+        <button type="button" onclick="addDate()">Legg til dato</button>
+
+        <h3>Lagrede datoer</h3>
+        <ul id="dateList">
+            <!-- Lister datoer her -->
+        </ul>
+
+        <button type="button" onclick="nextStep(1)">Neste</button>
+    </div>
+
+    <div id="step2" class="step">
+        <h2>Arrangør og Co-arrangører</h2>
+        <label for="organizer">Arrangør:</label>
+        <input type="email" id="organizer" name="organizer" ><br><br>
+    
+        <h3>Legg til co-arrangører</h3>
+        <input type="email" id="coOrganizerEmail" placeholder="Co-arrangør e-post">
+        <button type="button" onclick="addCoOrganizer()">Legg til co-arrangør</button>
+    
+        <h3>Lagrede co-arrangører</h3>
+        <ul id="coOrganizerList">
+            <!-- Lister co-arrangører her -->
+        </ul>
+    
+        <button type="button" onclick="nextStep(2)">Neste</button>
+        <button type="button" onclick="previousStep(2)">Tilbake</button>
+    </div>
+    
+
+    <div id="step3" class="step">
+        <h2>Sted</h2>
+        <label for="location">Sted:</label>
+        <input type="text" id="location" name="location"><br><br>
+        <button type="button" onclick="nextStep(3)">Neste</button>
+        <button type="button" onclick="previousStep(3)">Tilbake</button>
+    </div>
+
+    <div id="step4" class="step">
+        <h2>Divisjoner</h2>
+        <label for="divisionName">Divisjonsnavn:</label>
+        <input type="text" id="divisionName" name="divisionName"><br><br>
+        <label>
+            <input type="checkbox" id="hideResults" class="checkbox">
+            Skjul resultater fra offentligheten
+        </label>
+        <button type="button" onclick="addDivision()">Legg til Divisjon</button>
+
+        <h3>Lagrede divisjoner</h3>
+        <ul id="divisionList">
+            <!-- Lister divisjoner her -->
+        </ul>
+
+        <button type="button" onclick="submitTournament()">Fullfør</button>
+        <button type="button" onclick="previousStep(4)">Tilbake</button>
+    </div>
+    
+
+    <script src="https://www.gstatic.com/firebasejs/8.2.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.2.0/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.2.0/firebase-auth.js"></script>
+
+    <script>
+
+const firebaseConfig = {
+    apiKey: "AIzaSyCLRjYMzbeksCfV1ImdFsyb_sUJsGM0ZH0",
+    authDomain: "resultatservice-d860c.firebaseapp.com",
+    databaseURL: "https://resultatservice-d860c-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "resultatservice-d860c",
+    storageBucket: "resultatservice-d860c.appspot.com",
+    messagingSenderId: "649532849758",
+    appId: "1:649532849758:web:74d06f6b79ade1d752becf"
+};
+
+            // Initialize Firebase
+            const app = firebase.initializeApp(firebaseConfig)
+            const db = firebase.firestore()
+
+            const auth = firebase.auth();
+
+            
+auth.onAuthStateChanged((user) => {
+if (user) {
+const email = user.email;
+document.getElementById('mail').innerHTML = email;
+} else {
+// Ingen bruker er logget inn, redirect til innloggingssiden
+window.location.href = 'login.html';
+}
+});
+
+            document.addEventListener('DOMContentLoaded', () => {
+            if (organizerEmail) {
+                document.getElementById('organizer').value = email; // Sett e-posten i arrangørfeltet
+                document.getElementById('mail').innerHTML = email;
+            } else {
+                window.location.href = 'index.html';
+            }
+        });
+
+        const divisions = [];
+        const coOrganizers = [];
+        const dates = []; // Legg til denne linjen for å lagre datoene
+
+        function loggut() {
+    auth.signOut().then(() => {
+        window.location.href = 'login.html';
+    }).catch((error) => {
+        console.error("Feil ved utlogging:", error);
+    });
+}
+        function nextStep(currentStep) {
+            document.getElementById(`step${currentStep}`).classList.remove('active');
+            document.getElementById(`step${currentStep + 1}`).classList.add('active');
+        }
+
+        function previousStep(currentStep) {
+            document.getElementById(`step${currentStep}`).classList.remove('active');
+            document.getElementById(`step${currentStep - 1}`).classList.add('active');
+        }
+
+        function addDivision() {
+            const divisionName = document.getElementById('divisionName').value;
+            const hideResults = document.getElementById('hideResults').checked;
+
+            if (divisionName === '') {
+                alert('Vennligst fyll inn divisjonsnavn.');
+                return;
+            }
+
+            const division = { name: divisionName, hideResults: hideResults };
+            divisions.push(division);
+            updateDivisionList();
+            document.getElementById('divisionName').value = '';
+            document.getElementById('hideResults').checked = false;
+        }
+
+        function updateDivisionList() {
+            const divisionList = document.getElementById('divisionList');
+            divisionList.innerHTML = '';
+
+            divisions.forEach((division, index) => {
+                const listItem = document.createElement('li');
+                listItem.textContent = `${division.name} ${division.hideResults ? '(Resultater skjult)' : ''}`;
+
+                const deleteButton = document.createElement('button');
+                deleteButton.textContent = 'Fjern';
+                deleteButton.onclick = () => removeDivision(index);
+
+                listItem.appendChild(deleteButton);
+                divisionList.appendChild(listItem);
+            });
+        }
+
+        function removeDivision(index) {
+            divisions.splice(index, 1);
+            updateDivisionList();
+        }
+
+        function addCoOrganizer() {
+    const email = document.getElementById('coOrganizerEmail').value.trim().toLowerCase(); // Konverter til små bokstaver
+    if (email === '') {
+        alert('Vennligst fyll inn co-arrangørens e-post.');
+        return;
+    }
+
+    if (coOrganizers.includes(email)) {
+        alert('Co-arrangør er allerede lagt til.');
+        return;
+    }
+
+    coOrganizers.push(email); // Legger til e-post i små bokstaver
+    updateCoOrganizerList();
+    document.getElementById('coOrganizerEmail').value = '';
+}
+
+
+        function updateCoOrganizerList() {
+            const coOrganizerList = document.getElementById('coOrganizerList');
+            coOrganizerList.innerHTML = '';
+
+            coOrganizers.forEach((email, index) => {
+                const listItem = document.createElement('li');
+                listItem.textContent = email;
+
+                const deleteButton = document.createElement('button');
+                deleteButton.textContent = 'Fjern';
+                deleteButton.onclick = () => removeCoOrganizer(index);
+
+                listItem.appendChild(deleteButton);
+                coOrganizerList.appendChild(listItem);
+            });
+        }
+
+        function removeCoOrganizer(index) {
+            coOrganizers.splice(index, 1);
+            updateCoOrganizerList();
+        }
+
+        function addDate() {
+            const dateInput = document.getElementById('tournamentDate');
+            const dateValue = dateInput.value;
+
+            if (dateValue === '') {
+                alert('Vennligst velg en dato.');
+                return;
+            }
+
+            if (dates.includes(dateValue)) {
+                alert('Datoen er allerede lagt til.');
+                return;
+            }
+
+            dates.push(dateValue);
+            updateDateList();
+            dateInput.value = '';
+        }
+
+        function updateDateList() {
+            const dateList = document.getElementById('dateList');
+            dateList.innerHTML = '';
+
+            dates.sort().forEach((date, index) => {
+                const listItem = document.createElement('li');
+                listItem.textContent = date;
+
+                const deleteButton = document.createElement('button');
+                deleteButton.textContent = 'Fjern';
+                deleteButton.onclick = () => removeDate(index);
+
+                listItem.appendChild(deleteButton);
+                dateList.appendChild(listItem);
+            });
+        }
+
+        function removeDate(index) {
+            dates.splice(index, 1);
+            updateDateList();
+        }
+
+        async function submitTournament() {
+    const tournamentName = document.getElementById('tournamentName').value;
+    const location = document.getElementById('location').value;
+    const organizer = document.getElementById('organizer').value.trim().toLowerCase();
+
+    // Bruk de globale variablene direkte
+    // coOrganizers og divisions har allerede blitt oppdatert via funksjonene addCoOrganizer() og addDivision()
+    
+    // Validering
+    if (tournamentName === '' || dates.length === 0 || location === '' || organizer === '') {
+        alert('Vennligst fyll inn alle feltene og legg til minst én dato.');
+        return;
+    }
+
+    const tournamentData = {
+    tournamentName,
+    dates,
+    location,
+    organizer,
+    coOrganizers,
+    divisions,
+    published: false   // slå publisering av som default
+};
+
+
+    try {
+        const docRef = await db.collection('turneringer').add(tournamentData);
+        const tournamentId = docRef.id;
+        sessionStorage.setItem('turneringId', tournamentId);
+        alert('Turnering lagret!');
+        console.log('Turnering opprettet!', tournamentData, 'Turnerings-ID:', tournamentId);
+        window.location.href = `leggtillag.html?id=${tournamentId}`;
+    } catch (error) {
+        console.error('Feil ved lagring av turneringen:', error);
+        alert('Noe gikk galt ved lagring av turneringen.');
+    }
+}
+
+    </script>
+</body>
+</html>

@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Turneringsdetaljer - Turnering</title>
+    <link rel="stylesheet" type="text/css" href="./style.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <!-- Firebase SDKs -->
+     <link
+  rel="stylesheet"
+  href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+  integrity="sha512-...eksak/oppsett…"
+  crossorigin="anonymous"
+  referrerpolicy="no-referrer"
+/>
+
+    <script src="https://www.gstatic.com/firebasejs/8.2.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.2.0/firebase-firestore.js"></script>
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f9fafb;
+            margin: 0;
+            padding: 0;
+            color: #2d3e50;
+        }
+
+
+
+        .info-card {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            margin: 20px;
+        }
+        .info-card h2 {
+            margin-bottom: 10px;
+            font-size: 22px;
+        }
+        .info-card p {
+            font-size: 16px;
+            line-height: 1.5;
+        }
+        .teams-section {
+            margin: 20px;
+        }
+        .teams-section h2 {
+            font-size: 24px;
+            margin-bottom: 16px;
+        }
+          .team-link {
+    display: block;
+    width: 100%;
+    padding: 0.75rem 1rem; /* juster etter behov */
+    color: inherit;        /* arver farge fra teksten rundt */
+    text-decoration: none; /* fjerner understrek */
+    cursor: pointer;
+  }
+
+  /* Valgfri hover-effekt for å vise at det er klikkbart */
+  .team-link:hover {
+    background-color: #f1f1f1;
+  }
+        .division {
+            background: #fff;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            margin-bottom: 24px;
+            overflow: hidden;
+        }
+        .division-header {
+            font-weight: 600;
+            background-color: #f0f4f8;
+            padding: 12px 16px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        .division-list {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+        .division-list li {
+            padding: 10px 16px;
+            border-bottom: 1px solid #f5f5f5;
+        }
+        .division-list li:last-child {
+            border-bottom: none;
+        }
+    </style>
+    <head>
+  <!-- … annen kode i head … -->
+  <!-- Last inn Font Awesome (v6) fra CDN -->
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    integrity="sha512-pIVISY5bYfAUGRTeOWOqyv/TKfI9yLxBq2gP11u0uKiLu+5mwW+Ha8MTrbP5xDKV/QvKJi70+E3qzGTQ4M0UgA=="
+    crossorigin="anonymous"
+    referrerpolicy="no-referrer"
+  />
+  <!-- … resten av head … -->
+</head>
+
+</head>
+<body>
+    <header>
+        <div class="logo-title">
+            <img src="logo.png" alt="Simple Scores Logo" class="logo">
+        </div>
+    </header>
+
+<nav>
+  <!-- SKJUL SJEKKBOXEN SELV -->
+  <input type="checkbox" id="menu-toggle" />
+
+  <!-- ÉT ENESTE HAMBURGER‐IKON her -->
+  <label for="menu-toggle" id="menu-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </label>
+
+  <!-- Selve menyen -->
+  <ul id="menu">
+    <li><a href="publikum.html" class="nav-link"><i class="fa-solid fa-house"></i><span>Hjem</span></a></li>
+    <li><a href="turnering.html" class="nav-link active"><i class="fa-solid fa-circle-info"></i><span>Turneringsdetaljer</span></a></li>
+    <li><a href="kampliste.html" class="nav-link"><i class="fa-solid fa-futbol"></i><span>Kamper</span></a></li>
+    <li><a href="lagoversikt.html" class="nav-link"><i class="fa-solid fa-users"></i><span>Lagoversikt</span></a></li>
+    <li><a href="dommere.html" class="nav-link"><i class="fa-solid fa-gavel"></i><span>Dommere</span></a></li>
+    <li><a href="tabell.html" class="nav-link"><i class="fa-solid fa-table-list"></i><span>Tabell</span></a></li>
+  </ul>
+</nav>
+
+
+    
+    <main>
+        <div id="tournamentDetails" class="tournament-details"></div>
+        <div id="infoCard" class="info-card">
+            <h2>Informasjon</h2>
+            <p id="infoTextDisplay">Laster infotekst …</p>
+        </div>
+        <div id="teamsSection" class="teams-section">
+            <h2>Deltakende Lag</h2>
+            <div id="teamsList"></div>
+        </div>
+    </main>
+
+    <footer>
+        <p>&copy; 2024 Turneringer. Alle rettigheter reservert.</p>
+    </footer>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyCLRjYMzbeksCfV1ImdFsyb_sUJsGM0ZH0",
+            authDomain: "resultatservice-d860c.firebaseapp.com",
+            databaseURL: "https://resultatservice-d860c-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "resultatservice-d860c",
+            storageBucket: "resultatservice-d860c.appspot.com",
+            messagingSenderId: "649532849758",
+            appId: "1:649532849758:web:74d06f6b79ade1d752becf"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        const tournamentDetails = document.getElementById('tournamentDetails');
+        const teamsList = document.getElementById('teamsList');
+        const teamsSection = document.getElementById('teamsSection');
+
+        const params = new URLSearchParams(window.location.search);
+        const tournamentId = params.get('tournamentid');
+        if (!tournamentId) window.location.href = 'publikum.html';
+
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('a').forEach(link => {
+                const href = link.getAttribute('href');
+                if (href && !href.startsWith('http') && !href.startsWith('mailto:') && !href.startsWith('#') && !href.includes('tournamentid=')) {
+                    const sep = href.includes('?') ? '&' : '?';
+                    link.setAttribute('href', href + sep + 'tournamentid=' + tournamentId);
+                }
+            });
+            updateNavLinks();
+            fetchTournamentDetails();
+        });
+
+        function updateNavLinks() {
+            document.querySelectorAll('nav .nav-link').forEach(link => {
+                const base = link.getAttribute('href').split('?')[0];
+                link.setAttribute('href', `${base}?tournamentid=${tournamentId}`);
+            });
+        }
+
+        async function fetchTournamentDetails() {
+            try {
+                const docRef = db.collection('turneringer').doc(tournamentId);
+                const doc = await docRef.get();
+                if (!doc.exists) {
+                    document.getElementById('infoTextDisplay').textContent = 'Ingen info tilgjengelig.';
+                    tournamentDetails.innerHTML = "<p>Turneringen ble ikke funnet.</p>";
+                    teamsSection.style.display = 'none';
+                    return;
+                }
+                const data = doc.data();
+                document.getElementById('infoTextDisplay').textContent = data.infoText || 'Ingen ekstra informasjon lagt til.';
+                let datoFormatted = Array.isArray(data.dates)
+                    ? data.dates.map(d => {
+                        const dt = new Date(d);
+                        return isNaN(dt) ? 'Ukjent dato' : formatDate(dt);
+                    }).join(', ')
+                    : 'Ukjent dato';
+                tournamentDetails.innerHTML = `
+                    <h2>${data.tournamentName || 'Ukjent Navn'}</h2>
+                    <p><strong>Datoer:</strong> ${datoFormatted}</p>
+                    <p><strong>Sted:</strong> ${data.location || 'Ukjent Sted'}</p>
+                    <p><strong>Antall Deltakende Lag:</strong> <span id="antallLag">Laster…</span></p>
+                `;
+                await fetchAndDisplayTeams(docRef);
+            } catch (error) {
+                console.error("Feil ved henting av turneringsdetaljer:", error);
+                document.getElementById('infoTextDisplay').textContent = 'Kunne ikke laste info.';
+                tournamentDetails.innerHTML = "<p>En feil oppstod ved henting av turneringsdetaljer.</p>";
+                teamsSection.style.display = 'none';
+            }
+        }
+
+  async function fetchAndDisplayTeams(docRef) {
+    const snapshot = await docRef.collection('lag').get();
+    const teams = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    document.getElementById('antallLag').textContent = teams.length;
+    if (teams.length === 0) {
+      teamsList.innerHTML = "<p>Ingen deltakende lag funnet.</p>";
+      return;
+    }
+
+    const divisjoner = {};
+    teams.forEach(team => {
+      const divName = team.divisjon || 'Ukjent divisjon';
+      if (!divisjoner[divName]) divisjoner[divName] = [];
+      divisjoner[divName].push(team);
+    });
+
+    let html = '';
+    Object.keys(divisjoner).sort().forEach(divName => {
+      html += `
+        <div class="division">
+          <div class="division-header">${divName}</div>
+          <ul class="division-list">
+      `;
+      divisjoner[divName].forEach(team => {
+        html += `
+          <li>
+            <a 
+              class="team-link"
+              href="lagdetaljer.html?id=${team.id}&tournamentid=${tournamentId}">
+              ${team.lagNavn || 'Ukjent Lagnavn'}
+            </a>
+          </li>
+        `;
+      });
+      html += `
+          </ul>
+        </div>
+      `;
+    });
+    teamsList.innerHTML = html;
+  }
+        function formatDate(date) {
+            const opts = { year: 'numeric', month: 'long', day: 'numeric' };
+            return date.toLocaleDateString('no-NO', opts);
+        }
+    </script>
+</body>
+</html>

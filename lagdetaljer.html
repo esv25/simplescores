@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lagdetaljer - Turnering</title>
+  <link rel="stylesheet" href="./style.css">
+  <!-- Kun styling for kamp-listen fra kampliste.html -->
+  <style>
+    /* Matches List fra kampliste */
+    .matches-list {
+      margin-top: 8px;
+      padding-bottom: 60px;
+    }
+    .matches-list .date-group {
+      margin-bottom: 24px;
+    }
+    .matches-list .date {
+      position: sticky;
+      top: 0;
+      background: #fff;
+      padding: 8px;
+      font-weight: 600;
+      font-size: 1.1rem;
+      border-bottom: 1px solid #e2e8f0;
+      z-index: 1;
+    }
+    .matches-list .match-link {
+      text-decoration: none;
+      color: inherit;
+    }
+    .matches-list .match {
+      padding: 12px 16px;
+      border-bottom: 1px solid #e2e8f0;
+      background: #fff;
+    }
+    .matches-list .match.finished {
+      opacity: 0.6;
+    }
+    .matches-list .team {
+      display: grid;
+      grid-template-columns: 1fr min-content;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+    .matches-list .name {
+      font-weight: 500;
+      font-size: 1rem;
+    }
+    .matches-list .score-group {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 8px;
+      min-width: 6em;
+    }
+    .matches-list .score {
+      min-width: 2em;
+      text-align: center;
+      font-weight: 600;
+      padding: 2px 6px;
+      font-size: 1.1rem;
+      border-radius: 4px;
+      color: #fff;
+    }
+    .matches-list .score.win  { background-color: #48bb78; }
+    .matches-list .score.loss { background-color: #f56565; }
+    .matches-list .score.draw { background-color: #a0aec0; }
+    .matches-list .info {
+      font-size: 0.9rem;
+      color: #4a5568;
+      margin-top: 8px;
+    }
+  </style>
+  <script src="https://www.gstatic.com/firebasejs/8.2.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.2.0/firebase-firestore.js"></script>
+</head>
+<body>
+  <header>
+    <div class="logo-title">
+      <img src="logo.png" alt="Simple Scores Logo" class="logo">
+    </div>
+  </header>
+
+<nav>
+  <!-- SKJUL SJEKKBOXEN SELV -->
+  <input type="checkbox" id="menu-toggle" />
+
+  <!-- ÉT ENESTE HAMBURGER‐IKON her -->
+  <label for="menu-toggle" id="menu-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </label>
+
+  <!-- Selve menyen -->
+  <ul id="menu">
+    <li><a href="publikum.html" class="nav-link"><i class="fa-solid fa-house"></i><span>Hjem</span></a></li>
+    <li><a href="turnering.html" class="nav-link"><i class="fa-solid fa-circle-info"></i><span>Turneringsdetaljer</span></a></li>
+    <li><a href="kampliste.html" class="nav-link"><i class="fa-solid fa-futbol"></i><span>Kamper</span></a></li>
+    <li><a href="lagoversikt.html" class="nav-link-active"><i class="fa-solid fa-users"></i><span>Lagoversikt</span></a></li>
+    <li><a href="dommere.html" class="nav-link"><i class="fa-solid fa-gavel"></i><span>Dommere</span></a></li>
+    <li><a href="tabell.html" class="nav-link"><i class="fa-solid fa-table-list"></i><span>Tabell</span></a></li>
+  </ul>
+</nav>
+
+
+  <main>
+    <section id="teamInfo" class="team-info"></section>
+
+    <section id="playersList" class="players-list">
+      <h2>Spillere</h2>
+      <ul id="players"></ul>
+    </section>
+
+    <section id="matchesList" class="matches-list">
+      <h2>Kamper</h2>
+      <div id="matches"></div>
+    </section>
+  </main>
+
+  <footer>
+    <p>&copy; 2025 Turneringer. Alle rettigheter reservert.</p>
+  </footer>
+
+  <script>
+    // Firebase-konfigurasjon
+    const firebaseConfig = {
+      apiKey: "AIzaSyCLRjYMzbeksCfV1ImdFsyb_sUJsGM0ZH0",
+      authDomain: "resultatservice-d860c.firebaseapp.com",
+      databaseURL: "https://resultatservice-d860c-default-rtdb.europe-west1.firebasedatabase.app",
+      projectId: "resultatservice-d860c",
+      storageBucket: "resultatservice-d860c.appspot.com",
+      messagingSenderId: "649532849758",
+      appId: "1:649532849758:web:74d06f6b79ade1d752becf"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    const teamInfo    = document.getElementById('teamInfo');
+    const playersList = document.getElementById('players');
+    const matchesList = document.getElementById('matches');
+
+    const params       = new URLSearchParams(window.location.search);
+    const tournamentId = params.get('tournamentid');
+    const teamId       = params.get('id');
+    if (!tournamentId || !teamId) window.location.href = 'publikum.html';
+
+    document.addEventListener('DOMContentLoaded', () => {
+      document.querySelectorAll('a').forEach(link => {
+        let href = link.getAttribute('href');
+        if (href && !href.match(/^(http|mailto|#)/)) {
+          const sep = href.includes('?') ? '&' : '?';
+          if (!href.includes('tournamentid=')) href += sep + 'tournamentid=' + tournamentId;
+          if (!href.includes('id=')) href += '&id=' + teamId;
+          link.setAttribute('href', href);
+        }
+      });
+      fetchTeamDetails();
+    });
+
+    async function fetchTeamDetails() {
+      try {
+        const teamDoc = await db.collection('turneringer').doc(tournamentId)
+          .collection('lag').doc(teamId).get();
+        if (!teamDoc.exists) {
+          teamInfo.innerHTML = '<p>Lag ble ikke funnet.</p>';
+          return;
+        }
+        const teamData = teamDoc.data();
+        teamInfo.innerHTML = `<h2>${teamData.lagNavn || 'Ukjent Lag'}</h2>`;
+
+        const playersSnap = await db.collection('turneringer').doc(tournamentId)
+          .collection('lag').doc(teamId).collection('spillere').get();
+        playersList.innerHTML = playersSnap.empty
+          ? '<li>Ingen spillere funnet.</li>'
+          : playersSnap.docs.map(d => `<li>${d.data().navn || 'Ukjent Spiller'}</li>`).join('');
+
+        const matchesSnap = await db.collection('turneringer').doc(tournamentId)
+          .collection('kamper').get();
+        let matches = matchesSnap.docs.map(doc => {
+          const d     = doc.data();
+          const start = d.starttid.toDate();
+          return {
+            id: doc.id,
+            hjemmelag: d.hjemmelag,
+            bortelag: d.bortelag,
+            dateStr: start.toLocaleDateString('no-NO',{day:'numeric',month:'short'}),
+            timeStr: start.toLocaleTimeString('no-NO',{hour:'2-digit',minute:'2-digit'}),
+            ts: start.getTime(),
+            score1: d.hjemmelagScore,
+            score2: d.bortelagScore,
+            status: d.status || '',
+            referees: Array.isArray(d.dommere)?d.dommere:[]
+          };
+        });
+
+        matches = matches.filter(m => m.hjemmelag === teamData.lagNavn || m.bortelag === teamData.lagNavn);
+        if (!matches.length) {
+          matchesList.innerHTML = '<p>Ingen kamper funnet.</p>';
+          return;
+        }
+
+        matches.sort((a,b) => a.ts - b.ts);
+        const now = Date.now();
+        const nextIndex = matches.findIndex(m => m.ts >= now);
+        const ordered = nextIndex >= 0
+          ? [matches[nextIndex], ...matches.slice(nextIndex+1), ...matches.slice(0, nextIndex)]
+          : matches;
+
+        renderMatches(ordered);
+
+      } catch (err) {
+        console.error(err);
+        teamInfo.innerHTML = '<p>En feil oppstod ved henting av lagdetaljer.</p>';
+      }
+    }
+
+    function renderMatches(list) {
+      const byDate = {};
+      list.forEach(m => (byDate[m.dateStr] ||= []).push(m));
+      matchesList.innerHTML = Object.entries(byDate).map(([date, ms]) => `
+        <div class="date-group">
+          <div class="date">${date}</div>
+          ${ms.map(renderMatchCard).join('')}
+        </div>
+      `).join('');
+    }
+
+    function renderMatchCard(m) {
+      const finished = m.status.toLowerCase() === 'ferdig';
+      const notStarted = !finished && (m.score1 == null || m.score2 == null);
+      const homeScore = notStarted
+        ? '<span class="score draw">-</span>'
+        : `<span class="score ${finished?(m.score1>m.score2?'win':m.score1<m.score2?'loss':'draw'):''}">${m.score1}</span>`;
+      const awayScore = notStarted
+        ? '<span class="score draw">-</span>'
+        : `<span class="score ${finished?(m.score2>m.score1?'win':m.score2<m.score1?'loss':'draw'):''}">${m.score2}</span>`;
+
+      return `
+        <a href="kampdetaljer.html?id=${m.id}&tournamentid=${encodeURIComponent(tournamentId)}" class="match-link">
+          <div class="match ${finished?'finished':''}">
+            <div class="team">
+              <span class="name">${m.hjemmelag}</span>
+              <div class="score-group">${homeScore}</div>
+            </div>
+            <div class="team">
+              <span class="name">${m.bortelag}</span>
+              <div class="score-group">${awayScore}</div>
+            </div>
+            <div class="info">Start: ${m.timeStr} &nbsp; Dommere: ${m.referees.join(', ') || 'Ingen'}</div>
+          </div>
+        </a>
+      `;
+    }
+  </script>
+</body>
+</html>

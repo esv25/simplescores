@@ -1,0 +1,1021 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+    <meta charset="UTF-8">
+    <title>Kampdetaljer - Turnering</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/8.2.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.2.0/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.2.0/firebase-database.js"></script>
+
+    <link rel="stylesheet" type="text/css" href="./style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+  /* Global styling for main-innholdet */
+  main {
+    /* Sentrerer innholdet og setter maks-bredde */
+    max-width: 1200px;
+    margin: 0 auto;
+    /* Lufter godt rundt innholdet */
+    padding: 2rem;
+    
+    /* Legger hovedlayout som kolonne */
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    
+    /* Samme font som resten av siden */
+    font-family: 'Poppins', sans-serif;
+    color: #333;
+    background-color: #fafafa;
+  }
+
+  /* Stil for selve fane-innholdet */
+  main .tab-content {
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    padding: 1.5rem;
+  }
+
+  /* Tab-knapper */
+  .tabs {
+    display: flex;
+    border-bottom: 2px solid #ddd;
+    margin-bottom: 1rem;
+  }
+  .tab-button {
+    flex: 1;
+    padding: 0.5rem;
+    background: none;
+    border: none;
+    border-bottom: 3px solid transparent;
+    font-weight: 600;
+    cursor: pointer;
+    color: black;
+  }
+  .tab-button:hover {
+    color: white;
+  }
+  .tab-button.active {
+    border-bottom-color: #007bff; /* Aktiv farge */
+  }
+
+  /* Tab-innhold (utenfor main .tab-content, hvis du bruker flere nivåer) */
+  .tab-content {
+    display: none;
+  }
+  .tab-content.active {
+    display: block;
+  }
+
+  /* Responsivt: tettere på mobil */
+  @media only screen and (max-width: 768px) {
+    main {
+      padding: 1rem;
+      gap: 1rem;
+    }
+
+    /* Skjul enkelte kolonner i divisjonstabeller på mobil */
+    .divisjonstabell-container table th:nth-child(3),
+    .divisjonstabell-container table th:nth-child(5),
+    .divisjonstabell-container table th:nth-child(6),
+    .divisjonstabell-container table th:nth-child(7),
+    .divisjonstabell-container table th:nth-child(8),
+    .divisjonstabell-container table td:nth-child(3),
+    .divisjonstabell-container table td:nth-child(5),
+    .divisjonstabell-container table td:nth-child(6),
+    .divisjonstabell-container table td:nth-child(7),
+    .divisjonstabell-container table td:nth-child(8) {
+      display: none;
+    }
+  }
+</style>
+
+
+</head>
+<body>
+    <header>
+        <div class="logo-title">
+            <img src="logo.png" alt="Simple Scores Logo" class="logo">
+        </div>
+    </header>
+
+<nav>
+  <!-- SKJUL SJEKKBOXEN SELV -->
+  <input type="checkbox" id="menu-toggle" />
+
+  <!-- ÉT ENESTE HAMBURGER‐IKON her -->
+  <label for="menu-toggle" id="menu-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </label>
+
+  <!-- Selve menyen -->
+  <ul id="menu">
+    <li><a href="publikum.html" class="nav-link"><i class="fa-solid fa-house"></i><span>Hjem</span></a></li>
+    <li><a href="turnering.html" class="nav-link"><i class="fa-solid fa-circle-info"></i><span>Turneringsdetaljer</span></a></li>
+    <li><a href="kampliste.html" class="nav-link-active"><i class="fa-solid fa-futbol"></i><span>Kamper</span></a></li>
+    <li><a href="lagoversikt.html" class="nav-link"><i class="fa-solid fa-users"></i><span>Lagoversikt</span></a></li>
+    <li><a href="dommere.html" class="nav-link"><i class="fa-solid fa-gavel"></i><span>Dommere</span></a></li>
+    <li><a href="tabell.html" class="nav-link"><i class="fa-solid fa-table-list"></i><span>Tabell</span></a></li>
+  </ul>
+</nav>
+
+    
+    
+    <main>
+        <!-- Tab-knapper -->
+        <div class="tabs">
+          <button class="tab-button active" data-tab="details">Detaljer</button>
+          <button class="tab-button"       data-tab="table">Tabell</button>
+        </div>
+      
+        <!-- Innhold for fane: Detaljer -->
+        <div class="tab-content active" id="tab-details">
+          <!-- Kampdetaljer Container -->
+          <div class="kampdetaljer-container">
+            <div class="timer" id="timer">15:00</div>
+            <div class="timeout-timer" id="timeoutTimer" style="display:none;">Timeout: 30s</div>
+            <div class="period" id="period">1. omgang</div>
+      
+            <div class="score" id="score">0 - 0</div>
+      
+            <div class="teams">
+              <div class="team-name" id="team1">Hjemmelag</div>
+              <div class="team-name" id="team2">Bortelag</div>
+            </div>
+      
+            <div class="kamp-details" id="kampDetails">
+              <p><strong>Bane:</strong> Laster...</p>
+              <p><strong>Divisjon:</strong> Laster...</p>
+              <p><strong>Fase:</strong> Laster...</p>
+              <p><strong>Dato:</strong> Laster...</p>
+            </div>
+      
+            <div class="scorers-section">
+              <h3>Målscorere:</h3>
+              <ul class="scorers-list" id="scorersList">
+                <li>Laster...</li>
+              </ul>
+            </div>
+      
+            <a href="kampliste.html" class="details-button">Tilbake til Kamper</a>
+          </div>
+        </div>
+      
+        <!-- Innhold for fane: Tabell -->
+        <div class="tab-content" id="tab-table">
+          <!-- Fase-knapper -->
+          <div class="phase-buttons" id="phaseButtons">
+            <!-- Dynamisk genererte fase-knapper -->
+          </div>
+      
+          <!-- Divisjonstabell -->
+          <div class="divisjonstabell-container" id="divisjonContainer">
+            <h2 id="divisjonOverskrift">Laster...</h2>
+            <table id="divisjonTabell">
+              <thead>
+                <!-- Dynamisk kolonneoverskrifter -->
+              </thead>
+              <tbody>
+                <!-- Dynamisk innhold -->
+              </tbody>
+            </table>
+          </div>
+      
+          <!-- Bracket for utslagsfaser -->
+          <div class="bracket-container" id="bracketContainer" style="display: none;">
+            <!-- Dynamisk bracket-innhold -->
+          </div>
+        </div>
+      </main>
+      
+
+    <footer>
+        <p>&copy; 2024 Turneringer. Alle rettigheter reservert.</p>
+    </footer>
+
+    <script>
+        // Firebase-konfigurasjon
+        const firebaseConfig = {
+            apiKey: "AIzaSyCLRjYMzbeksCfV1ImdFsyb_sUJsGM0ZH0",
+            authDomain: "resultatservice-d860c.firebaseapp.com",
+            databaseURL: "https://resultatservice-d860c-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "resultatservice-d860c",
+            storageBucket: "resultatservice-d860c.appspot.com",
+            messagingSenderId: "649532849758",
+            appId: "1:649532849758:web:74d06f6b79ade1d752becf"
+        };
+
+        // Initialiser Firebase
+        firebase.initializeApp(firebaseConfig);
+const db   = firebase.firestore();
+const rtdb = firebase.database();  
+
+        // Globale variabler
+        let kampId;
+        let kampFase; 
+        let kampDivisjon; 
+        let phaseType; 
+        let currentHomeTeam; 
+        let currentAwayTeam; 
+        let availablePhases = []; 
+        let timerInterval; 
+        let timeoutInterval; 
+        let currentTimeoutTeam = null; 
+        let timeoutTimeLeft = 0; 
+        let sortingOrder = []; 
+        let hideResults = false; // Fra innstilling i divisions
+
+        // Elementer
+        const kampDetails = document.getElementById('kampDetails');
+        const scorersList = document.getElementById('scorersList');
+        const scoreElement = document.getElementById('score');
+        const team1Element = document.getElementById('team1');
+        const team2Element = document.getElementById('team2');
+        const timerElement = document.getElementById('timer');
+        const timeoutTimerElement = document.getElementById('timeoutTimer');
+        const periodElement = document.getElementById('period');
+        const antallSpillereElement = document.getElementById('antallSpillere');
+        const divisjonOverskriftElement = document.getElementById('divisjonOverskrift');
+const divisjonTabellHeadElement = document
+  .getElementById('divisjonTabell')
+  .querySelector('thead');
+
+const divisjonTabellBodyElement = document
+  .getElementById('divisjonTabell')
+  .querySelector('tbody');
+
+  let kampDocRef;
+  // Øverst i script-delen:
+let currentStatus = null;
+
+
+        const phaseButtonsContainer = document.getElementById('phaseButtons');
+        const divisjonContainer = document.getElementById('divisjonContainer');
+        const bracketContainer = document.getElementById('bracketContainer');
+
+        // Hent kamp ID fra URL-parameter 'id'
+        function getKampId() {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get('id');
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+  kampId = getKampId();
+  if (!kampId || !tournamentId) {
+    kampDetails.innerHTML = "<p>Mangler kamp- eller turnerings-informasjon.</p>";
+    return;
+  }
+  initializePage();
+});
+
+
+  // Hent tournamentid fra URL-querystring parameteren "tournamentid"
+  const params = new URLSearchParams(window.location.search);
+  const tournamentId = params.get('tournamentid');
+
+  // Dersom tournamentid mangler, omdiriger til opprettingssiden (nyTurnering.html)
+  if (!tournamentId) {
+      window.location.href = 'publikum.html';
+  }
+
+  // Når DOM-en er lastet, oppdaterer vi alle interne <a>-lenker med tournamentid
+  document.addEventListener('DOMContentLoaded', function() {
+    const links = document.querySelectorAll('a');
+    links.forEach(link => {
+      let href = link.getAttribute('href');
+      // Bare behandle relative lenker (ikke eksterne, mailto: eller anker)
+      if (href && !href.startsWith('http') && !href.startsWith('mailto:') && !href.startsWith('#')) {
+        const separator = href.includes('?') ? '&' : '?';
+        // Legg kun til parameteren dersom den ikke allerede finnes
+        if (!href.includes('tournamentid=')) {
+          link.setAttribute('href', href + separator + 'tournamentid=' + tournamentId);
+        }
+      }
+    });
+  });
+// Før vi vet kampId, kan vi ikke lage ref-er
+let clockRef, periodRef;
+
+// 3) Les dokumentet, oppdater detaljer, og hent tabell
+async function initializePage() {
+  try {
+    // Pek på Firestore-dokumentet for denne kampen
+    kampDocRef = db
+      .collection('turneringer').doc(tournamentId)
+      .collection('kamper').doc(kampId);
+
+    const snap = await kampDocRef.get();
+    if (!snap.exists) {
+      console.error(`Kamp ${kampId} finnes ikke.`);
+      return;
+    }
+    const data = snap.data();
+
+    // Lagre divisjon og fasenummer globalt
+    kampDivisjon = data.divisjon;
+    kampFase     = data.fasenummer;
+
+    // Oppdater detaljer i <div id="kampDetails">
+    const updateDetail = (label, value) => {
+      const p = Array.from(kampDetails.querySelectorAll('p'))
+        .find(el => el.querySelector('strong')?.textContent === `${label}:`);
+      if (p) p.innerHTML = `<strong>${label}:</strong> ${value}`;
+    };
+    updateDetail('Bane',     data.bane       ?? '–');
+    updateDetail('Divisjon', data.divisjon  ?? '–');
+    updateDetail('Fase',     data.fasenummer ?? '–');
+    updateDetail('Dato',
+      data.starttid ? formatDate(data.starttid) : '–'
+    );
+    updateDetail('Resultat',
+      (data.hjemmelagScore != null && data.bortelagScore != null)
+        ? `${data.hjemmelagScore} - ${data.bortelagScore}`
+        : '–'
+    );
+    if (data.beskrivelse) {
+      updateDetail('Beskrivelse', data.beskrivelse);
+    }
+
+    // Hent og vis tabell for valgt divisjon/fase
+    await fetchPhaseData(kampDivisjon, kampFase);
+
+    // Hvis kampen er startet, koble sanntids-lytter
+    if (data.status === 'startet') {
+      setupRealtimeListener();
+    }
+  } catch (err) {
+    console.error('Feil i initializePage:', err);
+  }
+}
+/**
+ * Henter halv-varighet fra
+ *   turneringer/{tournamentId}/settings/{division}
+ * og viser:
+ *  - Før kampstart: "MM:SS" + "1. omgang"
+ *  - Etter kamp:    "00:00" + "Ferdig"
+ */
+ async function hentInnstillinger(division) {
+  try {
+    // 1) Slå opp settings-dokument
+    const settingsDoc = await db
+      .collection('turneringer').doc(tournamentId)
+      .collection('settings').doc(division)
+      .get();
+
+    // 2) Default-fallback
+    let halfDuration = 15;  // minutter
+    if (settingsDoc.exists) {
+      const s = settingsDoc.data();
+      halfDuration = parseInt(s.halfDuration, 10) || halfDuration;
+    }
+
+    // 3) Kalkuler tekst
+    const totalSec = halfDuration * 60;
+    const minTxt   = String(Math.floor(totalSec/60)).padStart(2,'0');
+    const secTxt   = String(totalSec % 60).padStart(2,'0');
+
+    // 4) Hvis ferdig: lås UI
+    if (currentStatus === 'ferdig') {
+      timerElement.textContent  = '00:00';
+      periodElement.textContent = 'Ferdig';
+      return;
+    }
+
+    // 5) Ellers (pre-match eller pågår før RTDB tar over):
+    timerElement.textContent  = `${minTxt}:${secTxt}`;
+    periodElement.textContent = '1. omgang';
+
+  } catch (err) {
+    console.error('Feil ved hentInnstillinger:', err);
+  }
+}
+
+// 1) Oppdatert formatDate med guard mot undefined-timestamp
+function formatDate(timestamp) {
+  // Hvis ingen timestamp, returner tom streng
+  if (!timestamp) return '';
+
+  // Håndter både Firestore Timestamp og JS Date/ISO-streng
+  const date = (typeof timestamp.toDate === 'function')
+    ? timestamp.toDate()
+    : new Date(timestamp);
+
+  return date.toLocaleString('no-NO', {
+    day:    '2-digit',
+    month:  'short',
+    year:   'numeric',
+    hour:   '2-digit',
+    minute: '2-digit'
+  });
+}
+
+
+// 2) Definer element-refs før du bruker dem i fetchPhaseType
+// Sørg for at ID-ene matcher elementene i HTML-en din (legg til <div id="phaseName"> osv.)
+  const phaseNameElement = document.getElementById('phaseName');
+const phaseTypeElement = document.getElementById('phaseType');
+const phaseDateElement = document.getElementById('phaseDate');
+
+        // Shuffle array (Fisher-Yates)
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+        document.addEventListener('DOMContentLoaded', async () => {
+  kampId = getKampId();
+  if (!kampId || !tournamentId) {
+    kampDetails.innerHTML = "<p>Mangler kamp- eller turneringsinformasjon.</p>";
+    return;
+  }
+
+  // **Fanebytte-handler:**
+  const tabButtons = document.querySelectorAll('.tab-button');
+  const tabContents = document.querySelectorAll('.tab-content');
+
+  tabButtons.forEach(btn => {
+    btn.addEventListener('click', async () => {
+      tabButtons.forEach(b => b.classList.remove('active'));
+      tabContents.forEach(c => c.classList.remove('active'));
+
+      btn.classList.add('active');
+      document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+
+      if (btn.dataset.tab === 'table') {
+        // Nå finnes kampDocRef globalt
+        await fetchPhaseData(kampDivisjon, kampFase, kampDocRef);
+      }
+    });
+  });
+});
+
+
+
+
+/**
+ * @returns {Promise<void>}
+ */
+ async function setupRealtimeListener() {
+  // Sjekk at Firebase er initialisert og at vi har ID-er
+  if (!firebase.apps.length || !firebase.firestore) {
+    console.error('[DEBUG] Firebase/Firestore ikke initialisert');
+    return;
+  }
+  if (!rtdb) {
+    console.error('[DEBUG] Realtime Database (rtdb) ikke definert');
+    return;
+  }
+  if (!tournamentId || !kampId) {
+    console.error('[DEBUG] Mangler tournamentId eller kampId');
+    return;
+  }
+
+  const timerEl  = document.getElementById('timer');
+  const periodEl = document.getElementById('period');
+  const baseRtdbRef = rtdb.ref(`games/${tournamentId}/kamper/${kampId}`);
+  const gameDoc   = firebase.firestore()
+    .collection('turneringer').doc(tournamentId)
+    .collection('kamper').doc(kampId);
+
+  let listenersAttached = false;
+
+  gameDoc.onSnapshot(docSnap => {
+    if (!docSnap.exists) return;
+    const data = docSnap.data();
+    currentStatus = data.status;
+
+    // === Når kampen er ferdig ===
+    if (currentStatus === 'ferdig') {
+      // Fjern RTDB-lyttere hvis de er koblet
+      if (listenersAttached) {
+        clockRef.off();
+        periodRef.off();
+        listenersAttached = false;
+      }
+      if (timerEl)  timerEl.textContent  = '00:00';
+      if (periodEl) periodEl.textContent = 'Ferdig';
+
+    } else {
+      // === Når kampen ikke er ferdig ===
+      // Koble RTDB-lyttere kun én gang – når status blir "startet"
+      if (currentStatus === 'startet' && !listenersAttached) {
+        clockRef  = baseRtdbRef.child('remainingTime');
+        periodRef = baseRtdbRef.child('currentPeriod');
+
+        clockRef.on('value', snap => {
+          const t = snap.val();
+          if (timerEl) timerEl.textContent = t ?? '00:00';
+        }, err => console.error('[DEBUG] RTDB remainingTime:', err));
+
+        periodRef.on('value', snap => {
+          const p = snap.val();
+          if (periodEl) periodEl.textContent = `${p}. omgang`;
+        }, err => console.error('[DEBUG] RTDB currentPeriod:', err));
+
+        listenersAttached = true;
+      }
+      // Merk: før "startet" vil hentInnstillinger() allerede ha fylt inn
+      // initial klokke og "1. omgang" via forhåndskall i initializePage().
+    }
+
+    // === Oppdater øvrige kampdetaljer uavhengig av status ===
+    const updateText = (selector, text) => {
+      const el = document.querySelector(selector);
+      if (el) el.textContent = text;
+    };
+    updateText('#team1', data.hjemmelag      ?? '–');
+    updateText('#team2', data.bortelag       ?? '–');
+    if (data.hjemmelagScore != null && data.bortelagScore != null) {
+      updateText('#score', `${data.hjemmelagScore} - ${data.bortelagScore}`);
+    }
+
+    const updateDetail = (label, value) => {
+      const details = document.getElementById('kampDetails');
+      if (!details) return;
+      const p = Array.from(details.querySelectorAll('p')).find(el =>
+        el.querySelector('strong')?.textContent === `${label}:`
+      );
+      if (p) p.innerHTML = `<strong>${label}:</strong> ${value}`;
+    };
+    updateDetail('Bane',        data.bane       ?? '–');
+    updateDetail('Divisjon',    data.divisjon  ?? '–');
+    updateDetail('Fase',        data.fasenummer ?? '–');
+    updateDetail('Dato',
+      data.starttid ? formatDate(data.starttid) : '–'
+    );
+    updateDetail('Resultat',
+      (data.hjemmelagScore != null && data.bortelagScore != null)
+        ? `${data.hjemmelagScore} - ${data.bortelagScore}`
+        : '–'
+    );
+    if (data.beskrivelse != null) {
+      updateDetail('Beskrivelse', data.beskrivelse);
+    }
+
+    // Oppdater tabell/oversikt om ønsket
+    if (data.divisjon && data.fasenummer != null) {
+      fetchDivisjonTabell(data.divisjon, data.fasenummer)
+        .catch(err => console.error('[DEBUG] fetchDivisjonTabell:', err));
+    }
+  }, err => {
+    console.error('[DEBUG] Firestore onSnapshot:', err);
+  });
+}
+
+// Kall funksjonen når DOM er klar (eller etter at kampId og turneringId er satt)
+document.addEventListener('DOMContentLoaded', () => {
+  // Forutsetter at turneringId og kampId allerede er hentet fra URL
+  setupRealtimeListener();
+}); 
+
+async function fetchDivisjonTabell(divisjon, fasenummer) {
+  try {
+    // 1) Valider inputs
+    if (!divisjon) {
+      console.warn('fetchDivisjonTabell: mangler "divisjon"');
+      divisjonContainer.style.display = 'none';
+      return;
+    }
+    const phaseNum = fasenummer != null
+      ? Number(fasenummer)
+      : Number(kampFase);
+    if (isNaN(phaseNum)) {
+      console.warn('fetchDivisjonTabell: ugyldig fasenummer', fasenummer);
+      divisjonContainer.style.display = 'block';
+      divisjonTabellBodyElement.innerHTML =
+        '<tr><td colspan="10">Ugyldig fase valgt.</td></tr>';
+      return;
+    }
+
+    // 2) Vis tabell­container og overskrift
+    divisjonContainer.style.display = 'block';
+    divisjonOverskriftElement.textContent = `Tabell: ${divisjon} – Fase ${phaseNum}`;
+    divisjonTabellHeadElement.innerHTML = `
+      <tr>
+        <th>Plass</th><th>Lag</th><th>Spilt</th><th>V</th>
+        <th>U</th><th>T</th><th>M+</th><th>M–</th><th>Diff</th><th>P</th>
+      </tr>
+    `;
+
+    // 3) Hent ALLE kamper for å finne hvilke lag som skal vises (uavhengig av status)
+    const allSnap = await db
+      .collection('turneringer').doc(tournamentId)
+      .collection('kamper')
+      .where('divisjon',   '==', divisjon)
+      .where('fasenummer', '==', phaseNum)
+      .get();
+
+    const teams = new Set();
+    allSnap.forEach(doc => {
+      const d = doc.data();
+      if (d.hjemmelag) teams.add(d.hjemmelag);
+      if (d.bortelag)  teams.add(d.bortelag);
+    });
+    if (teams.size === 0) {
+      divisjonTabellBodyElement.innerHTML =
+        '<tr><td colspan="10">Ingen lag definert for denne divisjonen.</td></tr>';
+      return;
+    }
+
+    // 4) Hent kun kamper med status "startet" ELLER "ferdig"
+    const relevantSnap = await db
+      .collection('turneringer').doc(tournamentId)
+      .collection('kamper')
+      .where('divisjon',   '==', divisjon)
+      .where('fasenummer', '==', phaseNum)
+      .where('status',     'in', ['startet','ferdig'])
+      .get();
+
+    // 5) Initialiser statistikk for alle lag med nuller
+    const stats = {};
+    teams.forEach(lag => {
+      stats[lag] = {
+        spilt: 0, v: 0, u: 0, t: 0,
+        maalFor: 0, maalMot: 0, poeng: 0
+      };
+    });
+
+    // 6) Akkumuler statistikk kun fra relevante kamper
+    relevantSnap.forEach(doc => {
+      const d = doc.data();
+      const hjem = d.hjemmelag  || 'Ukjent';
+      const bort = d.bortelag   || 'Ukjent';
+      const sH   = Number(d.hjemmelagScore) || 0;
+      const sB   = Number(d.bortelagScore)   || 0;
+
+      [ { navn: hjem, sc: sH, mot: sB },
+        { navn: bort, sc: sB, mot: sH } ]
+      .forEach(team => {
+        const s = stats[team.navn];
+        s.spilt++;
+        s.maalFor  += team.sc;
+        s.maalMot  += team.mot;
+        if (team.sc > team.mot)       { s.v++;  s.poeng += 3; }
+        else if (team.sc === team.mot){ s.u++;  s.poeng += 1; }
+        else                           { s.t++; }
+      });
+    });
+
+    // 7) Sorter på poeng, måldiff, og alfabetisk
+    const sorted = Object.entries(stats)
+      .sort(([aNavn, a], [bNavn, b]) => {
+        if (b.poeng !== a.poeng) {
+          return b.poeng - a.poeng;
+        }
+        const diffA = a.maalFor - a.maalMot;
+        const diffB = b.maalFor - b.maalMot;
+        if (diffB !== diffA) {
+          return diffB - diffA;
+        }
+        return aNavn.localeCompare(bNavn);
+      });
+
+    // 8) Bygg rader og skriv til DOM
+    divisjonTabellBodyElement.innerHTML = sorted.map(([lag, s], i) => {
+      const diff = s.maalFor - s.maalMot;
+      return `
+        <tr>
+          <td>${i + 1}</td>
+          <td>${lag}</td>
+          <td>${s.spilt}</td>
+          <td>${s.v}</td>
+          <td>${s.u}</td>
+          <td>${s.t}</td>
+          <td>${s.maalFor}</td>
+          <td>${s.maalMot}</td>
+          <td>${diff}</td>
+          <td>${s.poeng}</td>
+        </tr>
+      `;
+    }).join('');
+
+  } catch (error) {
+    console.error('Feil ved henting av tabell:', error);
+    divisjonTabellBodyElement.innerHTML =
+      '<tr><td colspan="10">Kunne ikke laste tabell.</td></tr>';
+  }
+}
+
+
+// 1) Stub for fetchAvailablePhases – eliminerer ReferenceError
+async function fetchAvailablePhases() {
+  // Ingen operasjon – gammel funksjon fjernet
+}
+
+
+/**
+ * Henter fase‐metadata (navn, type, starttid) og oppdaterer UI–teksten.
+ * Returnerer phase.type (f.eks. 'utslag' eller 'gruppen').
+ */
+// 3) Hent og vis fase-metadata (navn, type, dato)
+async function fetchPhaseType(divisjon, fasenummer) {
+  try {
+    if (!divisjon || fasenummer == null) {
+      console.warn('fetchPhaseType: mangler divisjon eller fasenummer');
+      return null;
+    }
+    const formatColl = `${divisjon}_format`;
+    const faseDocId  = `fase${fasenummer}`;
+    const snap = await db
+      .collection('turneringer').doc(tournamentId)
+      .collection(formatColl).doc(faseDocId).get();
+
+    if (!snap.exists) {
+      console.warn(`Ingen fase ${faseDocId} i ${formatColl}`);
+      return null;
+    }
+
+    const data = snap.data();
+    // Oppdater <p><strong>Fase:</strong> …</p>
+    const faseP = Array.from(kampDetails.querySelectorAll('p')).find(p =>
+      p.querySelector('strong')?.textContent === 'Fase:'
+    );
+    if (faseP) {
+      faseP.innerHTML = `<strong>Fase:</strong> ${data.navn || 'Ukjent'} (${data.type || 'Ukjent'})`;
+    }
+    // Oppdater <p><strong>Dato:</strong> …</p>
+    const datoP = Array.from(kampDetails.querySelectorAll('p')).find(p =>
+      p.querySelector('strong')?.textContent === 'Dato:'
+    );
+    if (datoP && data.starttid) {
+      datoP.innerHTML = `<strong>Dato:</strong> ${formatDate(data.starttid)}`;
+    }
+
+    return data.type || null;
+
+  } catch (err) {
+    console.error('Feil i fetchPhaseType:', err);
+    return null;
+  }
+}
+
+
+
+
+
+
+// 4) Wrapper for å hente fasedata (her kun tabell)
+async function fetchPhaseData(divisjon, fasenummer) {
+  try {
+    await fetchDivisjonTabell(divisjon, fasenummer);
+  } catch (err) {
+    console.error('Feil ved henting av fasedata:', err);
+  }
+}
+
+
+// Til slutt: kall init
+function createPhaseButtons() {
+  phaseButtonsContainer.innerHTML = '';
+  availablePhases.forEach(phase => {
+    const btn = document.createElement('button');
+    btn.textContent = phase.name;
+    btn.classList.add('phase-button');
+    btn.dataset.phaseName = phase.name;
+    btn.dataset.phaseType = phase.type;
+    btn.addEventListener('click', async () => {
+      kampFase = phase.name;
+      updatePhaseButtons(kampFase);
+      await fetchDivisjonTabell(kampDivisjon, kampFase);
+    });
+    phaseButtonsContainer.appendChild(btn);
+  });
+}
+
+function updatePhaseButtons(activePhase) {
+  Array.from(phaseButtonsContainer.children).forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.phaseName === activePhase);
+  });
+}
+
+
+
+
+const tabButtons = document.querySelectorAll('.tab-button');
+const tabContents = document.querySelectorAll('.tab-content');
+
+
+// 4) Koble på tab-byttet slik at tabellen alltid hentes når brukeren klikker "Tabell"
+tabButtons.forEach(btn => {
+  btn.addEventListener('click', async () => {
+    // Skjul/vis faner
+    tabButtons.forEach(b => b.classList.remove('active'));
+    tabContents.forEach(c => c.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+
+    // Hvis det er Tabell-fanen, hent data på nytt
+    if (btn.dataset.tab === 'table') {
+      await fetchPhaseData(kampDivisjon, kampFase, kampDocRef);
+    }
+  });
+});
+
+  
+
+
+
+
+        // *Valgfritt*: Funksjon for å skjule elementer
+        function hideElements() {
+            scoreElement.style.display = 'none';
+            divisjonContainer.style.display = 'none';
+            document.querySelector('.scorers-section').style.display = 'none';
+            phaseButtonsContainer.style.display = 'none';
+        }
+
+        // *Valgfritt*: Funksjon for å vise elementer
+        function showElements() {
+            scoreElement.style.display = 'block';
+            divisjonContainer.style.display = 'block';
+            document.querySelector('.scorers-section').style.display = 'block';
+            phaseButtonsContainer.style.display = 'block';
+        }
+
+
+
+
+
+
+        // Hent knockout
+        async function fetchKnockoutBracket(divisjon, fase) {
+            try {
+                divisjonOverskriftElement.textContent = `Utslag - ${fase}`;
+
+                const kamperSnapshot = await db.collection('turneringer')
+                    .doc(tournamentId)
+                    .collection('kamper')
+                    .where('divisjon', '==', divisjon)
+                    .where('fase', '==', fase)
+                    .get();
+
+                if (kamperSnapshot.empty) {
+                    bracketContainer.innerHTML = '<p>Ingen kamper tilgjengelige for denne fasen.</p>';
+                    return;
+                }
+
+                bracketContainer.innerHTML = '';
+
+                const matches = [];
+                kamperSnapshot.forEach(doc => {
+                    const kamp = doc.data();
+                    matches.push({
+                        hjemmelag: kamp.hjemmelag || 'TBD',
+                        bortelag: kamp.bortelag || 'TBD',
+                        score: (kamp.hjemmelagScore != null && kamp.bortelagScore != null)
+                            ? `${kamp.hjemmelagScore} - ${kamp.bortelagScore}`
+                            : '',
+                        kampId: doc.id
+                    });
+                });
+
+                matches.forEach(match => {
+                    const matchDiv = document.createElement('div');
+                    matchDiv.classList.add('bracket-match');
+                    matchDiv.innerHTML = `
+                        <p>${match.hjemmelag} vs ${match.bortelag}</p>
+                        <p>${match.score}</p>
+                        <a href="kampdetaljer.html?id=${match.kampId}">Se detaljer</a>
+                    `;
+                    bracketContainer.appendChild(matchDiv);
+                });
+
+            } catch (error) {
+                console.error('Feil ved henting av utslagskamper:', error);
+                bracketContainer.innerHTML = '<p>Feil ved henting av data.</p>';
+            }
+        }
+
+        // Hent og vis divisjonstabell
+   
+
+        // Hent og vis målscorere
+        async function fetchScorers(kampRef, hjemmelag, bortelag) {
+            try {
+                const goalsSnapshot = await kampRef.collection('goals').orderBy('time').get();
+
+                if (goalsSnapshot.empty) {
+                    scorersList.innerHTML = "<li>Ingen målscorere tilgjengelig.</li>";
+                    antallSpillereElement.textContent = 0;
+                    return;
+                }
+
+                let scorersHTML = '';
+                goalsSnapshot.forEach(doc => {
+                    const data = doc.data();
+                    const spiller = data.spiller || 'Ukjent Spiller';
+                    const time = data.time || '00:00';
+                    const teamSide = data.team || 'Ukjent Lag';
+
+                    let scoredTeam = '';
+                    if (teamSide.toLowerCase() === 'hjemme') {
+                        scoredTeam = hjemmelag;
+                    } else if (teamSide.toLowerCase() === 'borte') {
+                        scoredTeam = bortelag;
+                    } else {
+                        scoredTeam = 'Ukjent Lag';
+                    }
+
+                    scorersHTML += `
+                        <li>
+                            <div class="player-info">
+                                <span class="player-name">${spiller}</span>
+                                <span class="goal-details">${time}' - ${scoredTeam}</span>
+                            </div>
+                        </li>
+                    `;
+                });
+
+                scorersList.innerHTML = scorersHTML;
+                antallSpillereElement.textContent = goalsSnapshot.size;
+
+            } catch (error) {
+                console.error("Feil ved henting av målscorere:", error);
+                scorersList.innerHTML = "<li>En feil oppstod ved henting av målscorere.</li>";
+                antallSpillereElement.textContent = 0;
+            }
+        }
+
+        // Håndter timeouts og pauser
+        function handleTimeoutsAndPauses(data) {
+            const hjemmeTimeout = data.hjemmeTimeoutRemaining;
+            const borteTimeout = data.borteTimeoutRemaining;
+            const isPause = data.currentPeriod === "Pause";
+
+            if (isPause) {
+                timeoutTimerElement.textContent = `Pause: ${data.remainingTime}`;
+                timeoutTimerElement.style.display = 'block';
+                clearInterval(timeoutInterval);
+            } else if (hjemmeTimeout > 0 || borteTimeout > 0) {
+                if (hjemmeTimeout > 0) {
+                    timeoutTimerElement.textContent = `Timeout (Hjemmelag): ${hjemmeTimeout}s`;
+                    currentTimeoutTeam = 'hjemme';
+                    timeoutTimeLeft = hjemmeTimeout;
+                } else if (borteTimeout > 0) {
+                    timeoutTimerElement.textContent = `Timeout (Bortelag): ${borteTimeout}s`;
+                    currentTimeoutTeam = 'borte';
+                    timeoutTimeLeft = borteTimeout;
+                }
+                timeoutTimerElement.style.display = 'block';
+                startTimeoutCountdown();
+            } else {
+                timeoutTimerElement.style.display = 'none';
+                clearInterval(timeoutInterval);
+                currentTimeoutTeam = null;
+            }
+        }
+
+        // Timeout-nedtelling
+        async function startTimeoutCountdown() {
+            clearInterval(timeoutInterval);
+
+            timeoutInterval = setInterval(async () => {
+                try {
+                    if (timeoutTimeLeft > 0) {
+                        timeoutTimeLeft--;
+                        timeoutTimerElement.textContent =
+                            `Timeout (${currentTimeoutTeam === 'hjemme' ? 'Hjemmelag' : 'Bortelag'}): ${timeoutTimeLeft}s`;
+
+                        const timeoutFieldRemaining =
+                            currentTimeoutTeam === 'hjemme'
+                                ? 'hjemmeTimeoutRemaining'
+                                : 'borteTimeoutRemaining';
+
+                        await db.collection('turneringer').doc(tournamentId).collection('kamper').doc(kampId).update({
+                            [timeoutFieldRemaining]: timeoutTimeLeft
+                        });
+                    } else {
+                        clearInterval(timeoutInterval);
+                        timeoutTimerElement.style.display = 'none';
+
+                        const timeoutFieldRemaining =
+                            currentTimeoutTeam === 'hjemme'
+                                ? 'hjemmeTimeoutRemaining'
+                                : 'borteTimeoutRemaining';
+
+                        await db.collection('turneringer').doc(tournamentId).collection('kamper').doc(kampId).update({
+                            [timeoutFieldRemaining]: null
+                        });
+
+                        currentTimeoutTeam = null;
+                    }
+                } catch (error) {
+                    console.error('Feil under timeout-nedtelling:', error);
+                    clearInterval(timeoutInterval);
+                    timeoutTimerElement.style.display = 'none';
+                    currentTimeoutTeam = null;
+                }
+            }, 1000);
+        }
+
+
+    </script>
+</body>
+</html>

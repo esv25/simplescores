@@ -1,0 +1,1241 @@
+/* styles.css */
+
+/* Reset CSS */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* Generelle Stiler */
+body {
+    font-family: 'Poppins', sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f0f2f5; /* Endret fra #f4f4f4 til #f0f2f5 */
+    color: #2d3e50;
+    line-height: 1.6;
+}
+
+/* Header Styling */
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 40px;
+    background-color: #1a202c; /* Endret fra #4CAF50 til #1a202c */
+    color: white;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    border-bottom: 3px solid #68d391; /* Legger til border-bottom */
+    text-align: center;
+    position: relative;
+}
+
+header h1 {
+    font-size: 36px;
+    font-weight: 700;
+    color: #68d391; /* Endret farge */
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    transition: color 0.3s ease;
+}
+
+header h1:hover {
+    color: #48bb78; /* Endret hover farge */
+}
+
+header a {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background-color: #4c51bf; /* Endret fra #2196F3 til #4c51bf */
+    color: white;
+    padding: 10px 15px;
+    text-decoration: none;
+    border-radius: 20px; /* Endret fra 4px til 20px for å matche utgangspunktet */
+    transition: background-color 0.3s, transform 0.2s;
+    font-size: 16px;
+    font-weight: bold;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+}
+
+header a:hover {
+    background-color: #434190; /* Endret hover farge */
+    transform: scale(1.05);
+}
+
+/* Login Info */
+header .login-info {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+header .login-info p {
+    color: #68d391;
+    font-weight: bold;
+    font-size: 16px;
+}
+
+header .login-info button {
+    background-color: #4c51bf;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: bold;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+    transition: background-color 0.3s ease, transform 0.2s;
+}
+
+header .login-info button:hover {
+    background-color: #434190;
+    transform: scale(1.05);
+}
+
+/* ===================================================================
+   style.css for navigasjon og mobilmeny (med vertikal midtstilling av <li> i desktop)
+   =================================================================== */
+
+/* ---------------------------
+   1) GENERELLE NAV-STILER
+   --------------------------- */
+nav {
+    display: flex;
+    justify-content: flex-start;    /* Justerer navigasjon til venstre */
+    align-items: center;            /* Vertikalt midtstil alle direkte barn i nav */
+    background-color: #e2e8f0;       /* Lys bakgrunnsfarge for hele navigasjonen */
+    padding: 15px 40px;
+    gap: 30px;
+    border-top: 1px solid #68d391;
+    border-bottom: 1px solid #68d391;
+    border-radius: 5px;              /* Avrundede hjørner */
+    /* margin-bottom: 10px; */       /* Fjernet for å unngå gap under nav */
+    position: relative;              /* For å kunne plassere dropdown over annet innhold */
+    z-index: 100;                    /* Sørger for at nav ligger øverst */
+}
+
+/* ---------------------------
+   2) NAV-LISTE (UL) OG LISTEITEMS (LI)
+   --------------------------- */
+nav ul {
+    display: flex;
+    align-items: center;             /* Vertikalt midtstill <li> i desktopvisning */
+    gap: 30px;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+nav li {
+    transition: transform 0.3s ease;
+}
+nav li:hover {
+    transform: translateY(-3px);
+}
+
+/* ---------------------------
+   3) LENKER (A) MED IKON + TEKST
+   --------------------------- */
+/* Forutsetter HTML-struktur:
+   <a href="..." class="nav-link"><i class="fa-solid fa-..."></i><span>Tekst</span></a>
+*/
+nav a.nav-link {
+    display: flex;
+    align-items: center;
+    gap: 8px;                       /* Avstand mellom ikon og tekst */
+    color: #2d3e50;                 /* Mørk tekstfarge som standard */
+    text-decoration: none;
+    font-weight: 500;               /* Litt finere fontvekt */
+    font-size: 18px;
+    font-family: 'Poppins', sans-serif;
+    padding: 10px 15px;
+    transition: color 0.3s ease;
+    position: relative;             /* For pseudo-elementet som tegner understrek */
+    background-color: transparent;  /* Ingen bakgrunn fra start */
+}
+
+/* IKONSTØRRELSE (Font Awesome) */
+nav a.nav-link i {
+    font-size: 1.25rem;             /* Justér etter behov */
+    color: inherit;                 /* Arver fargen fra lenken */
+}
+
+/* TEKSTSTIL FOR SPAN (nav-link-teksten) */
+nav a.nav-link span {
+    position: relative;             /* Pseudo-elementet plasseres i forhold til teksten */
+    font-size: 18px;
+    white-space: nowrap;
+}
+
+/* ---------------------------
+   4) TEKST-UNDERSTREK VED HOVER
+   --------------------------- */
+/* Initialt: ingen understrek (width: 0) */
+nav a.nav-link span::after {
+    content: "";
+    position: absolute;
+    bottom: -4px;                   /* Ligger rett under tekstlinjen */
+    left: 0;
+    width: 0;
+    height: 2px;
+    background-color: #68d391;      /* Aksentfarge */
+    transition: width 0.25s ease-in-out;
+}
+
+/* Når man hover over lenken, utvid understreken til 100% bredde under teksten */
+nav a.nav-link:hover span::after {
+    width: 100%;
+}
+
+/* Bytt tekstfarge på hover, men ingen bakgrunn */
+nav a.nav-link:hover {
+    color: #68d391;
+    background-color: transparent !important;
+}
+
+/* ---------------------------
+   5) AKTIV LENKE (nav-link.active) i DESKTOP
+   --------------------------- */
+/* Den aktive lenken får ikon over tekst, permanent understrek og grønn farge */
+nav a.nav-link.active {
+    color: #68d391;                 /* Grønn tekst for aktiv */
+    font-weight: 600;
+    flex-direction: column;         /* Ikon over tekst */
+    justify-content: flex-end;      /* Skyver innholdet nedover */
+    padding-bottom: 8px;            /* Plass for understrek */
+}
+
+/* Gjør ikonet litt større når aktiv */
+nav a.nav-link.active i {
+    font-size: 1.5rem;
+    margin: 0;
+}
+
+/* Flytt teksten litt nær ikonet */
+nav a.nav-link.active span {
+    margin-top: 4px;
+}
+
+/* Permanent understrek under teksten */
+nav a.nav-link.active span::after {
+    width: 100%;
+}
+
+/* ---------------------------
+   6) OVERSKRIV GAMLE HOVER-BAKGRUNNER
+   --------------------------- */
+nav a.nav-link:hover,
+nav a.nav-link:focus,
+nav a.nav-link:active,
+nav a.nav-link.active:hover {
+    background-color: transparent !important;
+}
+
+/* ---------------------------
+   7) SKJUL CHECKBOX OG MENY-ID
+   --------------------------- */
+#menu-toggle {
+    display: none;
+}
+
+/* ---------------------------
+   8) HAMBURGER-IKONET (LABEL FOR #menu-toggle)
+   --------------------------- */
+#menu-icon {
+    display: none;                   /* Skjules på desktop */
+    font-size: 30px;
+    cursor: pointer;
+    user-select: none;
+    color: #2d3e50;
+    margin: 0;
+    padding: 10px 15px;
+    position: relative;
+    z-index: 200;                    /* Ligger over dropdown-menyen */
+}
+
+#menu-icon::before {
+    content: '☰';                   /* Standard hamburger */
+}
+
+#menu-toggle:checked + #menu-icon::before {
+    content: '✖';                   /* Bytt til "X" når åpen */
+}
+
+/* ---------------------------
+   9) STANDARD (DESKTOP) VISNING AV NAV UL
+   --------------------------- */
+#menu {
+    display: flex;
+    gap: 30px;
+    flex-wrap: wrap;
+}
+
+/* ---------------------------
+   10) MOBILVISNING (max-width: 768px)
+   --------------------------- */
+@media only screen and (max-width: 768px) {
+    /* Gjør nav vertikal, fjern gap, juster padding */
+    nav {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 15px 20px;
+        gap: 0;                      /* Droppe gap for å få hamburger øverst */
+    }
+
+    /* Vis kun hamburger-ikonet */
+    #menu-icon {
+        display: block;
+    }
+
+    /* Skjul standard horisontal nav ul (ID #menu) */
+    #menu {
+        display: none;
+        width: 100%;
+    }
+
+    /* Når avkrysset, vis dropdown som vertikal liste som dekker 75% av bredden */
+    #menu-toggle:checked + #menu-icon + #menu {
+        display: flex;
+        flex-direction: column;     
+        background-color: #e2e8f0;   
+        margin-top: 0;               /* Starter helt under nav uten gap */
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        border-radius: 0 0 5px 5px;  /* Avrund kun underkant */
+        padding: 10px 0;
+        position: absolute;          /* Legg over annet innhold */
+        top: 100%;                   /* Rett under nav */
+        left: 0;
+        width: 75%;                  /* Dekker 75% av skjermbredden */
+        max-width: 300px;            /* Valgfritt: maksbredde */
+        height: calc(100vh - 100%);  /* Dekker ned til bunnen av viewport */
+        overflow-y: auto;            /* Rull om menyen er lang */
+        z-index: 150;                /* Over annet innhold */
+    }
+
+    /* Styling av hvert <li> i dropdown-lista */
+    nav ul#menu li {
+        width: 100%;
+        border-bottom: 1px solid rgba(0,0,0,0.08);
+        margin: 0;
+        padding: 0;
+        transform: none;             /* Fjern løfte-effekt */
+    }
+    nav ul#menu li:last-child {
+        border-bottom: none;
+    }
+
+    /* Styling av lenkene i dropdown-lista */
+    nav ul#menu li a.nav-link {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 20px;
+        color: #2d3e50;
+        font-size: 18px;
+        background-color: transparent !important;
+        transition: color 0.2s ease;
+    }
+
+    /* Understrek under teksten ved hover i dropdown */
+    nav ul#menu li a.nav-link span::after {
+        content: "";
+        position: absolute;
+        bottom: -4px;
+        left: 0;
+        width: 0;
+        height: 2px;
+        background-color: #68d391;
+        transition: width 0.25s;
+    }
+    nav ul#menu li a.nav-link:hover span::after {
+        width: 100%;
+    }
+
+    /* Ingen bakgrunn ved hover, kun tekst-understrek */
+    nav ul#menu li a.nav-link:hover {
+        color: #68d391;
+        background-color: transparent !important;
+    }
+
+    /* Aktiv lenke i dropdown – horisontal, venstrestilt, grønn tekst */
+    nav ul#menu li a.nav-link.active {
+        flex-direction: row;          /* Ikon og tekst ved siden av hverandre */
+        align-items: center;          /* Vertikal senterjustering */
+        justify-content: flex-start;  /* Venstrejuster innholdet */
+        padding-left: 20px;           /* Innrykk i liste */
+        color: #68d391;               /* Grønn tekst for aktiv */
+        background-color: #d1f5e3;    /* Lys grønn bakgrunn */
+        font-weight: 600;
+    }
+    nav ul#menu li a.nav-link.active i {
+        font-size: 1.25rem;           /* Justert ikon-størrelse */
+        margin-right: 8px;            /* Luft mellom ikon og tekst */
+    }
+    nav ul#menu li a.nav-link.active span::after {
+        background-color: #68d391;     /* Grønn understrek for kontrast */
+        bottom: -4px;
+        left: 0;
+        width: 100%;                   /* Permanent understrek */
+    }
+}
+
+
+/* Main Content Styling */
+main {
+    flex-grow: 1;
+    padding: 40px;
+    background-color: #ffffff;
+    max-width: 1200px;
+    margin: 0 auto;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    border-radius: 10px;
+}
+
+/* Button Styling */
+button {
+    background-color: #4c51bf;
+    color: white;
+    padding: 12px 24px;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+button:hover {
+    background-color: #434190;
+    transform: scale(1.05);
+}
+
+/* Disabled Button */
+button[disabled] {
+    background-color: #cccccc;
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
+/* General dropdown (select) styling */
+select {
+    width: 100%;
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid #68d391;
+    font-size: 16px;
+    background-color: #ffffff;
+    color: #2d3e50; /* Endret fra #333 til #2d3e50 */
+    appearance: none;
+    background-image: url('data:image/svg+xml;charset=US-ASCII,<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 10 10"><path fill="%23333" d="M0 3l5 5 5-5z"/></svg>');
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    background-size: 10px;
+    cursor: pointer;
+}
+
+select:focus {
+    outline: none;
+    border-color: #4c51bf;
+    box-shadow: 0 0 5px rgba(76, 81, 191, 0.5);
+}
+
+/* Label styling for dropdowns */
+label {
+    font-size: 16px;
+    font-weight: bold;
+    margin-bottom: 5px;
+    display: block;
+    color: #2d3e50;
+}
+
+/* Tournament Card Styling */
+.tournament-card, .tournament-details, .teams-section, .match-card, .kampdetaljer-container {
+    background-color: white;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    transition: transform 0.2s;
+}
+
+.tournament-card:hover, .match-card:hover, .kampdetaljer-container:hover {
+    transform: scale(1.02);
+}
+
+.tournament-card h2, .tournament-details h2, .teams-section h2, .kampdetaljer-container h1, .kampdetaljer-container h3 {
+    margin-top: 0;
+    color: #2d3e50; /* Endret fra #333 til #2d3e50 */
+}
+
+.tournament-card p, .tournament-details p, .teams-section p, .kampdetaljer-container p {
+    color: #555;
+    line-height: 1.6;
+}
+
+.details-button {
+    display: inline-block;
+    margin-top: 20px;
+    padding: 10px 20px;
+    background-color: #4c51bf; /* Endret fra #2196F3 til #4c51bf */
+    color: white;
+    text-decoration: none;
+    border-radius: 8px; /* Endret fra 4px til 8px for konsistens */
+    transition: background-color 0.3s, transform 0.2s;
+    font-size: 16px; /* Justert fontstørrelse */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.details-button:hover {
+    background-color: #434190;
+    transform: scale(1.05);
+}
+
+/* Kampdetaljer Styling */
+.kampdetaljer-container {
+    text-align: center;
+    padding: 30px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.timer {
+    font-size: 4rem; /* Økt fontstørrelse for bedre synlighet */
+    margin-bottom: 10px;
+    color: #2d3e50;
+}
+
+.period {
+    font-size: 2rem; /* Økt fontstørrelse for bedre synlighet */
+    margin-bottom: 20px;
+    color: #555;
+}
+
+.score {
+    font-size: 5rem; /* Økt fontstørrelse for tydelighet */
+    font-weight: bold;
+    margin-bottom: 20px;
+    color: #68d391; /* Endret fra #007bff til #68d391 for konsistens */
+}
+
+.teams {
+    display: flex;
+    justify-content: center;
+    gap: 100px; /* Avstand mellom lagene */
+    margin-bottom: 30px;
+}
+
+.team-name {
+    font-size: 2rem;
+    color: #2d3e50;
+}
+
+/* Scorers Section */
+.scorers-section {
+    background-color: white;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    margin-bottom: 20px;
+    max-width: 800px;
+    margin-left: auto;
+    margin-right: auto;
+    text-align: left;
+}
+
+.scorers-section h3 {
+    margin-top: 0;
+    color: #2d3e50;
+    font-size: 2rem;
+}
+
+.scorers-list {
+    list-style-type: none;
+    padding-left: 0;
+}
+
+.scorers-list li {
+    background-color: #f9f9f9;
+    margin-bottom: 10px;
+    padding: 15px;
+    border-radius: 5px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: background-color 0.3s;
+}
+
+.scorers-list li:hover {
+    background-color: #e9ecef;
+}
+
+.scorers-list .player-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.player-name {
+    font-weight: bold;
+    font-size: 1.2rem;
+    color: #2d3e50;
+}
+
+.goal-details {
+    font-size: 1rem;
+    color: #555;
+}
+
+/* Modal Styling */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.4); /* Transparent bakgrunn */
+}
+
+.modal-content {
+    background-color: #fefefe;
+    margin: 10% auto; /* 10% fra toppen og sentrert */
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%;
+    max-width: 500px;
+    border-radius: 15px; /* Økt border-radius for bedre stil */
+    position: relative;
+}
+
+.close {
+    color: #aaa;
+    position: absolute;
+    top: 10px;
+    right: 20px;
+    font-size: 2rem;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.close:hover,
+.close:focus {
+    color: #000;
+    text-decoration: none;
+}
+
+.player-list {
+    list-style-type: none;
+    padding-left: 0;
+}
+
+.player-list li {
+    padding: 10px;
+    border-bottom: 1px solid #ddd;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.player-list li:hover {
+    background-color: #f1f1f1;
+}
+
+/* Footer Styling */
+footer {
+    background-color: #333;
+    color: white;
+    text-align: center;
+    padding: 15px 0;
+    position: relative;
+    width: 100%;
+    bottom: 0;
+}
+
+.divisjonstabell-container {
+    margin-top: 20px;
+}
+
+.divisjonstabell-container table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.divisjonstabell-container th, .divisjonstabell-container td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: center;
+}
+
+.divisjonstabell-container th {
+    background-color: #68d391;
+    color: white;
+}
+
+.divisjonstabell-container td {
+    color: #2d3e50;
+}
+
+/* Responsiv Design */
+@media (max-width: 768px) {
+    nav {
+        flex-direction: column;
+        padding: 20px;
+    }
+
+    .kampdetaljer-container {
+        padding: 20px;
+    }
+
+    .timer {
+        font-size: 3rem; /* Justering for mindre skjermer */
+    }
+
+    .period {
+        font-size: 1.5rem; /* Justering for mindre skjermer */
+    }
+
+    .score {
+        font-size: 4rem; /* Justering for mindre skjermer */
+    }
+
+    .teams {
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .team-name {
+        font-size: 1.5rem; /* Justering for mindre skjermer */
+    }
+
+    .scorers-section {
+        padding: 15px;
+    }
+
+    .scorers-section h3 {
+        font-size: 1.5rem; /* Justering for mindre skjermer */
+    }
+
+    .scorers-list li {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .player-info {
+        margin-bottom: 10px;
+    }
+
+    .player-name {
+        font-size: 1rem; /* Justering for mindre skjermer */
+    }
+
+    .goal-details {
+        font-size: 0.9rem; /* Justering for mindre skjermer */
+    }
+
+    .details-button {
+        width: 100%;
+        text-align: center;
+        font-size: 0.9rem; /* Justering for mindre skjermer */
+        border-radius: 20px; /* Justert border-radius */
+    }
+
+    .modal-content {
+        width: 90%;
+    }
+
+    .tournament-card, .match-card, .tournament-details, .teams-section, .kampdetaljer-container {
+        padding: 15px;
+    }
+
+    .footer {
+        padding: 10px 0;
+    }
+}
+
+/* Ekstra Styling fra utgangspunktet */
+
+/* Flexbox container for turneringer */
+.turnering-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 30px;
+    justify-content: space-around;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 40px;
+}
+
+/* Individuell tournament card */
+.turnering {
+    flex: 1 1 calc(30% - 40px);
+    max-width: 300px;
+    background-color: #ffffff;
+    padding: 20px;
+    margin-bottom: 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease;
+    cursor: pointer;
+}
+
+.turnering:hover {
+    transform: scale(1.05);
+}
+
+.turnering h4 {
+    font-size: 18px;
+    font-weight: bold;
+    margin-bottom: 10px;
+    color: #2d3e50;
+}
+
+.turnering p {
+    font-size: 14px;
+    color: #777;
+}
+
+/* Media query for mindre skjermer */
+@media (max-width: 1024px) {
+    .turnering {
+        flex: 1 1 calc(45% - 40px);
+    }
+}
+
+@media (max-width: 768px) {
+    .turnering {
+        flex: 1 1 calc(100% - 40px);
+    }
+}
+
+/* Popup Styling */
+.popup {
+    display: none;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 450px;
+    padding: 25px;
+    background-color: #ffffff;
+    border-radius: 15px;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+    z-index: 1000;
+    max-width: 90%;
+}
+
+.popup.active {
+    display: block;
+    animation: popup-fade-in 0.3s ease-in-out;
+}
+
+@keyframes popup-fade-in {
+    from {
+        opacity: 0;
+        transform: translate(-50%, -60%);
+    }
+    to {
+        opacity: 1;
+        transform: translate(-50%, -50%);
+    }
+}
+
+/* Background Overlay */
+.popup-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 999;
+}
+
+.popup-overlay.active {
+    display: block;
+    animation: overlay-fade-in 0.3s ease-in-out;
+}
+
+@keyframes overlay-fade-in {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+/* Flexbox container for the phases */
+.fase-container-wrapper {
+    display: flex;
+    justify-content: space-around;
+    gap: 30px;
+    margin-top: 20px;
+    flex-wrap: wrap;
+}
+
+/* Individuell phase container */
+.fase-container {
+    flex: 1 1 calc(30% - 40px);
+    min-width: 300px;
+    padding: 30px;
+    background-color: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    text-align: center;
+}
+
+.fase-container h5 {
+    font-size: 20px;
+    color: #2d3e50;
+    font-weight: bold;
+    margin-bottom: 20px;
+}
+
+/* Button container innen fases */
+.button-container {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+}
+
+.button-container button {
+    background-color: #4c51bf;
+    color: white;
+    padding: 10px 25px;
+    flex: 1;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.button-container button:hover {
+    background-color: #434190;
+    transform: scale(1.05);
+}
+
+/* Table Styling */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 30px;
+    background-color: #ffffff;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+table th, table td {
+    border: 1px solid #ddd;
+    padding: 20px;
+    text-align: center;
+    vertical-align: middle;
+}
+
+table th {
+    background-color: #68d391;
+    color: white;
+    font-size: 18px;
+    text-transform: uppercase;
+}
+
+table td {
+    color: #2d3e50;
+}
+
+/* Action Buttons Container */
+.table-actions {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    align-items: center;
+}
+
+table td button {
+    background-color: #4c51bf;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s;
+}
+
+table td button:hover {
+    background-color: #434190;
+    transform: scale(1.05);
+}
+
+/* Main container for the fields (baner) */
+.bane-tabell {
+    background-color: #ffffff;
+    padding: 30px;
+    margin-bottom: 30px;
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.bane-tabell h3 {
+    font-size: 22px;
+    font-weight: bold;
+    margin-bottom: 20px;
+    color: #2d3e50;
+}
+
+/* Match (kamp) card */
+.kamp-kort {
+    background-color: white;
+    padding: 20px;
+    margin-bottom: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: transform 0.2s ease;
+}
+
+.kamp-kort:hover {
+    transform: translateY(-5px);
+}
+
+.kamp-tid {
+    font-size: 18px;
+    font-weight: bold;
+    color: #2d3e50;
+}
+
+.kamp-detaljer {
+    flex-grow: 1;
+    margin-left: 20px;
+}
+
+.kamp-detaljer h4 {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 5px;
+    color: #2d3e50;
+}
+
+.kamp-gruppe {
+    font-size: 14px;
+    color: #888;
+    font-style: italic;
+}
+
+.gruppe, .dommer {
+    display: block;
+    margin-top: 5px;
+    font-size: 12px;
+    color: #555;
+}
+
+/* Flexbox layout for fields */
+#baneContainer {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 30px;
+    justify-content: center;
+}
+
+/* Individuell field layout */
+.bane-tabell {
+    flex: 1 1 calc(45% - 30px);
+    max-width: 500px;
+}
+
+/* Wrapper styling */
+.wrapper {
+    display: flex;
+    align-items: flex-start;
+    min-height: 100vh;
+}
+
+/* Sidebar styling */
+.sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    width: 200px;
+    background-color: #1a202c;
+    padding: 20px;
+    box-shadow: 4px 0 10px rgba(0, 0, 0, 0.1);
+    border-radius: 0 10px 10px 0;
+    flex-shrink: 0;
+}
+
+.sidebar button {
+    background-color: #4c51bf;
+    color: white;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 5px;
+    font-size: 14px;
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    transition: background-color 0.3s ease, transform 0.2s;
+    width: 100%;
+}
+
+.sidebar button:hover {
+    background-color: #434190;
+    transform: scale(1.05);
+}
+
+/* Content area */
+.main-content {
+    flex-grow: 1;
+    padding: 40px;
+    margin-left: 20px;
+    max-width: 1000px;
+}
+
+/* Responsive behavior */
+@media (max-width: 768px) {
+    .wrapper {
+        flex-direction: column;
+    }
+
+    .sidebar {
+        flex-direction: row;
+        width: 100%;
+        height: auto;
+        border-radius: 0;
+        justify-content: space-around;
+    }
+
+    .main-content {
+        margin-left: 0;
+    }
+
+    .sidebar button {
+        flex: 1;
+    }
+}
+
+.kamp-liste {
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.kamp-item {
+    background-color: white;
+    margin-bottom: 20px;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: transform 0.2s ease;
+}
+
+.kamp-item:hover {
+    transform: translateY(-5px);
+}
+
+.kamp-info {
+    font-size: 16px;
+    font-weight: 600;
+    color: #2d3e50;
+}
+
+.kamp-info h4 {
+    margin-bottom: 10px;
+}
+
+.kamp-tid, .kamp-bane, .kamp-divisjon {
+    font-size: 14px;
+    color: #777;
+}
+
+.kamp-tid span, .kamp-bane span, .kamp-divisjon span {
+    font-weight: bold;
+    color: #2d3e50;
+}
+
+.kamp-knapp {
+    padding: 10px 20px;
+    background-color: #4c51bf; /* Endret fra #3182ce til #4c51bf for konsistens */
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s;
+}
+
+.kamp-knapp:hover {
+    background-color: #434190;
+    transform: scale(1.05);
+}
+
+/* Justering av knapp og andre elementer for mobil */
+@media (max-width: 768px) {
+    .kamp-item {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .kamp-knapp {
+        width: 100%;
+        text-align: center;
+    }
+}
+
+/* Responsive behavior for smaller screens */
+@media (max-width: 768px) {
+    .button-container-top {
+        justify-content: center;
+    }
+
+    .button-container-top button {
+        flex: 1 1 100%;
+        text-align: center;
+    }
+}
+
+/* Media Queries for responsiveness */
+@media (max-width: 1024px) {
+    .fase-container-wrapper {
+        flex-direction: column;
+    }
+
+    .fase-container {
+        margin-bottom: 30px;
+    }
+}
+
+/* Media Queries */
+@media (max-width: 768px) {
+    header, nav {
+        flex-direction: column;
+    }
+
+    main {
+        padding: 20px;
+    }
+
+    .button-container {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .fase-container {
+        margin-top: 20px;
+    }
+}
+
+.kamp-dommer {
+    font-size: 0.9em;
+    color: #555;
+    margin-top: 5px;
+}

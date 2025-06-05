@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+    <meta charset="UTF-8">
+    <title>Register</title>
+    <link rel="stylesheet" type="text/css" href="./admin.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #1a202c; /* Mørk bakgrunn */
+            color: #f0f2f5; /* Lys tekst */
+            margin: 0;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            display: flex;
+            width: 80%;
+            max-width: 1200px;
+            background-color: #2d3748; /* Litt lysere mørk farge */
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+        }
+
+        .logo-section {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #3b3f73, #2f8656); /* Mørkere gradient */
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+            border-top-left-radius: 12px; /* Avrundede hjørner */
+            border-bottom-left-radius: 12px;
+        }
+
+        .logo-section::before {
+            content: '';
+            position: absolute;
+            width: 300%;
+            height: 300%;
+            background: radial-gradient(circle, rgba(0, 0, 0, 0.2), transparent); /* Mørkt overlegg */
+            animation: pulse 5s infinite;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: translate(-50%, -50%) scale(1);
+                opacity: 0.5;
+            }
+            50% {
+                transform: translate(-50%, -50%) scale(1.5);
+                opacity: 0.3;
+            }
+            100% {
+                transform: translate(-50%, -50%) scale(1);
+                opacity: 0.5;
+            }
+        }
+
+        .logo-section img {
+            max-width: 80%;
+            max-height: 80%;
+            z-index: 10;
+            filter: drop-shadow(0px 4px 6px rgba(0, 0, 0, 0.4)); /* Skygge rundt logoen */
+        }
+
+        .register-section {
+            flex: 1;
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .register-section h2 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #f0f2f5; /* Lys tekst */
+        }
+
+        .register-section input {
+            display: block;
+            width: 100%;
+            margin: 10px 0;
+            padding: 12px;
+            font-size: 16px;
+            border: none;
+            border-radius: 6px;
+            background-color: #f7fafc; /* Lys bakgrunn */
+            color: #2d3e50; /* Mørk tekst */
+        }
+
+        .register-section button {
+            width: 100%;
+            padding: 12px;
+            margin-top: 20px;
+            background-color: #68d391; /* Grønn */
+            color: white;
+            font-size: 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .register-section button:hover {
+            background-color: #48bb78; /* Mørkere grønn */
+        }
+
+        #error-message, #success-message {
+            text-align: center;
+            margin-top: 10px;
+        }
+
+        #error-message {
+            color: red;
+        }
+
+        #success-message {
+            color: green;
+        }
+
+        @media (max-width: 768px) {
+    .container {
+        flex-direction: column;
+        width: 90%;
+    }
+
+    .logo-section {
+        border-top-left-radius: 12px;
+        border-bottom-left-radius: 0;
+        border-top-right-radius: 12px;
+        height: auto;
+        padding: 40px 20px; /* Øker avstand rundt logoen */
+    }
+
+    .logo-section img {
+        max-width: 100%;
+        height: auto;
+        max-height: 150px; /* Begrens høyden */
+        object-fit: contain; /* Sørg for at logoen beholder proporsjonene */
+    }
+
+    .login-section {
+        padding: 20px;
+    }
+
+    .login-section h2 {
+        font-size: 24px;
+        margin-bottom: 16px;
+    }
+
+    .login-section input {
+        padding: 10px;
+        font-size: 14px;
+    }
+
+    .login-section button {
+        padding: 10px;
+        font-size: 14px;
+    }
+}
+
+    </style>
+    <!-- Firebase SDKs -->
+    <!-- Firebase App (all required) -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <!-- Firebase Authentication -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <!-- Firebase Realtime Database -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+</head>
+<body>
+    <div class="container">
+        <!-- Logo Section -->
+        <div class="logo-section">
+            <img src="logo.png" alt="Simple Scores Logo">
+        </div>
+
+        <!-- Register Section -->
+        <div class="register-section">
+            <h2>Register</h2>
+            <input type="email" id="email" placeholder="Email">
+            <input type="password" id="password" placeholder="Password">
+            <button id="register">Register</button>
+            <button onclick="LoggInn()">Already an account? Sign in</button>
+            <p id="error-message"></p>
+            <p id="success-message"></p>
+        </div>
+    </div>
+
+    <script>
+        // Firebase-konfigurasjon
+        const firebaseConfig = {
+            apiKey: "AIzaSyCLRjYMzbeksCfV1ImdFsyb_sUJsGM0ZH0",
+            authDomain: "resultatservice-d860c.firebaseapp.com",
+            databaseURL: "https://resultatservice-d860c-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "resultatservice-d860c",
+            storageBucket: "resultatservice-d860c.appspot.com",
+            messagingSenderId: "649532849758",
+            appId: "1:649532849758:web:74d06f6b79ade1d752becf"
+        };
+
+        // Initialiser Firebase
+        firebase.initializeApp(firebaseConfig);
+
+        // Registreringsfunksjon
+        document.getElementById('register').addEventListener('click', function() {
+            var email = document.getElementById('email').value;
+            var password = document.getElementById('password').value;
+            
+            firebase.auth().createUserWithEmailAndPassword(email, password)
+            .then((userCredential) => {
+                var user = userCredential.user;
+                document.getElementById('success-message').innerText = 'Bruker registrert!';
+                document.getElementById('error-message').innerText = '';
+            })
+            .catch((error) => {
+                var errorMessage = error.message;
+                document.getElementById('error-message').innerText = 'Feil: ' + errorMessage;
+                document.getElementById('success-message').innerText = '';
+            });
+        });
+
+        // Funksjon for å gå tilbake til innlogging
+        function LoggInn(){
+            window.location.href = 'login.html';
+        }
+    </script>
+</body>
+</html>

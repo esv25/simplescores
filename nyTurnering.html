@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" type="text/css" href="./admin.css">
+  <title>Legg til Turnering</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <!-- Ekstra stil for turneringskortene -->
+  <style>
+    /* Container for knappene inni hvert turneringskort */
+    .turnering-actions {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      margin-top: 15px;
+    }
+    .turnering-actions button {
+      flex: 1;
+      padding: 8px 0;
+      font-size: 14px;
+      border-radius: 6px;
+      /* Bruk samme farge som resten av knappene (overstyres evt. av admin.css) */
+      background-color: #4c51bf;
+      color: white;
+      border: none;
+      cursor: pointer;
+      transition: background-color 0.3s ease, transform 0.2s;
+    }
+    .turnering-actions button:hover {
+      background-color: #434190;
+      transform: scale(1.05);
+    }
+  </style>
+</head>
+<body id="wrapper">
+  <header>
+    <div class="logo-title">
+      <a href="index.html"><img src="logo.png" alt="Simple Scores Logo" class="logo"></a>
+    </div>
+    <div class="nav2">
+      <button id="user-button" onclick="toggleUserMenu()">Bruker</button>
+      <div id="user-menu" class="user-menu" style="display: none;">
+        <p>Logget inn som <span id="mail"></span></p>
+        <button id="loggut" onclick="loggut()">Logg ut</button>
+      </div>
+      <button onclick="displaysidebar()" type="button">Q&A</button>
+    </div>
+  </header>
+  
+  <button onclick="endre()">Opprett turnering</button>
+  
+  <main id="turneringListe" class="turnering-container"></main>
+  <main id="coArrangorTurneringListe">
+    <h2>Turneringer som Co-Arrangør</h2>
+  </main>
+
+  <!-- Q&A Seksjon -->
+  <div id="qa-section" style="display: none;">
+    <button class="close-btn" onclick="closeSection()">&times;</button>
+    <div class="question" onclick="toggleAnswer(0)">Hvordan oppretter jeg en ny turnering?</div>
+    <div class="answer">For å opprette en ny turnering, gå til "Opprett Turnering" siden og fyll ut navn, datoer og arrangørinformasjon. Deretter kan du legge til divisjoner og lag.</div>
+    <div class="question" onclick="toggleAnswer(1)">Hvordan kan jeg legge til eller administrere lag?</div>
+    <div class="answer">For å legge til eller administrere lag, naviger til "Legg til lag"-seksjonen. Fyll inn lagnavn og spillerinformasjon, og administrer eksisterende lag ved å velge divisjoner.</div>
+    <div class="question" onclick="toggleAnswer(2)">Hvordan setter jeg opp kampoppsett?</div>
+    <div class="answer">I "Kampoppsett"-delen kan du tildele baner, velge tidspunkt for kamper, og generere et kampoppsett basert på antall lag og kamper.</div>
+    <div class="question" onclick="toggleAnswer(3)">Kan jeg tildele dommere til kamper?</div>
+    <div class="answer">Ja, i "Kampoppsett"-delen kan du tildele dommere til hver kamp. Du kan angi hvor mange dommere som kreves per kamp og tildele dem etter behov.</div>
+    <div class="question" onclick="toggleAnswer(4)">Hvordan oppdaterer jeg kampscore i sanntid?</div>
+    <div class="answer">Bruk "Scoreboard"-funksjonen for å oppdatere kampscore i sanntid. Du kan manuelt legge inn score som vil vises live til både administratorer og publikum.</div>
+    <div class="question" onclick="toggleAnswer(5)">Hvilke tilpasningsalternativer er tilgjengelige for turneringsformater?</div>
+    <div class="answer">I "Format"-delen kan du velge mellom gruppespill, utslagsrunder, eller enkeltkamper. Tilpass turneringsprogresjon basert på valgt format.</div>
+    <div class="question" onclick="toggleAnswer(6)">Hvordan logger jeg ut av admin-panelet?</div>
+    <div class="answer">Klikk på "Logg ut"-knappen øverst til høyre på dashbordet for å logge ut. Husk å lagre eventuelle endringer før du logger ut.</div>
+    <div class="question" onclick="toggleAnswer(7)">Hvordan kan jeg tildele baner til kamper?</div>
+    <div class="answer">I "Kampoppsett"-delen kan du tildele baner manuelt til hver kamp. Velg fra eksisterende baner eller legg til nye etter behov.</div>
+    <div class="question" onclick="toggleAnswer(8)">Hvordan styrer jeg turneringsinnstillinger og publikumstilgang?</div>
+    <div class="answer">I "Innstillinger"-delen kan du kontrollere generelle turneringsinnstillinger og bestemme hva publikum kan se, for eksempel kampscore, detaljer og statistikk.</div>
+  </div>
+  
+  <script src="https://www.gstatic.com/firebasejs/8.2.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.2.0/firebase-firestore.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.2.0/firebase-auth.js"></script>
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyCLRjYMzbeksCfV1ImdFsyb_sUJsGM0ZH0",
+      authDomain: "resultatservice-d860c.firebaseapp.com",
+      databaseURL: "https://resultatservice-d860c-default-rtdb.europe-west1.firebasedatabase.app",
+      projectId: "resultatservice-d860c",
+      storageBucket: "resultatservice-d860c.appspot.com",
+      messagingSenderId: "649532849758",
+      appId: "1:649532849758:web:74d06f6b79ade1d752becf"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    const auth = firebase.auth();
+
+    auth.onAuthStateChanged((user) => {
+      if (user) {
+        const email = user.email;
+        document.getElementById('mail').innerHTML = email;
+        loadTurnering(email);
+        loadCoArrangorTurneringer(email);
+      } else {
+        window.location.href = 'login.html';
+      }
+    });
+
+    function loggut() {
+      auth.signOut().then(() => {
+        window.location.href = 'login.html';
+      }).catch((error) => {
+        console.error("Feil ved utlogging:", error);
+      });
+    }
+
+    function adjustSidebarPosition() {
+      const header = document.querySelector('header');
+      const nav = document.querySelector('nav');
+      const qaSection = document.getElementById('qa-section');
+      if (header && nav && qaSection) {
+        const headerHeight = header.offsetHeight;
+        const navHeight = nav.offsetHeight;
+        const totalHeight = headerHeight + navHeight;
+        qaSection.style.top = `${totalHeight}px`;
+        qaSection.style.maxHeight = `calc(100vh - ${totalHeight}px)`;
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', adjustSidebarPosition);
+    window.addEventListener('resize', adjustSidebarPosition);
+
+    function displaysidebar(){
+      const qaSection = document.getElementById('qa-section');
+      if (qaSection) {
+        qaSection.style.display = "block";
+        setTimeout(() => {
+          qaSection.style.transform = "translateX(0)";
+          qaSection.style.opacity = "1";
+        }, 10);
+      } else {
+        console.error("Element med id 'qa-section' ble ikke funnet.");
+      }
+    }
+
+    function toggleUserMenu() {
+      const userMenu = document.getElementById('user-menu');
+      if (userMenu.style.display === "none" || userMenu.style.display === "") {
+        userMenu.style.display = "block";
+      } else {
+        userMenu.style.display = "none";
+      }
+    }
+
+    function closeSection(){
+      const qaSection = document.getElementById('qa-section');
+      if (qaSection) {
+        qaSection.style.transform = "translateX(100%)";
+        qaSection.style.opacity = "0";
+        qaSection.addEventListener('transitionend', function handler() {
+          qaSection.style.display = "none";
+          qaSection.removeEventListener('transitionend', handler);
+        });
+      } else {
+        console.error("Element med id 'qa-section' ble ikke funnet.");
+      }
+    }
+
+    function toggleAnswer(index) {
+      const answers = document.querySelectorAll('#qa-section .answer');
+      if (answers[index]) {
+        answers[index].style.display = (answers[index].style.display === "none" || answers[index].style.display === "") 
+          ? "block" 
+          : "none";
+      }
+    }
+
+    // Laster inn turneringene med styling som passer med resten av designet
+    function loadTurnering(email) {
+      const turneringListe = document.getElementById('turneringListe');
+      turneringListe.innerHTML = '';
+      db.collection('turneringer')
+        .where('organizer', '==', email)
+        .get()
+        .then(snapshot => {
+          snapshot.forEach(doc => {
+            const turnering = doc.data();
+            const turneringDiv = document.createElement('article');
+            turneringDiv.className = 'turnering';
+
+            // Bruk et h4-element for turneringsnavnet slik at stilen fra admin.css (turnering h4) gjelder
+            const title = document.createElement('h4');
+            title.textContent = turnering.tournamentName;
+            turneringDiv.appendChild(title);
+
+            // Opprett knapp-container for rediger og slett
+            const actionsDiv = document.createElement('div');
+            actionsDiv.className = 'turnering-actions';
+
+            // Rediger-knapp
+            const editButton = document.createElement('button');
+            editButton.textContent = 'Rediger';
+            editButton.onclick = function(e) {
+              e.stopPropagation();
+              const newName = prompt("Skriv inn nytt navn for turneringen:", turnering.tournamentName);
+              if (newName && newName.trim() !== "" && newName !== turnering.tournamentName) {
+                db.collection('turneringer').doc(doc.id).update({
+                  tournamentName: newName
+                }).then(() => {
+                  title.textContent = newName;
+                  turnering.tournamentName = newName;
+                }).catch(error => {
+                  console.error("Feil ved oppdatering av turneringsnavn:", error);
+                });
+              }
+            };
+            actionsDiv.appendChild(editButton);
+
+            // Slett-knapp
+            const deleteButton = document.createElement('button');
+            deleteButton.textContent = 'Slett';
+            deleteButton.onclick = function(e) {
+              e.stopPropagation();
+              if (confirm("Er du sikker på at du vil slette turneringen?")) {
+                db.collection('turneringer').doc(doc.id).delete().then(() => {
+                  turneringListe.removeChild(turneringDiv);
+                }).catch(error => {
+                  console.error("Feil ved sletting av turneringen:", error);
+                });
+              }
+            };
+            actionsDiv.appendChild(deleteButton);
+
+            turneringDiv.appendChild(actionsDiv);
+
+            // Klikk på kortet åpner detaljsiden for turneringen ved å sende turnerings-ID-en i querystring
+            turneringDiv.addEventListener('click', function() {
+              window.location.href = "leggtillag.html?id=" + doc.id;
+            });
+
+            turneringListe.appendChild(turneringDiv);
+          });
+        }).catch(error => {
+          console.error('Feil ved henting av turneringer:', error);
+        });
+    }
+
+    function endre() {
+      window.location.href = 'OpprettTurnering.html';
+    }
+
+    function loadCoArrangorTurneringer(email) {
+  const coArrangorListe = document.getElementById('coArrangorTurneringListe');
+  coArrangorListe.innerHTML = '<h2>Turneringer som Co-Arrangør</h2>';
+  db.collection('turneringer')
+    // spør nå mot feltet som faktisk finnes i databasen
+    .where('coOrganizers', 'array-contains', email)
+    .get()
+    .then(snapshot => {
+      snapshot.forEach(doc => {
+        const turnering = doc.data();
+        const turneringDiv = document.createElement('article');
+        turneringDiv.className = 'turnering';
+        // vis det korrekte navne-feltet
+        turneringDiv.textContent = turnering.tournamentName;
+        turneringDiv.addEventListener('click', () => {
+          window.location.href = "leggtillag.html?id=" + doc.id;
+        });
+        coArrangorListe.appendChild(turneringDiv);
+      });
+    })
+    .catch(error => {
+      console.error('Feil ved henting av co-arrangør turneringer:', error);
+    });
+}
+
+  </script>
+</body>
+</html>
