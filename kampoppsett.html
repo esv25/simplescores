@@ -2033,83 +2033,26 @@ function generateSchedule() {
     matches
   } = window.globalSchedulingSettings;
 
-  // --- 1) Sett opp en kø per divisjon med tilhørende antall lag og runder ---
-  const divisionData = divisions.map(div => {
-    const queue = Object.values(matches[div]).flat();
-    const teams = Array.from(new Set(
-      queue.flatMap(m => [m.hjemmelag, m.bortelag])
-    ));
-    const mpr = teams.length / 2;
-    // Del queue i chunker for hver runde
-    const rounds = [];
-    for (let i = 0; i < queue.length; i += mpr) {
-      rounds.push(queue.slice(i, i + mpr));
-    }
-    return { division: div, rounds };
-  });
+  // Bygg en kø av faser der alle divisjoner spiller samme fase før neste
+  const phaseQueue = buildPhaseQueue(matches);
 
-  // --- 1a) Trim eventuelle duplikatrunder ---
-  divisionData.forEach(dd => {
-    const r = dd.rounds;
-    if (r.length < 2) return;
-    const makeSig = arr => arr.map(m => [m.hjemmelag, m.bortelag]
-                                     .sort().join('-'))
-                           .sort().join('|');
-    const last = r[r.length - 1];
-    const prev = r[r.length - 2];
-    if (makeSig(last) === makeSig(prev)) r.pop();
-  });
-
-  // --- 1b) Finn minste antall runder ---
-  const minRunde = Math.min(...divisionData.map(d => d.rounds.length));
-
-  // --- 1c) Kollektér ekstra runder per divisjon ---
-  const extraGroups = [];
-  divisionData.forEach(dd => {
-    const extra = dd.rounds.slice(minRunde);
-    extra.forEach(roundArr => {
-      extraGroups.push({ division: dd.division, matches: roundArr });
+  const plannedMatches = [];
+  phaseQueue.forEach(phase => {
+    phase.matches.forEach(match => {
+      const plan = planMatchOnCourt(match, {
+        division: match.divisjon,
+        faseKey: match.fase,
+        duration: divisionTimes[match.divisjon],
+        buffer: tidMellomKamper,
+        minRest: minimumRestTime,
+        timing: matchTiming
+      }, baner);
+      plannedMatches.push(plan);
     });
-    // Begrens til de første minRunde rundene
-    dd.rounds = dd.rounds.slice(0, minRunde);
   });
-
-  // --- 2) Bygg baseline: iterer runde for runde, divisjon for divisjon ---
-  const baseOrdered = [];
-  for (let r = 0; r < minRunde; r++) {
-    divisionData.forEach(dd => {
-      dd.rounds[r].forEach(match => {
-        baseOrdered.push({ division: dd.division, match });
-      });
-    });
-  }
-
-  // --- 3) Sett inn ekstra runder jevnt fordelt ---
-  const totalSlots = baseOrdered.length + 1;
-  const groupsCount = extraGroups.length;
-  let ordered = [...baseOrdered];
-  extraGroups.forEach((grp, i) => {
-    // pos mellom 1 og totalSlots-1
-    const insertPos = Math.floor(((i + 1) * totalSlots) / (groupsCount + 1));
-    const items = grp.matches.map(match => ({ division: grp.division, match }));
-    ordered.splice(insertPos, 0, ...items);
-  });
-
-  // --- 4) Planlegg kampene i rekkefølge ---
-  const plannedMatches = ordered.map(item =>
-    planMatchOnCourt(item.match, {
-      division: item.division,
-      faseKey: null,
-      duration: divisionTimes[item.division],
-      buffer: tidMellomKamper,
-      minRest: minimumRestTime,
-      timing: matchTiming
-    }, baner)
-  );
 
   console.log(
-    `generateSchedule ► ${plannedMatches.length} planlagte kamper` +
-    ` (inkl. jevnt fordelt ekstra runder)`
+    `generateSchedule ► ${plannedMatches.length} kamper planlagt fasevis`
   );
 
   window.globalSchedulingResult = plannedMatches;
@@ -5164,4 +5107,3 @@ document.addEventListener('DOMContentLoaded', () => {
         </script>
     </body>
 </html>
-
