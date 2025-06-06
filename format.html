@@ -101,21 +101,6 @@
                 </div>
                 <div id="fase1"></div> <!-- Dynamic content for Fase 1 -->
             </div>
-            <div class="fase-container">
-                <h5>Phase 2</h5>
-                <div class="button-container">
-                    <button onclick="Endre(2)" id="fase2knapp" class="btn btn-primary">Legg til format for fase</button>
-                </div>
-                <div id="fase2"></div> <!-- Dynamic content for Fase 2 -->
-            </div>
-            <div class="fase-container">
-                <h5>Phase 3</h5>
-                <div class="button-container">
-                    <button onclick="Endre(3)" id="fase3knapp" class="btn btn-primary">Legg til format for fase</button>
-
-                </div>
-                <div id="fase3"></div> <!-- Dynamic content for Fase 3 -->
-            </div>
         </div>
     </main>
 
@@ -351,7 +336,7 @@ function toggleAnswer(index) {
 }
 
         let fasesjekk;
-        let phaseCount = 3;
+        let phaseCount = 1;
         let faseTyper = {};
 
         function Endre(fase){
@@ -894,6 +879,15 @@ async function visFaseData(faseNummer) {
         }
 
         async function visAlleFaserData() {
+            const selectedDivision = document.getElementById('divisionDropdown').value;
+            const formatRef = db.collection('turneringer').doc(turneringId).collection(`${selectedDivision}_format`);
+            const snapshot = await formatRef.get();
+
+            const storedPhases = snapshot.size;
+            while (phaseCount < storedPhases) {
+                leggTilFase();
+            }
+
             for (let faseNummer = 1; faseNummer <= phaseCount; faseNummer++) {
                 await visFaseData(faseNummer);
             }
