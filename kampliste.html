@@ -101,6 +101,34 @@
       margin-top: 8px;
     }
 
+    /* Filter toggle button */
+    #toggleFilters {
+      display: none;
+      margin: 8px;
+    }
+
+    @media (max-width: 768px) {
+      .filter-section {
+        display: none;
+      }
+      .filter-section.active {
+        display: flex;
+      }
+      #toggleFilters {
+        display: block;
+        width: calc(100% - 16px);
+      }
+      .match {
+        padding: 8px 12px;
+      }
+      .name {
+        font-size: 0.9rem;
+      }
+      .info {
+        font-size: 0.8rem;
+      }
+    }
+
     /* Scroll button */
     #scrollToNext {
       position: fixed;
@@ -150,6 +178,7 @@
 </nav>
 
   <main>
+    <button id="toggleFilters" class="kamp-knapp">Vis filter</button>
     <div class="filter-section">
       <input type="text" id="searchInput" placeholder="Søk etter kamp...">
       <select id="teamFilter">
@@ -194,6 +223,8 @@
     const scrollBtn    = document.getElementById('scrollToNext');
     const hamburgerBtn = document.getElementById('hamburgerBtn');
     const navElement   = document.querySelector('nav');
+    const filterSection = document.querySelector('.filter-section');
+    const toggleFilters = document.getElementById('toggleFilters');
 
     let allMatches = [];
     const tournamentId = new URLSearchParams(window.location.search).get('tournamentid');
@@ -223,6 +254,11 @@
       [searchInput, teamFilter, dateFilter, resultFilter].forEach(el => el.addEventListener(el.tagName === 'INPUT' ? 'input' : 'change', applyFilters));
       scrollBtn.addEventListener('click', scrollToNextMatch);
       hamburgerBtn.addEventListener('click', () => navElement.classList.toggle('open'));
+      toggleFilters.addEventListener('click', toggleFilterSection);
+      if (window.innerWidth <= 768) {
+        filterSection.classList.remove('active');
+        toggleFilters.textContent = 'Vis filter';
+      }
       fetchMatches(); subscribeLiveUpdates();
     });
 
@@ -333,6 +369,14 @@
       dateFilter.value = '';
       resultFilter.value = '';
       applyFilters();
+    }
+
+    function toggleFilterSection() {
+      if (filterSection.classList.toggle('active')) {
+        toggleFilters.textContent = 'Skjul filter';
+      } else {
+        toggleFilters.textContent = 'Vis filter';
+      }
     }
   </script>
 </body>
