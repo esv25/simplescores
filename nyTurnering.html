@@ -91,18 +91,10 @@
 
     auth.onAuthStateChanged((user) => {
       if (user) {
-        db.collection('users').doc(user.uid).get().then(doc => {
-          const role = doc.exists ? doc.data().role : 'publikum';
-          if (role !== 'arrangor') {
-            alert('Du har ikke tilgang til denne siden');
-            window.location.href = 'index.html';
-          } else {
-            const email = user.email;
-            document.getElementById('mail').innerHTML = email;
-            loadTurnering(email);
-            loadCoArrangorTurneringer(email);
-          }
-        });
+        const email = user.email;
+        document.getElementById('mail').innerHTML = email;
+        loadTurnering(email);
+        loadCoArrangorTurneringer(email);
       } else {
         window.location.href = 'login.html';
       }
@@ -254,19 +246,19 @@
     function loadCoArrangorTurneringer(email) {
   const coArrangorListe = document.getElementById('coArrangorTurneringListe');
   coArrangorListe.innerHTML = '<h2>Turneringer som Co-Arrangør</h2>';
-  db.collection('turneringer')
-    // spør nå mot feltet som faktisk finnes i databasen
-    .where('coOrganizers', 'array-contains', email)
+  db.collectionGroup('coOrganizers')
+    .where('email', '==', email)
     .get()
     .then(snapshot => {
-      snapshot.forEach(doc => {
+      snapshot.forEach(async coDoc => {
+        const turneringRef = coDoc.ref.parent.parent;
+        const doc = await turneringRef.get();
         const turnering = doc.data();
         const turneringDiv = document.createElement('article');
         turneringDiv.className = 'turnering';
-        // vis det korrekte navne-feltet
         turneringDiv.textContent = turnering.tournamentName;
         turneringDiv.addEventListener('click', () => {
-          window.location.href = "leggtillag.html?id=" + doc.id;
+          window.location.href = 'leggtillag.html?id=' + turneringRef.id;
         });
         coArrangorListe.appendChild(turneringDiv);
       });

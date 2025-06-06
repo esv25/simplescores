@@ -216,16 +216,8 @@
             
 auth.onAuthStateChanged((user) => {
   if (user) {
-    db.collection('users').doc(user.uid).get().then(doc => {
-      const role = doc.exists ? doc.data().role : 'publikum';
-      if (role !== 'arrangor') {
-        alert('Du har ikke tilgang til denne siden');
-        window.location.href = 'index.html';
-      } else {
-        const email = user.email;
-        document.getElementById('mail').innerHTML = email;
-      }
-    });
+    const email = user.email;
+    document.getElementById('mail').innerHTML = email;
   } else {
     // Ingen bruker er logget inn, redirect til innloggingssiden
     window.location.href = 'login.html';
@@ -400,7 +392,6 @@ auth.onAuthStateChanged((user) => {
     dates,
     location,
     organizer,
-    coOrganizers,
     divisions,
     published: false   // slå publisering av som default
 };
@@ -409,6 +400,14 @@ auth.onAuthStateChanged((user) => {
     try {
         const docRef = await db.collection('turneringer').add(tournamentData);
         const tournamentId = docRef.id;
+
+        // Lagre co-arrangører i en egen subcollection
+        const coPromises = coOrganizers.map(email =>
+            db.collection('turneringer').doc(tournamentId)
+              .collection('coOrganizers').doc(email).set({ email })
+        );
+        await Promise.all(coPromises);
+
         sessionStorage.setItem('turneringId', tournamentId);
         alert('Turnering lagret!');
         console.log('Turnering opprettet!', tournamentData, 'Turnerings-ID:', tournamentId);
