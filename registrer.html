@@ -180,6 +180,8 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
     <!-- Firebase Realtime Database -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <!-- Firebase Firestore -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 </head>
 <body>
     <div class="container">
@@ -193,6 +195,10 @@
             <h2>Register</h2>
             <input type="email" id="email" placeholder="Email">
             <input type="password" id="password" placeholder="Password">
+            <select id="role">
+                <option value="arrangor">Arrangør (admin)</option>
+                <option value="publikum">Publikum</option>
+            </select>
             <button id="register">Register</button>
             <button onclick="LoggInn()">Already an account? Sign in</button>
             <p id="error-message"></p>
@@ -219,12 +225,18 @@
         document.getElementById('register').addEventListener('click', function() {
             var email = document.getElementById('email').value;
             var password = document.getElementById('password').value;
+            var role = document.getElementById('role').value;
             
             firebase.auth().createUserWithEmailAndPassword(email, password)
             .then((userCredential) => {
                 var user = userCredential.user;
-                document.getElementById('success-message').innerText = 'Bruker registrert!';
-                document.getElementById('error-message').innerText = '';
+                firebase.firestore().collection('users').doc(user.uid).set({
+                    email: email,
+                    role: role
+                }).then(() => {
+                    document.getElementById('success-message').innerText = 'Bruker registrert!';
+                    document.getElementById('error-message').innerText = '';
+                });
             })
             .catch((error) => {
                 var errorMessage = error.message;
