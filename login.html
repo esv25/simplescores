@@ -189,14 +189,13 @@
     <script src="https://www.gstatic.com/firebasejs/8.2.0/firebase-app.js"></script>
     <script src="firebaseConfig.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.2.0/firebase-auth.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.2.0/firebase-firestore.js"></script>
+
     
     <script>
 
         // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
-        const db = firebase.firestore();
 
         async function login() {
             const email = document.getElementById('email').value;
@@ -204,10 +203,7 @@
             try {
                 const userCredential = await auth.signInWithEmailAndPassword(email, password);
                 const user = userCredential.user;
-                const userDoc = await db.collection('users').doc(user.uid).get();
-                const role = userDoc.exists ? userDoc.data().role : 'publikum';
-                localStorage.setItem('userRole', role);
-                console.log("Bruker logget inn:", user.email, role);
+                console.log("Bruker logget inn:", user.email);
 
                 // Redirect til admin-siden etter innlogging
                 window.location.href = 'nyTurnering.html';
