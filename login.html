@@ -204,8 +204,11 @@
             try {
                 const userCredential = await auth.signInWithEmailAndPassword(email, password);
                 const user = userCredential.user;
-                console.log("Bruker logget inn:", user.email);
-                
+                const userDoc = await db.collection('users').doc(user.uid).get();
+                const role = userDoc.exists ? userDoc.data().role : 'publikum';
+                localStorage.setItem('userRole', role);
+                console.log("Bruker logget inn:", user.email, role);
+
                 // Redirect til admin-siden etter innlogging
                 window.location.href = 'nyTurnering.html';
             } catch (error) {
