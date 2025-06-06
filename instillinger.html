@@ -357,17 +357,12 @@ publishBtn.addEventListener('click', async () => {
     
     async function loadCoOrganizers() {
       try {
-        const doc = await turneringRef.get();
-        if (doc.exists) {
-          const data = doc.data();
-          coOrganizerList.innerHTML = "";
-          if (data.coOrganizers && Array.isArray(data.coOrganizers)) {
-            data.coOrganizers.forEach(email => {
-              const li = createListItem(email);
-              coOrganizerList.appendChild(li);
-            });
-          }
-        }
+        coOrganizerList.innerHTML = "";
+        const snapshot = await turneringRef.collection("coOrganizers").get();
+        snapshot.forEach(doc => {
+          const li = createListItem(doc.data().email);
+          coOrganizerList.appendChild(li);
+        });
       } catch (error) {
         console.error("Feil ved lasting av co-arrangører:", error);
       }
@@ -395,16 +390,15 @@ publishBtn.addEventListener('click', async () => {
         alert("Vennligst skriv inn en e-post for co-arrangør.");
         return;
       }
-      // Oppdater Firestore med arrayUnion
-      turneringRef.update({
-        coOrganizers: firebase.firestore.FieldValue.arrayUnion(email)
-      }).then(() => {
-        const li = createListItem(email);
-        coOrganizerList.appendChild(li);
-        coOrganizerEmailInput.value = "";
-      }).catch(error => {
-        console.error("Feil ved oppdatering av co-arrangører:", error);
-      });
+      turneringRef.collection("coOrganizers").doc(email).set({ email })
+        .then(() => {
+          const li = createListItem(email);
+          coOrganizerList.appendChild(li);
+          coOrganizerEmailInput.value = "";
+        })
+        .catch(error => {
+          console.error("Feil ved oppdatering av co-arrangører:", error);
+        });
     }
     
     function addDivision() {

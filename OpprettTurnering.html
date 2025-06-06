@@ -392,7 +392,6 @@ auth.onAuthStateChanged((user) => {
     dates,
     location,
     organizer,
-    coOrganizers,
     divisions,
     published: false   // slå publisering av som default
 };
@@ -401,6 +400,14 @@ auth.onAuthStateChanged((user) => {
     try {
         const docRef = await db.collection('turneringer').add(tournamentData);
         const tournamentId = docRef.id;
+
+        // Lagre co-arrangører i en egen subcollection
+        const coPromises = coOrganizers.map(email =>
+            db.collection('turneringer').doc(tournamentId)
+              .collection('coOrganizers').doc(email).set({ email })
+        );
+        await Promise.all(coPromises);
+
         sessionStorage.setItem('turneringId', tournamentId);
         alert('Turnering lagret!');
         console.log('Turnering opprettet!', tournamentData, 'Turnerings-ID:', tournamentId);

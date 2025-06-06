@@ -246,19 +246,19 @@
     function loadCoArrangorTurneringer(email) {
   const coArrangorListe = document.getElementById('coArrangorTurneringListe');
   coArrangorListe.innerHTML = '<h2>Turneringer som Co-Arrangør</h2>';
-  db.collection('turneringer')
-    // spør nå mot feltet som faktisk finnes i databasen
-    .where('coOrganizers', 'array-contains', email)
+  db.collectionGroup('coOrganizers')
+    .where('email', '==', email)
     .get()
     .then(snapshot => {
-      snapshot.forEach(doc => {
+      snapshot.forEach(async coDoc => {
+        const turneringRef = coDoc.ref.parent.parent;
+        const doc = await turneringRef.get();
         const turnering = doc.data();
         const turneringDiv = document.createElement('article');
         turneringDiv.className = 'turnering';
-        // vis det korrekte navne-feltet
         turneringDiv.textContent = turnering.tournamentName;
         turneringDiv.addEventListener('click', () => {
-          window.location.href = "leggtillag.html?id=" + doc.id;
+          window.location.href = 'leggtillag.html?id=' + turneringRef.id;
         });
         coArrangorListe.appendChild(turneringDiv);
       });
