@@ -158,6 +158,10 @@
     
         <h3>Legg til co-arrangører</h3>
         <input type="email" id="coOrganizerEmail" placeholder="Co-arrangør e-post">
+        <select id="coOrganizerRole">
+            <option value="arrangor">Arrangør</option>
+            <option value="publikum">Publikum</option>
+        </select>
         <button type="button" onclick="addCoOrganizer()">Legg til co-arrangør</button>
     
         <h3>Lagrede co-arrangører</h3>
@@ -249,7 +253,8 @@ auth.onAuthStateChanged((user) => {
         });
 
         const divisions = [];
-        const coOrganizers = [];
+        const coOrganizerEmails = [];
+        const coOrganizerRoles = [];
         const dates = []; // Legg til denne linjen for å lagre datoene
 
         function loggut() {
@@ -309,17 +314,19 @@ auth.onAuthStateChanged((user) => {
 
         function addCoOrganizer() {
     const email = document.getElementById('coOrganizerEmail').value.trim().toLowerCase(); // Konverter til små bokstaver
+    const role = document.getElementById('coOrganizerRole').value;
     if (email === '') {
         alert('Vennligst fyll inn co-arrangørens e-post.');
         return;
     }
 
-    if (coOrganizers.includes(email)) {
+    if (coOrganizerEmails.includes(email)) {
         alert('Co-arrangør er allerede lagt til.');
         return;
     }
 
-    coOrganizers.push(email); // Legger til e-post i små bokstaver
+    coOrganizerEmails.push(email); // Lagre e-posten for søk
+    coOrganizerRoles.push({ email, role });
     updateCoOrganizerList();
     document.getElementById('coOrganizerEmail').value = '';
 }
@@ -329,9 +336,9 @@ auth.onAuthStateChanged((user) => {
             const coOrganizerList = document.getElementById('coOrganizerList');
             coOrganizerList.innerHTML = '';
 
-            coOrganizers.forEach((email, index) => {
+            coOrganizerRoles.forEach((info, index) => {
                 const listItem = document.createElement('li');
-                listItem.textContent = email;
+                listItem.textContent = `${info.email} (${info.role})`;
 
                 const deleteButton = document.createElement('button');
                 deleteButton.textContent = 'Fjern';
@@ -343,7 +350,8 @@ auth.onAuthStateChanged((user) => {
         }
 
         function removeCoOrganizer(index) {
-            coOrganizers.splice(index, 1);
+            coOrganizerEmails.splice(index, 1);
+            coOrganizerRoles.splice(index, 1);
             updateCoOrganizerList();
         }
 
@@ -407,7 +415,8 @@ auth.onAuthStateChanged((user) => {
     dates,
     location,
     organizer,
-    coOrganizers,
+    coOrganizers: coOrganizerEmails,
+    coOrganizerRoles,
     divisions,
     published: false   // slå publisering av som default
 };

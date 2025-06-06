@@ -131,6 +131,10 @@
         
         <h3>Legg til co-arrangører</h3>
         <input type="email" id="coOrganizerEmail" placeholder="Co-arrangør e-post">
+        <select id="coOrganizerRole">
+          <option value="arrangor">Arrangør</option>
+          <option value="publikum">Publikum</option>
+        </select>
         <button type="button" onclick="addCoOrganizer()">Legg til co-arrangør</button>
         <ul id="coOrganizerList"></ul>
       </div>
@@ -336,6 +340,7 @@ publishBtn.addEventListener('click', async () => {
     const hideResultsCheckbox = document.getElementById('hideResults');
     const divisionList = document.getElementById('divisionList');
     const coOrganizerEmailInput = document.getElementById('coOrganizerEmail');
+    const coOrganizerRoleSelect = document.getElementById('coOrganizerRole');
     const coOrganizerList = document.getElementById('coOrganizerList');
     
     // Last inn eksisterende innstillinger
@@ -377,7 +382,12 @@ publishBtn.addEventListener('click', async () => {
         if (doc.exists) {
           const data = doc.data();
           coOrganizerList.innerHTML = "";
-          if (data.coOrganizers && Array.isArray(data.coOrganizers)) {
+          if (Array.isArray(data.coOrganizerRoles)) {
+            data.coOrganizerRoles.forEach(info => {
+              const li = createListItem(`${info.email} (${info.role})`);
+              coOrganizerList.appendChild(li);
+            });
+          } else if (Array.isArray(data.coOrganizers)) {
             data.coOrganizers.forEach(email => {
               const li = createListItem(email);
               coOrganizerList.appendChild(li);
@@ -407,15 +417,17 @@ publishBtn.addEventListener('click', async () => {
     // Oppdaterte funksjoner som også lagrer til Firestore
     function addCoOrganizer() {
       const email = coOrganizerEmailInput.value.trim();
+      const role = coOrganizerRoleSelect.value;
       if (email === "") {
         alert("Vennligst skriv inn en e-post for co-arrangør.");
         return;
       }
       // Oppdater Firestore med arrayUnion
       turneringRef.update({
-        coOrganizers: firebase.firestore.FieldValue.arrayUnion(email)
+        coOrganizers: firebase.firestore.FieldValue.arrayUnion(email),
+        coOrganizerRoles: firebase.firestore.FieldValue.arrayUnion({ email, role })
       }).then(() => {
-        const li = createListItem(email);
+        const li = createListItem(`${email} (${role})`);
         coOrganizerList.appendChild(li);
         coOrganizerEmailInput.value = "";
       }).catch(error => {
