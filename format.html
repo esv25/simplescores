@@ -91,6 +91,7 @@
                 </select>
             </label>
             <button onclick="lagreAlleFaser()" style="width: 30%;">Lagre</button>
+            <button id="addPhaseBtn" onclick="leggTilFase()" style="width:30%;">Legg til fase</button>
         </div>
         <div class="fase-container-wrapper">
             <div class="fase-container">
@@ -103,14 +104,14 @@
             <div class="fase-container">
                 <h5>Phase 2</h5>
                 <div class="button-container">
-                    <button onclick="Endre(2)" id="fase2knapp" class="btn btn-primary" style="display: none;">Legg til format for fase</button>
+                    <button onclick="Endre(2)" id="fase2knapp" class="btn btn-primary">Legg til format for fase</button>
                 </div>
                 <div id="fase2"></div> <!-- Dynamic content for Fase 2 -->
             </div>
             <div class="fase-container">
                 <h5>Phase 3</h5>
                 <div class="button-container">
-                    <button onclick="Endre(3)" id="fase3knapp" class="btn btn-primary" style="display: none;">Legg til format for fase</button>
+                    <button onclick="Endre(3)" id="fase3knapp" class="btn btn-primary">Legg til format for fase</button>
 
                 </div>
                 <div id="fase3"></div> <!-- Dynamic content for Fase 3 -->
@@ -350,9 +351,8 @@ function toggleAnswer(index) {
 }
 
         let fasesjekk;
-        let fasenummer1;
-        let fasenummer2;
-        let fasenummer3;
+        let phaseCount = 3;
+        let faseTyper = {};
 
         function Endre(fase){
             document.getElementById("formatPopup").style.display = "block";
@@ -396,7 +396,7 @@ function kallGruppespill(){
             document.getElementById('formatPopup').style.display = 'none';
         }
 
-        function kallKnockout(){
+function kallKnockout(){
     const numKnockoutTeams = parseInt(document.getElementById("numberOfKnockoutTeams").value, 10);
     const includeBronze    = document.getElementById("bronzeFinal").checked;
     // Kall med riktig flagg!
@@ -404,6 +404,22 @@ function kallGruppespill(){
     // Så kan vi lukke popup’en
     document.getElementById('knockoutOptions').style.display = 'none';
     document.getElementById('formatPopup').style.display = 'none';
+}
+
+function leggTilFase() {
+    phaseCount++;
+    const wrapper = document.querySelector('.fase-container-wrapper');
+    const faseContainer = document.createElement('div');
+    faseContainer.className = 'fase-container';
+    const num = phaseCount;
+    faseContainer.innerHTML = `
+        <h5>Phase ${num}</h5>
+        <div class="button-container">
+            <button onclick="Endre(${num})" id="fase${num}knapp" class="btn btn-primary">Legg til format for fase</button>
+        </div>
+        <div id="fase${num}"></div>
+    `;
+    wrapper.appendChild(faseContainer);
 }
 
 async function populateDivisionDropdown() {
@@ -448,7 +464,10 @@ async function populateDivisionDropdown() {
   }
 }
 
-document.addEventListener('DOMContentLoaded', populateDivisionDropdown);
+document.addEventListener('DOMContentLoaded', () => {
+    phaseCount = document.querySelectorAll('.fase-container').length;
+    populateDivisionDropdown();
+});
 // Sørg også for at dropdownen lytter på endringer:
 document.getElementById('divisionDropdown')
         .addEventListener('change', visAlleFaserData);
@@ -514,12 +533,6 @@ document.getElementById('divisionDropdown')
                 deleteButton.style.display = 'inline';
             }
 
-            if (faseNummer < 3) {
-                const nextPhaseButton = document.getElementById(`fase${faseNummer + 1}knapp`);
-                if (nextPhaseButton && nextPhaseButton.style.display === 'none') {
-                    nextPhaseButton.style.display = 'block';
-                }
-            }
         }
 
         function slettFase(faseNummer) {
@@ -539,20 +552,12 @@ document.getElementById('divisionDropdown')
             }
 
             // Nullstill fasetype
-            if (faseNummer == 1) {
-                fasenummer1 = undefined;
-            } else if (faseNummer == 2) {
-                fasenummer2 = undefined;
-            } else if (faseNummer == 3) {
-                fasenummer3 = undefined;
-            }
+            faseTyper[faseNummer] = undefined;
         }
 
         function klarerFase() {
-            fasenummer1 = undefined;
-            fasenummer2 = undefined;
-            fasenummer3 = undefined;
-            for (let faseNummer = 1; faseNummer <= 3; faseNummer++) {
+            faseTyper = {};
+            for (let faseNummer = 1; faseNummer <= phaseCount; faseNummer++) {
                 const faseContainer = document.getElementById(`fase${faseNummer}`);
                 if (faseContainer) {
                     faseContainer.innerHTML = '';
@@ -574,20 +579,9 @@ document.getElementById('divisionDropdown')
         let numTables;
         async function createTables(numGroups, teamsPerGroup, fasesjekk) {
     // Hent container basert på hvilken fase vi jobber med
-    let container;
-    if (fasesjekk == 1) {
-        container = document.getElementById("fase1");
-        fasenummer1 = 'gruppespill';
-        Endrer(1);
-    } else if (fasesjekk == 2) {
-        container = document.getElementById("fase2");
-        fasenummer2 = 'gruppespill';
-        Endrer(2);
-    } else {
-        container = document.getElementById("fase3");
-        fasenummer3 = 'gruppespill';
-        Endrer(3);
-    }
+    let container = document.getElementById(`fase${fasesjekk}`);
+    faseTyper[fasesjekk] = 'gruppespill';
+    Endrer(fasesjekk);
     if (!container) {
         console.error("Fant ikke container-elementet.");
         return;
@@ -645,10 +639,9 @@ document.getElementById('divisionDropdown')
         }
 // --- Lagrer alle faser til Firestore (gruppespill, utslag og enkeltkamper) ---
 async function lagreAlleFaser() {
-  const faseTyper = { 1: fasenummer1, 2: fasenummer2, 3: fasenummer3 };
   const selectedDivision = document.getElementById('divisionDropdown').value;
 
-  for (let faseNummer = 1; faseNummer <= 3; faseNummer++) {
+  for (let faseNummer = 1; faseNummer <= phaseCount; faseNummer++) {
     const fasetype = faseTyper[faseNummer] || await hentFasetype(faseNummer);
     if (!fasetype) continue;
 
@@ -901,7 +894,7 @@ async function visFaseData(faseNummer) {
         }
 
         async function visAlleFaserData() {
-            for (let faseNummer = 1; faseNummer <= 3; faseNummer++) {
+            for (let faseNummer = 1; faseNummer <= phaseCount; faseNummer++) {
                 await visFaseData(faseNummer);
             }
         }
@@ -933,13 +926,7 @@ async function visFaseData(faseNummer) {
             if (faseData && faseData.type) {
                 return faseData.type;
             } else {
-                if (fasenummeret == 1) {
-                    return fasenummer1;
-                } else if (fasenummeret == 2) {
-                    return fasenummer2;
-                } else {
-                    return fasenummer3;
-                }
+                return faseTyper[fasenummeret];
             }
         }
 
@@ -987,20 +974,9 @@ async function generateKnockoutBracket(fasesjekk, numKnockoutTeams, includeBronz
     const rounds = Math.ceil(Math.log2(numTeams));
 
     // 2) Velg riktig container og merk fasetype
-    let container;
-    if (fasesjekk === 1) {
-      container = document.getElementById("fase1");
-      fasenummer1 = 'utslag';
-      Endrer(1);
-    } else if (fasesjekk === 2) {
-      container = document.getElementById("fase2");
-      fasenummer2 = 'utslag';
-      Endrer(2);
-    } else {
-      container = document.getElementById("fase3");
-      fasenummer3 = 'utslag';
-      Endrer(3);
-    }
+    let container = document.getElementById(`fase${fasesjekk}`);
+    faseTyper[fasesjekk] = 'utslag';
+    Endrer(fasesjekk);
     container.innerHTML = '';
 
     // 3) Generer hver runde med navn og dropdowns
@@ -1251,20 +1227,9 @@ async function populateKnockoutDropdowns(faseNummer, totalRounds, dropdownClass)
 
 // Funksjon for å opprette flere enkeltkamper
 async function createSingleMatches(numMatches, fasesjekk) {
-    let container;
-    if (fasesjekk == 1) {
-        container = document.getElementById("fase1");
-        fasenummer1 = 'enkeltkamp';
-        Endrer(1);
-    } else if (fasesjekk == 2) {
-        container = document.getElementById("fase2");
-        fasenummer2 = 'enkeltkamp';
-        Endrer(2);
-    } else {
-        container = document.getElementById("fase3");
-        fasenummer3 = 'enkeltkamp';
-        Endrer(3);
-    }
+    let container = document.getElementById(`fase${fasesjekk}`);
+    faseTyper[fasesjekk] = 'enkeltkamp';
+    Endrer(fasesjekk);
 
     if (!container) {
         console.error("Fant ikke container-elementet.");
