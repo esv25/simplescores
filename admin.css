@@ -291,6 +291,13 @@ select {
     cursor: pointer;
 }
 
+/* Ensure readable text in the division dropdown */
+#divisionDropdown,
+#divisionDropdown option {
+    color: #2d3e50;
+    background-color: #ffffff;
+}
+
 select:focus {
     outline: none;
     border-color: #4c51bf;
