@@ -357,6 +357,8 @@
         <button class="btn secondary" onclick="prevStep()">Forrige</button>
         <button class="btn secondary" onclick="slettAlleKamper()">Slett</button>
         <button class="btn secondary" onclick="lagreKampoppsett()">Lagre</button>
+        <button class="btn secondary" onclick="exportScheduleCsv()">Eksporter CSV</button>
+        <button class="btn secondary" onclick="exportScheduleIcs()">Eksporter iCalendar</button>
       </div>
       <div class="right-buttons">
         <button class="btn secondary" onclick="showStep(7)">Dommer oppsett</button>
@@ -2225,6 +2227,73 @@ function generateSchedule() {
 
   window.globalSchedulingResult = plannedMatches;
   return plannedMatches;
+}
+
+function exportScheduleCsv() {
+  const data = window.globalSchedulingResult;
+  if (!Array.isArray(data) || data.length === 0) {
+    alert('Ingen kampoppsett å eksportere.');
+    return;
+  }
+  const header = ['Dato', 'Starttid', 'Sluttid', 'Bane', 'Hjemmelag', 'Bortelag', 'Divisjon'];
+  const rows = data.map(item => {
+    const m = item.match || {};
+    const date = item.date || (item.starttid ? item.starttid.toISOString().slice(0,10) : '');
+    const start = item.startTime || (item.starttid ? item.starttid.toTimeString().slice(0,5) : '');
+    const end = item.endTime || (item.sluttid ? item.sluttid.toTimeString().slice(0,5) : '');
+    return [date, start, end, item.court || item.bane || '', m.hjemmelag || '', m.bortelag || '', m.divisjon || ''];
+  });
+  const csv = [header, ...rows]
+    .map(r => r.map(v => '"' + String(v).replace(/"/g, '""') + '"').join(','))
+    .join('\n');
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'schedule.csv';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function exportScheduleIcs() {
+  const data = window.globalSchedulingResult;
+  if (!Array.isArray(data) || data.length === 0) {
+    alert('Ingen kampoppsett å eksportere.');
+    return;
+  }
+  const lines = [
+    'BEGIN:VCALENDAR',
+    'VERSION:2.0',
+    'PRODID:-//simplescores//Kampoppsett//EN'
+  ];
+  data.forEach(item => {
+    const m = item.match || {};
+    const date = item.date || (item.starttid ? item.starttid.toISOString().slice(0,10) : '');
+    const start = item.startTime || (item.starttid ? item.starttid.toTimeString().slice(0,5) : '');
+    const end = item.endTime || (item.sluttid ? item.sluttid.toTimeString().slice(0,5) : '');
+    const dtStart = date.replace(/-/g, '') + 'T' + start.replace(':', '') + '00';
+    const dtEnd = date.replace(/-/g, '') + 'T' + end.replace(':', '') + '00';
+    lines.push('BEGIN:VEVENT');
+    lines.push(`SUMMARY:${m.hjemmelag || ''} - ${m.bortelag || ''}`);
+    lines.push(`DTSTART:${dtStart}`);
+    lines.push(`DTEND:${dtEnd}`);
+    if (item.court || item.bane) {
+      lines.push(`LOCATION:${item.court || item.bane}`);
+    }
+    lines.push('END:VEVENT');
+  });
+  lines.push('END:VCALENDAR');
+  const blob = new Blob([lines.join('\r\n')], { type: 'text/calendar' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'schedule.ics';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
 }
 
 /**
