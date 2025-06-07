@@ -1,12 +1,12 @@
 <!DOCTYPE html>
 <html lang="no">
 <head>
+  <script src="https://cdn.tailwindcss.com"></script>
   <meta charset="UTF-8">
   <title>Simple Scores – Score Service</title>
   <meta name="description" content="Oppdag Simple Scores, din tjeneste for live resultater og oppdateringer.">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="canonical" href="https://dinsideeksempel.no/">
-  <link rel="stylesheet" href="style.css">
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
   <!-- Open Graph meta tags -->
   <meta property="og:title" content="Simple Scores – Score Service">
@@ -23,6 +23,7 @@
     "description": "Din tjeneste for live resultater."
   }
   </script>
+
   <style>
     /* Landing page specific styles */
     .logo-title img {
@@ -96,21 +97,19 @@
     }
   </style>
 </head>
-<body>
-  <header>
-    <div class="logo-title">
-      <img src="logo.png" alt="Simple Scores Logo" class="logo">
-    </div>
+<body class="font-[Poppins,sans-serif] bg-gray-100 text-gray-800">
+  <header class="bg-gray-900 py-8 text-center">
+    <img src="logo.png" alt="Simple Scores Logo" class="mx-auto h-48">
   </header>
   <main>
-    <section class="landing-hero">
-      <img src="logo.png" alt="Simple Scores">
-      <h1>Simple Scores</h1>
-      <p>Din raske vei til oppdaterte resultater og turneringer.</p>
-      <div class="hero-buttons">
-        <button onclick="window.location.href='publikum.html'">Publikum</button>
-        <button onclick="window.location.href='login.html'">Admin</button>
-        <button onclick="window.location.href='basicscore.html'">Basic Scoreboard</button>
+    <section class="bg-gradient-to-br from-[#3b3f73] to-[#2f8656] text-white text-center py-20">
+      <img src="logo.png" alt="Simple Scores" class="mx-auto h-36 mb-6">
+      <h1 class="text-5xl font-bold text-green-300 mb-2">Simple Scores</h1>
+      <p class="text-lg mb-8">Din raske vei til oppdaterte resultater og turneringer.</p>
+      <div class="flex flex-wrap justify-center gap-4">
+        <button class="px-6 py-3 bg-green-500 hover:bg-green-600 rounded-lg" onclick="window.location.href='publikum.html'">Publikum</button>
+        <button class="px-6 py-3 bg-blue-500 hover:bg-blue-600 rounded-lg" onclick="window.location.href='login.html'">Admin</button>
+        <button class="px-6 py-3 bg-purple-500 hover:bg-purple-600 rounded-lg" onclick="window.location.href='basicscore.html'">Basic Scoreboard</button>
       </div>
     </section>
     <section class="features">
@@ -137,7 +136,7 @@
       <button onclick="window.location.href='feedback.html'">Gi tilbakemelding</button>
     </section>
   </main>
-  <footer>
+  <footer class="text-center py-4 text-gray-500">
     <p>&copy; 2024 Simple Scores. Alle rettigheter reservert.</p>
   </footer>
 </body>
