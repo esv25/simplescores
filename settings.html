@@ -123,6 +123,11 @@
             <label for="pauseDuration">Pauselengde (sekunder)</label>
             <input type="number" id="pauseDuration" value="60">
         </div>
+
+        <div class="form-group">
+            <label for="logGoalScorers">Logg målscorere</label>
+            <input type="checkbox" id="logGoalScorers" checked>
+        </div>
         
 
         <button onclick="saveSettings()">Lagre innstillinger</button>
@@ -230,6 +235,7 @@
     const numPeriods = document.getElementById('numPeriods').value;
     const timeoutDuration = document.getElementById('timeoutDuration').value;
     const pauseDuration = document.getElementById('pauseDuration').value;  // Ny variabel
+    const logGoalScorers = document.getElementById('logGoalScorers').checked;
 
     // Lagre innstillingene i Firestore under turneringen
     db.collection('turneringer').doc(turneringId)
@@ -238,7 +244,8 @@
             halfDuration: parseInt(halfDuration),
             numPeriods: parseInt(numPeriods),
             timeoutDuration: parseInt(timeoutDuration),
-            pauseDuration: parseInt(pauseDuration)  // Lagre den nye innstillingen
+            pauseDuration: parseInt(pauseDuration),  // Lagre den nye innstillingen
+            logGoalScorers: logGoalScorers
       })
       .then(() => {
           document.getElementById('settingsSaved').style.display = 'block';
