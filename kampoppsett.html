@@ -222,6 +222,13 @@
   box-sizing: border-box; /* viktig for å få padding + border innenfor bredden */
 }
 
+/* Liten knapp for å redigere kampkort */
+.edit-match-btn {
+  margin-top: 4px;
+  padding: 2px 6px;
+  font-size: 0.8rem;
+}
+
 
 
 
@@ -383,6 +390,17 @@
 <!-- Wizard container -->
     
   
+
+        <div id="matchPopup" class="popup">
+            <h2>Rediger kamp</h2>
+            <label for="matchDurationInput">Varighet (min):</label>
+            <input type="number" id="matchDurationInput" />
+            <button type="button" id="swapTeamsBtn" onclick="swapTeams()">Bytt hjemmelag/bortelag</button>
+            <div style="margin-top:10px;text-align:right;">
+                <button type="button" onclick="saveMatchChanges()">Lagre</button>
+                <button type="button" onclick="closePopup('matchPopup')">Avbryt</button>
+            </div>
+        </div>
 
         <div id="popupOverlay" class="popup-overlay"></div>
             <!-- Q&A Seksjon -->
@@ -3896,9 +3914,14 @@ function sortFaseContainers(bane) {
       <h4>${hjemmelag} – ${bortelag}</h4>
       <p class="kamp-divisjon">Divisjon: ${divisjon}</p>
       <p class="kamp-tid">${formatDateTime(new Date(starttid))}</p>
+      <button type="button" class="edit-match-btn">Rediger</button>
     </div>
     <div class="referees" style="margin-top:5px;font-style:italic;"></div>
   `;
+  kort.querySelector('.edit-match-btn').addEventListener('click', (e) => {
+    e.stopPropagation();
+    openMatchPopup(id);
+  });
 
   faseContainer.appendChild(kort);
 }
@@ -5189,6 +5212,56 @@ function getDateFromLaneId(id) {
 // Husk å fjerne/kommentere ut all logikk som kaller getFieldStartTime eller
 // som manipulerer "current"‑pekeren i den gamle versjonen av funksjonen.
 
+/* ─────────────────────────────── */
+/* 10. Redigering av enkeltkamp    */
+/* ─────────────────────────────── */
+let currentMatchId = null;
+
+function openMatchPopup(matchId) {
+  const match = (window.scheduledMatches || window.kamper || []).find(k => k.id === matchId);
+  if (!match) return;
+  currentMatchId = matchId;
+  const start = new Date(match.starttid);
+  const end   = match.sluttid ? new Date(match.sluttid) : new Date(start.getTime() + 15*60000);
+  const durMin = Math.round((end - start) / 60000);
+  document.getElementById('matchDurationInput').value = durMin;
+  openPopup('matchPopup');
+}
+
+function saveMatchChanges() {
+  const match = (window.scheduledMatches || window.kamper || []).find(k => k.id === currentMatchId);
+  if (!match) { closePopup('matchPopup'); return; }
+  const durMin = parseInt(document.getElementById('matchDurationInput').value, 10);
+  if (!isNaN(durMin) && match.starttid) {
+    const start = new Date(match.starttid);
+    match.sluttid = new Date(start.getTime() + durMin * 60000);
+    db.collection('turneringer').doc(turneringId).collection('kamper').doc(match.id)
+      .update({ sluttid: firebase.firestore.Timestamp.fromDate(match.sluttid) });
+  }
+  updateMatchCard(match);
+  closePopup('matchPopup');
+}
+
+function swapTeams() {
+  const match = (window.scheduledMatches || window.kamper || []).find(k => k.id === currentMatchId);
+  if (!match) return;
+  [match.hjemmelag, match.bortelag] = [match.bortelag, match.hjemmelag];
+  db.collection('turneringer').doc(turneringId).collection('kamper').doc(match.id)
+    .update({ hjemmelag: match.hjemmelag, bortelag: match.bortelag });
+  updateMatchCard(match);
+}
+
+function updateMatchCard(match) {
+  const card = document.querySelector(`.kamp-kort[data-match-id="${match.id}"]`);
+  if (!card) return;
+  const h4 = card.querySelector('h4');
+  if (h4) h4.textContent = `${match.hjemmelag} – ${match.bortelag}`;
+  if (match.starttid) {
+    const tidEl = card.querySelector('.kamp-tid');
+    if (tidEl) tidEl.textContent = formatDateTime(new Date(match.starttid));
+  }
+}
+
 
 /* ──────────────────────────────────────────────────────────── */
 /* 9. Kjør oppsett ettter at kortene er laget                  */
@@ -5196,6 +5269,18 @@ function getDateFromLaneId(id) {
 document.addEventListener('DOMContentLoaded', () => {
   /* din egen funksjon som lager kortene → renderScheduleUI(); */
   setupGlobalDragAndDrop();
+  document.querySelectorAll('.kamp-kort').forEach(card => {
+    if (card.querySelector('.edit-match-btn')) return;
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'edit-match-btn';
+    btn.textContent = 'Rediger';
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      openMatchPopup(card.dataset.matchId || card.id);
+    });
+    card.querySelector('.kamp-detaljer')?.appendChild(btn);
+  });
 });
 
 
