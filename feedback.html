@@ -4,52 +4,10 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Gi tilbakemelding</title>
-  <link rel="stylesheet" href="admin.css">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
   <style>
-    body {
-      font-family: 'Poppins', sans-serif;
-      background-color: #f0f2f5;
-      color: #2d3e50;
-      margin: 0;
-      padding: 20px;
-      line-height: 1.6;
-    }
-    header {
-      text-align: center;
-      padding: 20px;
-      background-color: #1a202c;
-      color: white;
-      margin-bottom: 20px;
-    }
-    main {
-      max-width: 600px;
-      margin: 0 auto;
-      padding: 20px;
-      background: #ffffff;
-      border-radius: 10px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    }
-    label {
-      display: block;
-      margin-top: 15px;
-      font-weight: 600;
-    }
-    input, textarea {
-      width: 100%;
-      padding: 10px;
-      border: 1px solid #ccc;
-      border-radius: 5px;
-      margin-top: 5px;
-    }
-    button {
-      margin-top: 15px;
-      padding: 10px 20px;
-      background-color: #4c51bf;
-      color: white;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-    }
+    body { font-family: 'Poppins', sans-serif; }
   </style>
   <script>
     function sendFeedback() {
@@ -57,19 +15,26 @@
     }
   </script>
 </head>
-<body>
-  <header>
-    <h1>Gi tilbakemelding</h1>
+<body class="font-[Poppins,sans-serif] bg-gray-100 text-gray-800">
+  <header class="bg-gray-900 py-8 text-center">
+    <img src="logo.png" alt="Simple Scores Logo" class="mx-auto h-48">
   </header>
-  <main>
-    <form onsubmit="sendFeedback(); return false;">
-      <label for="name">Navn</label>
-      <input id="name" type="text" required>
-      <label for="email">E-post</label>
-      <input id="email" type="email" required>
-      <label for="message">Melding</label>
-      <textarea id="message" rows="6" required></textarea>
-      <button type="submit">Send inn</button>
+  <main class="max-w-md mx-auto my-8 p-6 bg-white rounded-lg shadow">
+    <h1 class="text-2xl font-bold mb-6 text-center">Gi tilbakemelding</h1>
+    <form onsubmit="sendFeedback(); return false;" class="space-y-4">
+      <div>
+        <label for="name" class="block font-semibold">Navn</label>
+        <input id="name" type="text" required class="w-full border border-gray-300 rounded px-3 py-2 mt-1">
+      </div>
+      <div>
+        <label for="email" class="block font-semibold">E-post</label>
+        <input id="email" type="email" required class="w-full border border-gray-300 rounded px-3 py-2 mt-1">
+      </div>
+      <div>
+        <label for="message" class="block font-semibold">Melding</label>
+        <textarea id="message" rows="6" required class="w-full border border-gray-300 rounded px-3 py-2 mt-1"></textarea>
+      </div>
+      <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">Send inn</button>
     </form>
   </main>
 </body>
