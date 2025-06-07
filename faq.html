@@ -1,13 +1,11 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="no">
 <head>
-  <script src="https://cdn.tailwindcss.com"></script>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>FAQ – Frequently Asked Questions about Result Service</title>
-  <meta name="description" content="Find answers to frequently asked questions about Result Service – tournament creation, team management, match scheduling, live score updates and more.">
-  <link rel="stylesheet" href="admin.css">
-  <!-- Structured Data for FAQPage -->
+  <title>FAQ – Simple Scores</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
@@ -42,7 +40,7 @@
         "name": "How do I update match scores in real time?",
         "acceptedAnswer": {
           "@type": "Answer",
-          "text": "Use the 'Scoreboard' feature to update match scores live. Manually enter scores that are then displayed in real time for both administrators and the audience."
+          "text": "Use the 'Scoreboard' feature to update match scores live. Enter scores manually and they will be displayed in real time for both administrators and the audience."
         }
       },
       {
@@ -50,88 +48,49 @@
         "name": "How do I change tournament settings?",
         "acceptedAnswer": {
           "@type": "Answer",
-          "text": "Go to the 'Settings' page to adjust tournament configurations, such as period duration, timeout length, and the number of periods."
+          "text": "Go to the 'Settings' page to adjust tournament configurations such as period duration, timeout length, and the number of periods."
         }
       }
     ]
   }
   </script>
   <style>
-    /* Basic styling for the FAQ page */
-    body {
-      font-family: 'Poppins', sans-serif;
-      background-color: #f0f2f5;
-      color: #2d3e50;
-      margin: 0;
-      padding: 20px;
-      line-height: 1.6;
-    }
-    header {
-      text-align: center;
-      padding: 20px;
-      background-color: #1a202c;
-      color: white;
-      margin-bottom: 20px;
-    }
-    main {
-      max-width: 800px;
-      margin: 0 auto;
-      padding: 20px;
-      background: #ffffff;
-      border-radius: 10px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    }
-    h1 {
-      margin-bottom: 20px;
-      font-size: 2em;
-    }
-    .faq-item {
-      margin-bottom: 20px;
-      border-bottom: 1px solid #e2e8f0;
-      padding-bottom: 10px;
-    }
-    .faq-question {
-      font-size: 1.2em;
-      font-weight: 600;
-      margin-bottom: 10px;
-    }
-    .faq-answer {
-      margin-left: 20px;
-    }
+    body { font-family: 'Poppins', sans-serif; }
   </style>
 </head>
-<body>
-  <header>
-    <h1>FAQ – Frequently Asked Questions</h1>
+<body class="font-[Poppins,sans-serif] bg-gray-100 text-gray-800">
+  <header class="bg-gray-900 py-8 text-center">
+    <img src="logo.png" alt="Simple Scores Logo" class="mx-auto h-48">
   </header>
-  <main>
-    <div class="faq-item">
-      <div class="faq-question">How do I create a new tournament?</div>
-      <div class="faq-answer">
+  <main class="max-w-3xl mx-auto my-8 p-6 bg-white rounded-lg shadow">
+    <h1 class="text-2xl font-bold mb-6">FAQ – Frequently Asked Questions</h1>
+    <div class="mb-6 border-b pb-4">
+      <div class="text-lg font-semibold mb-2">How do I create a new tournament?</div>
+      <div class="ml-4">
         To create a new tournament, go to the <strong>Create Tournament</strong> page and fill in the tournament name, dates, and organizer information. Then you can add divisions and teams.
       </div>
     </div>
-    <div class="faq-item">
-      <div class="faq-question">How do I add a team?</div>
-      <div class="faq-answer">
+    <div class="mb-6 border-b pb-4">
+      <div class="text-lg font-semibold mb-2">How do I add a team?</div>
+      <div class="ml-4">
         Navigate to the <strong>Add Team</strong> page, enter the team name and player details, and click the save button. You can also manage existing teams from the tournament overview.
       </div>
     </div>
-    <div class="faq-item">
-      <div class="faq-question">How do I set up match schedules?</div>
-      <div class="faq-answer">
+    <div class="mb-6 border-b pb-4">
+      <div class="text-lg font-semibold mb-2">How do I set up match schedules?</div>
+      <div class="ml-4">
         Visit the <strong>Match Setup</strong> page to assign fields, choose match times, and generate a schedule based on the number of teams and matches.
       </div>
     </div>
-    <div class="faq-item">
-      <div class="faq-question">How do I update match scores in real time?</div>
-      <div class="faq-answer">
+    <div class="mb-6 border-b pb-4">
+      <div class="text-lg font-semibold mb-2">How do I update match scores in real time?</div>
+      <div class="ml-4">
         Use the <strong>Scoreboard</strong> feature to update match scores live. Enter scores manually and they will be displayed in real time for both administrators and the audience.
       </div>
     </div>
-    <div class="faq-item">
-      <div class="faq-question">How do I change tournament settings?</div>
-      <div class="faq-answer">
+    <div class="mb-6 border-b pb-4">
+      <div class="text-lg font-semibold mb-2">How do I change tournament settings?</div>
+      <div class="ml-4">
         Go to the <strong>Settings</strong> page to adjust tournament configurations such as period duration, timeout length, and the number of periods.
       </div>
     </div>
