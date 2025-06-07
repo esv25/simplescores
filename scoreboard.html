@@ -131,10 +131,21 @@
           <div class="team-name" id="awayName">Lag 2</div>
           <div class="dot-container" id="awayDots"></div>
         </div>
-      </div>
-      <button id="confirmPenaltyResults" class="time-button">Fullfør konkurranse</button>
+  </div>
+  <button id="confirmPenaltyResults" class="time-button">Fullfør konkurranse</button>
     </div>
   </div>
+<!-- Modal for neste kamp -->
+<div id="nextMatchModal" class="modal">
+  <div class="modal-content">
+    <span class="close" onclick="closeNextMatchModal()">&times;</span>
+    <h2>Neste kamp på banen</h2>
+    <p id="nextMatchInfo">Ingen flere kamper.</p>
+    <div style="text-align:center;margin-top:1rem;">
+      <button id="goToNextMatchBtn" class="time-button">Gå til neste kamp</button>
+    </div>
+  </div>
+</div>
   
   
     <!-- Firebase SDKs og JavaScript-kode -->
@@ -601,6 +612,7 @@ function oppdaterStatistikkForLag(gruppeStat, kamp) {
 }
 async function avsluttKamp() {
   console.log("avsluttKamp() called for kampId:", kampId);
+  let kampData;
 
   // --- 1) Stopp timere/pause ---
   clearInterval(timerInterval);
@@ -621,7 +633,7 @@ async function avsluttKamp() {
       alert("Feil: Kampen ble ikke funnet.");
       return;
     }
-    const kampData = kampSnap.data();
+    kampData = kampSnap.data();
     console.log("  Kamp data fra Firestore:", kampData);
 
     // --- 4) Marker ferdig ---
@@ -667,8 +679,65 @@ async function avsluttKamp() {
   }
 
   // --- 7) Ferdig ---
+  const nextMatch = kampData
+    ? await hentNesteKampPaBane(kampData.bane, kampData.starttid)
+    : null;
+  showNextMatchPopup(nextMatch);
   alert("Kampen er avsluttet.");
   console.log("avsluttKamp() ferdig.");
+}
+
+async function hentNesteKampPaBane(bane, starttid) {
+  try {
+    const snap = await db.collection('turneringer')
+      .doc(turneringId)
+      .collection('kamper')
+      .where('bane', '==', bane)
+      .orderBy('starttid')
+      .get();
+
+    const startMs = starttid?.toDate ? starttid.toDate().getTime()
+                                   : new Date(starttid).getTime();
+    let next = null;
+    snap.forEach(doc => {
+      const d = doc.data();
+      const ts = d.starttid?.toDate ? d.starttid.toDate().getTime()
+                                    : new Date(d.starttid).getTime();
+      if (ts > startMs && (!next || ts < (next.starttid?.toDate
+            ? next.starttid.toDate().getTime()
+            : new Date(next.starttid).getTime()))) {
+        next = { id: doc.id, ...d };
+      }
+    });
+    return next;
+  } catch (err) {
+    console.error('Feil ved henting av neste kamp:', err);
+    return null;
+  }
+}
+
+function showNextMatchPopup(match) {
+  const modal = document.getElementById('nextMatchModal');
+  const info  = document.getElementById('nextMatchInfo');
+  const btn   = document.getElementById('goToNextMatchBtn');
+  if (match) {
+    const start = match.starttid?.toDate ? match.starttid.toDate()
+                                         : new Date(match.starttid);
+    const time  = start.toLocaleTimeString('no-NO', { hour: '2-digit', minute: '2-digit' });
+    info.textContent = `${match.hjemmelag} vs ${match.bortelag} kl. ${time}`;
+    btn.style.display = 'inline-block';
+    btn.onclick = () => {
+      window.location.href = `scoreboard.html?kampId=${encodeURIComponent(match.id)}&id=${turneringId}`;
+    };
+  } else {
+    info.textContent = 'Ingen flere kamper på denne banen.';
+    btn.style.display = 'none';
+  }
+  modal.style.display = 'block';
+}
+
+function closeNextMatchModal() {
+  document.getElementById('nextMatchModal').style.display = 'none';
 }
 
 async function oppdaterNesteUtslagsrunde(currentRound, kampData) {

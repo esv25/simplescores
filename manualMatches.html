@@ -89,8 +89,8 @@
         </div>
         <div>
           <label for="matchDate">Dato</label>
-          <select id="matchDate" class="border p-2 w-full"></select>
-        </div>
+
+          <input id="matchDate" type="date" class="border p-2 w-full" />
         <div>
           <label for="matchTime">Tid</label>
           <input id="matchTime" type="time" class="border p-2 w-full" />
@@ -158,13 +158,16 @@
 
     const params = new URLSearchParams(window.location.search);
     const turneringId = params.get('id');
+
     let availableDates = [];
+
 
     document.addEventListener('DOMContentLoaded', () => {
       if (!turneringId) {
         window.location.href = 'nyTurnering.html';
         return;
       }
+
       hentTurnering();
     });
 
@@ -193,6 +196,7 @@
       });
     }
 
+
     async function addMatch() {
       const home  = document.getElementById('homeTeam').value.trim();
       const away  = document.getElementById('awayTeam').value.trim();
@@ -215,7 +219,9 @@
       });
       document.getElementById('homeTeam').value = '';
       document.getElementById('awayTeam').value = '';
+
       document.getElementById('matchDate').selectedIndex = 0;
+
       document.getElementById('matchTime').value = '';
       document.getElementById('matchField').value = '';
       document.getElementById('matchDivision').value = '';
@@ -229,6 +235,7 @@
         .collection('kamper').orderBy('starttid','asc').get();
       snapshot.forEach(doc => {
         const k = doc.data();
+
         let startDate = null;
         if (k.starttid) {
           startDate = k.starttid.toDate ? k.starttid.toDate() : new Date(k.starttid);
@@ -238,6 +245,7 @@
         const formattedTime = startDate
               ? startDate.toLocaleString('no-NO', { day:'numeric', month:'long', hour:'2-digit', minute:'2-digit' })
               : 'Ukjent';
+
         const card = document.createElement('div');
         card.classList.add('kamp-item');
         const info = document.createElement('div');
