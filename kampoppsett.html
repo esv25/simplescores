@@ -402,6 +402,15 @@
             </div>
         </div>
 
+        <div id="availabilityPopup" class="popup">
+            <h2>Tilgjengelige tider</h2>
+            <div id="availabilityDatesContainer"></div>
+            <div style="margin-top:10px;text-align:right;">
+                <button type="button" onclick="saveAvailability()">Lagre</button>
+                <button type="button" onclick="closePopup('availabilityPopup')">Avbryt</button>
+            </div>
+        </div>
+
         <div id="popupOverlay" class="popup-overlay"></div>
             <!-- Q&A Seksjon -->
             <div id="qa-section" style="display: none;">
@@ -832,6 +841,11 @@ async function loadFieldsWizard() {
       const fieldDiv = document.createElement('div');
       fieldDiv.style.padding = "5px 0";
       fieldDiv.textContent = fieldData.baneNavn;
+      const availBtn = document.createElement('button');
+      availBtn.textContent = "Tilgjengelighet";
+      availBtn.style.marginLeft = "10px";
+      availBtn.onclick = () => openAvailabilityPopup(doc.id, fieldData);
+      fieldDiv.appendChild(availBtn);
       const deleteBtn = document.createElement('button');
       deleteBtn.textContent = "Slett";
       deleteBtn.style.marginLeft = "10px";
@@ -857,13 +871,57 @@ async function addFieldFromWizard() {
   }
   try {
     await db.collection('turneringer').doc(turneringId).collection('baner').add({
-      baneNavn: baneNavn
+      baneNavn: baneNavn,
+      availability: {}
     });
     baneNavnElem.value = '';  // Tøm inputfeltet
     loadFieldsWizard();
   } catch (error) {
     console.error("Feil ved lagring av bane:", error);
     alert("Feil ved lagring av bane. Sjekk konsollen for detaljer.");
+  }
+}
+
+function openAvailabilityPopup(docId, fieldData) {
+  const popup = document.getElementById('availabilityPopup');
+  const container = document.getElementById('availabilityDatesContainer');
+  container.innerHTML = '';
+  const dates = window.turneringData?.dates || [];
+  const avail = fieldData.availability || {};
+  dates.forEach(date => {
+    const row = document.createElement('div');
+    row.innerHTML = `
+      <label>${date} start:</label>
+      <input type="time" class="avail-start" data-date="${date}" value="${avail[date]?.startTime || ''}">
+      <label>slutt:</label>
+      <input type="time" class="avail-end" data-date="${date}" value="${avail[date]?.endTime || ''}">
+    `;
+    container.appendChild(row);
+  });
+  popup.dataset.docId = docId;
+  openPopup('availabilityPopup');
+}
+
+async function saveAvailability() {
+  const popup = document.getElementById('availabilityPopup');
+  const docId = popup.dataset.docId;
+  const container = document.getElementById('availabilityDatesContainer');
+  const availability = {};
+  container.querySelectorAll('div').forEach(row => {
+    const date = row.querySelector('.avail-start').dataset.date;
+    const start = row.querySelector('.avail-start').value;
+    const end = row.querySelector('.avail-end').value;
+    if (start && end) {
+      availability[date] = { startTime: start, endTime: end };
+    }
+  });
+  try {
+    await db.collection('turneringer').doc(turneringId).collection('baner').doc(docId).update({ availability });
+    closePopup('availabilityPopup');
+    loadFieldsWizard();
+  } catch (err) {
+    console.error('Feil ved lagring av tilgjengelighet', err);
+    alert('Kunne ikke lagre tider');
   }
 }
 
@@ -1558,6 +1616,7 @@ function toggleAnswer(index) {
 
                 db.collection('turneringer').doc(turneringId).collection('baner').doc().set({
                     baneNavn: baneNavn,
+                    availability: {}
                 }).then(() => {
                     const baneContainer = document.getElementById('baneContainer');
 
@@ -2016,7 +2075,7 @@ function filterMatchRounds(matchRounds) {
     dateDiv.innerHTML = `<h2>${date}</h2>`;
 
     /* ---------- Én bane om gangen ---------- */
-    window.baner.forEach(baneNavn => {
+    window.baner.forEach(({baneNavn}) => {
       const laneDiv = document.createElement('div');
       laneDiv.className = 'bane-tabell';
       laneDiv.dataset.bane = baneNavn;
@@ -2511,7 +2570,7 @@ async function finishWizard() {
  * @param {Array}  baner    – liste med banenavn
  * @returns {Object} – et objekt med match + planleggingsdetaljer
  */
- function planMatchOnCourt(match, settings, baner) {
+function planMatchOnCourt(match, settings, baner) {
   const { duration, buffer, minRest, timing } = settings;
   const dateTimes = window.globalSchedulingSettings.dateTimes;
 
@@ -2519,18 +2578,23 @@ async function finishWizard() {
   if (!window.schedulingState) {
     const dateQueue = Object.entries(dateTimes).sort(([a], [b]) => a.localeCompare(b));
     const courtNext = {};
-    baner.forEach(court => {
+    const banerMap = {};
+    baner.forEach(b => {
+      banerMap[b.baneNavn] = b;
       const [firstDate, slot] = dateQueue[0];
-      courtNext[court] = { dateIndex: 0, time: slot.startTime };
+      const start = b.availability?.[firstDate]?.startTime || slot.startTime;
+      courtNext[b.baneNavn] = { dateIndex: 0, time: start };
     });
     window.schedulingState = {
       dateQueue,
       courtNext,
-      teamNext: {}  // holder neste ledige tid per lag, som ISO-streng "YYYY-MM-DDTHH:mm"
+      teamNext: {},
+      banerMap
     };
   }
 
   const state = window.schedulingState;
+  const banerMap = state.banerMap;
   const home = match.hjemmelag;
   const away = match.bortelag;
 
@@ -2545,7 +2609,8 @@ async function finishWizard() {
   outer: while (true) {
     // 1) Finn court med tidligst tilgjengelig slot
     chosen = null;
-    for (const court of baner) {
+    for (const b of baner) {
+      const court = b.baneNavn;
       const next = state.courtNext[court];
       if (!next.time) continue;
       const ts = toTimestamp(state.dateQueue[next.dateIndex][0], next.time);
@@ -2582,13 +2647,15 @@ async function finishWizard() {
   let nextDateIdx  = chosen.dateIndex;
   let nextTimeMin  = endTs + buffer * 60 * 1000;
   // Dersom passerer dagens slutt, hopp til neste dag
-  const dayEnd = state.dateQueue[chosen.dateIndex][1].endTime;
+  const courtAvail = banerMap[chosen.court].availability || {};
+  const dayEnd = courtAvail[dateStr]?.endTime || state.dateQueue[chosen.dateIndex][1].endTime;
   const dayEndTs = toTimestamp(dateStr, dayEnd);
   if (nextTimeMin > dayEndTs) {
     nextDateIdx++;
     if (nextDateIdx < state.dateQueue.length) {
-      const nextStart = state.dateQueue[nextDateIdx][1].startTime;
-      nextTimeMin = toTimestamp(state.dateQueue[nextDateIdx][0], nextStart);
+      const nextDate = state.dateQueue[nextDateIdx][0];
+      const nextStart = courtAvail[nextDate]?.startTime || state.dateQueue[nextDateIdx][1].startTime;
+      nextTimeMin = toTimestamp(nextDate, nextStart);
     } else {
       nextTimeMin = null;
     }
@@ -2876,25 +2943,25 @@ function initDivisionPriority() {
 // Funksjon for å hente feltpreferanser – her simuleres vi ved å fylle containeren med et input for hver bane
 async function populateFieldPreferences() {
   // For enkelhets skyld hentes banene via en eksisterende funksjon
-  const baner = await hentBaner(); // Forutsetter at denne funksjonen returnerer en array med banenavn
+  const baner = await hentBaner();
   const container = document.getElementById('fieldPreferencesContainer');
   container.innerHTML = '';
   // For hver bane lager vi et avsnitt med en multiselect for divisjoner
   const turneringDoc = await db.collection('turneringer').doc(turneringId).get();
   const tournamentData = turneringDoc.data();
   const divisions = (tournamentData.divisions || []).map(div => div.name);
-  baner.forEach(bane => {
+  baner.forEach(({baneNavn}) => {
     const divElem = document.createElement('div');
     divElem.classList.add('fieldPreference');
     const heading = document.createElement('h4');
-    heading.textContent = bane;
+    heading.textContent = baneNavn;
     divElem.appendChild(heading);
     const label = document.createElement('label');
-    label.setAttribute('for', 'pref_' + bane);
+    label.setAttribute('for', 'pref_' + baneNavn);
     label.textContent = 'Prioriterte divisjoner:';
     divElem.appendChild(label);
     const select = document.createElement('select');
-    select.setAttribute('id', 'pref_' + bane);
+    select.setAttribute('id', 'pref_' + baneNavn);
     select.setAttribute('multiple', 'multiple');
     divisions.forEach(divisionName => {
       const option = document.createElement('option');
@@ -3432,7 +3499,7 @@ async function scheduleMatchesAllPhasesInterleaved(phaseQueue, dateTimes, baner,
   });
 
   let allScheduled = [];
-  const baneOpptattTil = initBaneOpptattTil(baner, dateTimes);
+  const baneOpptattTil = initBaneOpptattTil(baner.map(b => b.baneNavn), dateTimes);
   const lagOpptattTil = {};
 
   // Holder oversikt over lagene i den sist planlagte kampen
@@ -3587,7 +3654,7 @@ async function scheduleMatchesAllPhasesParallel(
   minRestTime
 ) {
   // Initialiser "når ledig" for baner og lag
-  const baneOpptattTil = initBaneOpptattTil(baner, dateTimes);
+  const baneOpptattTil = initBaneOpptattTil(baner.map(b => b.baneNavn), dateTimes);
   const lagOpptattTil  = {};
   let allScheduled     = [];
 
@@ -4507,10 +4574,10 @@ function setupBaneContainer(baneDiv) {
       .collection('baner')
       .get();
 
-    // Mapper hvert dokument til feltet "baneNavn"
-    const baner = snap.docs
-      .map(doc => doc.data().baneNavn)
-      .filter(navn => !!navn);  // fjern tomme eller undefined
+    const baner = snap.docs.map(doc => {
+      const d = doc.data();
+      return { baneNavn: d.baneNavn, availability: d.availability || {} };
+    }).filter(b => b.baneNavn);
 
     console.log('Baner hentet:', baner);
     return baner;
@@ -4575,15 +4642,16 @@ async function slettBane(baneNavn) {
       .doc(turneringId)
       .collection('baner')
       .get();
-    const baner = baneSnap.docs
-      .map(doc => doc.data().baneNavn)
-      .filter(Boolean);
+    const baner = baneSnap.docs.map(doc => {
+      const d = doc.data();
+      return { baneNavn: d.baneNavn, availability: d.availability || {} };
+    }).filter(b => b.baneNavn);
     console.log('Baner hentet:', baner);
 
     // 3) Render banene i UI
     const container = document.getElementById('baneContainer');
     container.innerHTML = '';
-    baner.forEach(baneNavn => {
+    baner.forEach(({baneNavn}) => {
       const baneDiv = document.createElement('div');
       baneDiv.className = 'bane-tabell';
       baneDiv.id = baneNavn;
@@ -4777,8 +4845,10 @@ async function hentBaner() {
       .collection('baner')
       .get();
 
-    // → "Bane 1", "Bane 2", …
-    const baner = snap.docs.map(d => d.data().baneNavn);
+    const baner = snap.docs.map(d => {
+      const data = d.data();
+      return { baneNavn: data.baneNavn, availability: data.availability || {} };
+    }).filter(b => b.baneNavn);
     console.log('Baner hentet:', baner);
     return baner;
   } catch (err) {
