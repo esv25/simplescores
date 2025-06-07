@@ -162,7 +162,7 @@
           await db.collection('turneringer').doc(docRef.id).collection('kamper').add(match);
         }
         alert('Turnering lagret');
-        window.location.href='kampoppsett.html?id='+docRef.id;
+        window.location.href='manualMatches.html?id='+docRef.id;
       }catch(e){
         console.error('Feil ved lagring',e);
         alert('Kunne ikke lagre');
