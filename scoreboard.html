@@ -744,17 +744,42 @@ async function oppdaterNesteUtslagsrunde(currentRound, kampData) {
   console.log("[oppdaterNesteUtslagsrunde] ► Start", { currentRound, kampData });
 
   const dbRef = db.collection('turneringer').doc(turneringId);
-  const fmtSnap = await dbRef
-    .collection(`${kampData.divisjon}_format`)
-    .where('type', '==', 'utslag')
-    .limit(1)
-    .get();
-  if (fmtSnap.empty) {
-    console.warn("[oppdaterNesteUtslagsrunde] ⚠ Ingen utslags-format funnet");
-    return;
+  const formatColl = dbRef.collection(`${kampData.divisjon}_format`);
+
+  // Ny struktur: formatdokumentet for fasen inneholder segmenter
+  const faseDoc = await formatColl.doc(kampData.fase).get();
+  let utslagsrunder;
+  if (faseDoc.exists) {
+    const data = faseDoc.data();
+    if (Array.isArray(data.segmenter)) {
+      const seg = data.segmenter.find(s => s.type === 'utslag');
+      if (seg && seg.utslagsrunder) {
+        utslagsrunder = seg.utslagsrunder;
+      }
+    }
+    if (!utslagsrunder) {
+      // Fallback: gammel struktur
+      utslagsrunder = data.utslagsrunder;
+    }
   }
 
-  const utslagsrunder = fmtSnap.docs[0].data().utslagsrunder;
+  // Ekstra fallback: søk etter et dokument med type=="utslag" (gammel modell)
+  if (!utslagsrunder) {
+    const fmtSnap = await formatColl
+      .where('type', '==', 'utslag')
+      .limit(1)
+      .get();
+    if (fmtSnap.empty) {
+      console.warn("[oppdaterNesteUtslagsrunde] ⚠ Ingen utslags-format funnet");
+      return;
+    }
+    utslagsrunder = fmtSnap.docs[0].data().utslagsrunder;
+  }
+
+  if (!Array.isArray(utslagsrunder)) {
+    console.warn("[oppdaterNesteUtslagsrunde] ⚠ 'utslagsrunder' mangler i format");
+    return;
+  }
   console.log("  utslagsrunder.length:", utslagsrunder.length);
 
   // Indekser i skjemaet
@@ -869,7 +894,18 @@ async function oppdaterNesteFasePlassholdere(prevPhaseNumber, divisjon) {
       const num = typeof data.fasenummer === 'number'
         ? data.fasenummer
         : (d.id === 'utslag' ? Infinity : parseInt(d.id.replace('fase',''), 10));
-      return { id: d.id, fasenummer: num, type: data.type, grupper: data.grupper || {} };
+
+      let type    = data.type;
+      let grupper = data.grupper || {};
+      if (Array.isArray(data.segmenter)) {
+        const seg = data.segmenter.find(s => s.type);
+        if (seg) {
+          type    = seg.type || type;
+          grupper = seg.grupper || grupper;
+        }
+      }
+
+      return { id: d.id, fasenummer: num, type, grupper };
     })
     .sort((a, b) => a.fasenummer - b.fasenummer);
 
