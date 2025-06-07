@@ -35,6 +35,7 @@
   </header>
   
   <button onclick="endre()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-4 rounded mt-4">Opprett turnering</button>
+  <button onclick="manuell()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-4 rounded mt-4">Manuell turnering</button>
   
   <main id="turneringListe" class="turnering-container"></main>
   <main id="coArrangorTurneringListe">
@@ -228,6 +229,10 @@
 
     function endre() {
       window.location.href = 'OpprettTurnering.html';
+    }
+
+    function manuell() {
+      window.location.href = 'manualTurnering.html';
     }
 
     function loadCoArrangorTurneringer(email) {

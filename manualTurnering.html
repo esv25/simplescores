@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="admin.css">
+  <title>Manuell Turnering</title>
+</head>
+<body>
+  <header>
+    <div class="logo-title">
+      <a href="index.html"><img src="logo.png" alt="Simple Scores Logo" class="logo"></a>
+    </div>
+    <div class="nav2">
+      <button id="user-button" onclick="toggleUserMenu()">Bruker</button>
+      <div id="user-menu" class="user-menu" style="display:none;">
+        <p>Logget inn som <span id="mail"></span></p>
+        <button id="loggut" onclick="loggut()">Logg ut</button>
+      </div>
+      <button onclick="window.location.href='publikum.html'">Publikum</button>
+    </div>
+  </header>
+
+  <main class="p-4 max-w-xl mx-auto">
+    <section id="infoSection" class="step">
+      <h2 class="text-xl font-semibold mb-2">Grunnleggende info</h2>
+      <label for="tName">Turneringsnavn</label>
+      <input id="tName" type="text" class="border p-2 mb-4 w-full">
+
+      <label for="tDate">Dato</label>
+      <input id="tDate" type="date" class="border p-2 mb-4 w-full">
+      <button onclick="addDate()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-4 rounded mb-4">Legg til dato</button>
+      <ul id="datesList" class="mb-4"></ul>
+
+      <label for="tPlace">Sted</label>
+      <input id="tPlace" type="text" class="border p-2 mb-4 w-full">
+
+      <button onclick="nextStep(1)" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-4 rounded">Neste</button>
+    </section>
+
+    <section id="matchSection" class="step hidden">
+      <h2 class="text-xl font-semibold mb-2">Legg til kamper</h2>
+      <div class="mb-2">
+        <label for="homeTeam">Hjemmelag</label>
+        <input id="homeTeam" type="text" class="border p-2 w-full">
+      </div>
+      <div class="mb-2">
+        <label for="awayTeam">Bortelag</label>
+        <input id="awayTeam" type="text" class="border p-2 w-full">
+      </div>
+      <div class="mb-2">
+        <label for="matchDate">Dato</label>
+        <input id="matchDate" type="date" class="border p-2 w-full">
+      </div>
+      <div class="mb-4">
+        <label for="matchTime">Tid</label>
+        <input id="matchTime" type="time" class="border p-2 w-full">
+      </div>
+      <button onclick="addMatch()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-4 rounded mb-4">Legg til kamp</button>
+      <ul id="matchesList" class="mb-4"></ul>
+
+      <button onclick="submitTournament()" class="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded">Fullfør</button>
+      <button onclick="previousStep(2)" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-4 rounded mt-2">Tilbake</button>
+    </section>
+  </main>
+
+  <script src="https://www.gstatic.com/firebasejs/8.2.0/firebase-app.js"></script>
+  <script src="firebaseConfig.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.2.0/firebase-firestore.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.2.0/firebase-auth.js"></script>
+  <script>
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    const auth = firebase.auth();
+
+    auth.onAuthStateChanged(user => {
+      if (user) {
+        document.getElementById('mail').textContent = user.email;
+      } else {
+        window.location.href = 'login.html';
+      }
+    });
+
+    function loggut(){
+      auth.signOut();
+    }
+
+    let dates = [];
+    let matches = [];
+
+    function nextStep(current){
+      document.getElementById('infoSection').classList.add('hidden');
+      document.getElementById('matchSection').classList.remove('hidden');
+    }
+
+    function previousStep(current){
+      document.getElementById('matchSection').classList.add('hidden');
+      document.getElementById('infoSection').classList.remove('hidden');
+    }
+
+    function addDate(){
+      const d = document.getElementById('tDate').value;
+      if(!d || dates.includes(d)) return;
+      dates.push(d);
+      updateDates();
+      document.getElementById('tDate').value = '';
+    }
+
+    function updateDates(){
+      const list = document.getElementById('datesList');
+      list.innerHTML = '';
+      dates.forEach((d,i)=>{
+        const li = document.createElement('li');
+        li.textContent = d;
+        const btn = document.createElement('button');
+        btn.textContent = 'Fjern';
+        btn.onclick = ()=>{dates.splice(i,1);updateDates();};
+        li.appendChild(btn);
+        list.appendChild(li);
+      });
+    }
+
+    function addMatch(){
+      const home = document.getElementById('homeTeam').value.trim();
+      const away = document.getElementById('awayTeam').value.trim();
+      const date = document.getElementById('matchDate').value;
+      const time = document.getElementById('matchTime').value;
+      if(!home || !away || !date || !time) return alert('Fyll inn alle felt');
+      matches.push({hjemmelag:home,bortelag:away,dato:date,tidskode:time});
+      updateMatches();
+      document.getElementById('homeTeam').value='';
+      document.getElementById('awayTeam').value='';
+      document.getElementById('matchDate').value='';
+      document.getElementById('matchTime').value='';
+    }
+
+    function updateMatches(){
+      const list = document.getElementById('matchesList');
+      list.innerHTML='';
+      matches.forEach((m,i)=>{
+        const li=document.createElement('li');
+        li.textContent=`${m.dato} ${m.tidskode} - ${m.hjemmelag} vs ${m.bortelag}`;
+        const btn=document.createElement('button');
+        btn.textContent='Fjern';
+        btn.onclick=()=>{matches.splice(i,1);updateMatches();};
+        li.appendChild(btn);
+        list.appendChild(li);
+      });
+    }
+
+    async function submitTournament(){
+      const name = document.getElementById('tName').value.trim();
+      const place = document.getElementById('tPlace').value.trim();
+      if(!name || dates.length===0){
+        alert('Fyll inn navn og minst en dato');
+        return;
+      }
+      try{
+        const docRef = await db.collection('turneringer').add({tournamentName:name, location:place, dates, published:false});
+        for(const match of matches){
+          await db.collection('turneringer').doc(docRef.id).collection('kamper').add(match);
+        }
+        alert('Turnering lagret');
+        window.location.href='kampoppsett.html?id='+docRef.id;
+      }catch(e){
+        console.error('Feil ved lagring',e);
+        alert('Kunne ikke lagre');
+      }
+    }
+  </script>
+</body>
+</html>
