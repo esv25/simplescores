@@ -12,7 +12,7 @@
       z-index: 2000;
     }
 
-    /* Wrapper rundt sidebar og hovedinnhold */
+    /* Wrapper rundt hovedinnhold og lagpanel */
     .content-wrapper {
       position: relative;
       display: flex;
@@ -20,22 +20,23 @@
       gap: 20px;
     }
 
-    /* Oppdatert stil for FAQ-sidebar på høyre side */
-    #sidebar {
+    /* Panel for å legge til lag */
+    #teamPanel {
       position: absolute;
       top: 0;
       right: 0;
-      width: 250px;
-      background: #f4f4f4;
-      padding: 20px;
+      width: 300px;
+      background: #fff;
       box-shadow: -2px 0 5px rgba(0,0,0,0.1);
-      transform: translateX(100%); /* Skjult til høyre */
+      transform: translateX(100%);
       transition: transform 0.3s ease-in-out;
       z-index: 1500;
-      height: 100%;
     }
-    #sidebar.open {
+    #teamPanel.open {
       transform: translateX(0);
+    }
+    #teamPanel .panel-content {
+      padding: 20px;
     }
 
     /* Juster hovedinnholdet slik at header og nav ikke dekkes */
@@ -49,29 +50,11 @@
       .content-wrapper {
         flex-direction: column;
       }
-      #sidebar {
+      #teamPanel {
         position: relative;
         width: 100%;
-        height: auto;
         transform: none;
       }
-    }
-    /* Eksempel på styling for lenker i sidebar */
-    #sidebar ul {
-      list-style: none;
-      padding: 0;
-      margin: 0;
-    }
-    #sidebar ul li {
-      margin-bottom: 10px;
-    }
-    #sidebar ul li a {
-      text-decoration: none;
-      color: #333;
-    }
-    /* Stil for toggle-knappen (kan justeres etter behov) */
-    #sidebar-toggle {
-      margin-left: 10px;
     }
 /* Overlay */
 .modal {
@@ -279,8 +262,6 @@
         <button id="loggut" onclick="loggut()">Sign out</button>
       </div>
       <button onclick="window.location.href='publikum.html'">Publikum</button>
-      <!-- Toggle-knapp for sidebar -->
-      <button id="sidebar-toggle" onclick="toggleSidebar()">Help</button>
     </div>
   </header>
   <nav>
@@ -296,29 +277,7 @@
   </nav>
 
   <div class="content-wrapper">
-  <aside id="sidebar">
-    <ul>
-      <li><a href="faq.html">FAQ</a></li>
-      <li><a href="omoss.html">Om oss</a></li>
-      <li><a href="kontakt.html">Kontakt</a></li>
-      <!-- Flere lenker kan legges til -->
-    </ul>
-  </aside>
-
   <main>
-<!-- Team Popup -->
-<div id="teamPopup" class="modal">
-  <div class="modal-content">
-    <span class="close" onclick="document.getElementById('teamPopup').style.display='none'">&times;</span>
-    <form id="addTeamForm">
-      <label for="teamName">Team name:</label>
-      <input type="text" id="teamName" name="teamName" placeholder="Skriv lagnavn"><br>
-      <label for="spillerliste">Playerlist:</label>
-      <textarea id="spillerliste" rows="5" placeholder="Type in playernames, one per line" name="spillerliste"></textarea>
-      <button id="saveTeamBtn" onclick="saveTeam()" type="button">Add team</button>
-    </form>
-  </div>
-</div>
 
 
     <!-- The Modal for spillere -->
@@ -381,6 +340,18 @@
     </section>
 
   </main>
+  <aside id="teamPanel" class="team-panel">
+    <div class="panel-content">
+      <span class="close" onclick="closeTeamForm()">&times;</span>
+      <form id="addTeamForm">
+        <label for="teamName">Team name:</label>
+        <input type="text" id="teamName" name="teamName" placeholder="Skriv lagnavn"><br>
+        <label for="spillerliste">Playerlist:</label>
+        <textarea id="spillerliste" rows="5" placeholder="Type in playernames, one per line" name="spillerliste"></textarea>
+        <button id="saveTeamBtn" onclick="saveTeam()" type="button">Add team</button>
+      </form>
+    </div>
+  </aside>
   </div>
   <footer class="site-footer">
     <div class="footer-container">
@@ -456,9 +427,12 @@
           }
         });
       }
-      const modal = document.getElementById('teamPopup');
-      if(window.innerWidth >= 768){ modal.classList.add('desktop'); } else { modal.classList.remove('desktop'); }
-      modal.style.display = 'block';
+      const panel = document.getElementById('teamPanel');
+      panel.classList.add('open');
+    }
+
+    function closeTeamForm(){
+      document.getElementById('teamPanel').classList.remove('open');
     }
     
     async function populateDivisionDropdown() {
@@ -590,7 +564,7 @@ document.addEventListener('DOMContentLoaded', () => {
         : teamsRef.add(lagData);
 
       p.then(() => {
-          document.getElementById('teamPopup').style.display = 'none';
+          closeTeamForm();
           editingTeamId = null;
           hentOgVisLag();
         })
@@ -691,10 +665,6 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }
     
-    function toggleSidebar() {
-      const sidebar = document.getElementById('sidebar');
-      sidebar.classList.toggle('open');
-    }
 
     function showTab(id, btn){
       document.querySelectorAll('.tab-section').forEach(s => s.classList.remove('active'));
