@@ -355,12 +355,11 @@ label {
     color: #2d3e50;
 }
 
-/* Flexbox container for turneringer */
+/* Grid container for turneringer */
 .turnering-container {
-    display: flex;
-    flex-wrap: wrap;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
     gap: 30px;
-    justify-content: space-around;
     max-width: 1200px;
     margin: 0 auto;
     padding: 40px;
@@ -368,7 +367,7 @@ label {
 
 /* Individual tournament card */
 .turnering {
-    flex: 1 1 calc(30% - 40px);
+    width: 100%;
     max-width: 300px;
     background-color: #ffffff;
     padding: 20px;
@@ -402,14 +401,14 @@ label {
   
 /* Media query for smaller screens */
 @media (max-width: 1024px) {
-    .turnering {
-        flex: 1 1 calc(45% - 40px);
+    .turnering-container {
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
     }
 }
 
 @media (max-width: 768px) {
-    .turnering {
-        flex: 1 1 calc(100% - 40px);
+    .turnering-container {
+        grid-template-columns: 1fr;
     }
 }
 
