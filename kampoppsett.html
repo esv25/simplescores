@@ -500,12 +500,6 @@ const params = new URLSearchParams(window.location.search);
   });
 
   
-  document.addEventListener('DOMContentLoaded', async () => {
-  await fetchTurneringData();   // henter divisions + fyller divisionTimeContainer
-  await initializeSettings();   // laster resten av innstillingene som før
-  loadDateTimesWizard();        // fyller de tradisjonelle date/time-feltene
-  hentOgOpprettBaner();
-});
 
 
             let kamper = []; // Definer kamper som en global variabel
@@ -974,8 +968,6 @@ function readBreaksFromWizard() {
   });
 }
 
-  // Start lasting så snart DOM er klar
-  document.addEventListener('DOMContentLoaded', fetchTurneringData);
 /**
  * Fordeler kampene jevnt mellom start- og sluttid.
  * - Første kamp på alle baner starter på dateTimes[date].startTime
@@ -2492,24 +2484,6 @@ async function finishWizard() {
 
 
 
-document.addEventListener('DOMContentLoaded', async () => {
-  try {
-    // 1) Hent turneringsdata (divisjoner, publisert-status osv.)
-    await fetchTurneringData();               // fyller divisionTimeContainer
-
-    // 2) Last inn eksisterende innstillinger og vis i wizard
-    await initializeSettings();               // logger "Innstillinger initialisert: {...}"
-
-    // 3) Fyll inn dato/tid-feltene i wizardtrinnet
-    await loadDateTimesWizard();              // logger "DateTimes hentet: {...}"
-
-    // 4) Hent og vis baner i wizard
-    await hentOgOpprettBaner();               // logger "Baner hentet: [...]"
-  } catch (err) {
-    console.error('Feil ved init:', err);
-    alert('Det oppstod en feil under oppstart – se konsollen.');
-  }
-});
 
 
 
@@ -5266,22 +5240,6 @@ function updateMatchCard(match) {
 /* ──────────────────────────────────────────────────────────── */
 /* 9. Kjør oppsett ettter at kortene er laget                  */
 /* ──────────────────────────────────────────────────────────── */
-document.addEventListener('DOMContentLoaded', () => {
-  /* din egen funksjon som lager kortene → renderScheduleUI(); */
-  setupGlobalDragAndDrop();
-  document.querySelectorAll('.kamp-kort').forEach(card => {
-    if (card.querySelector('.edit-match-btn')) return;
-    const btn = document.createElement('button');
-    btn.type = 'button';
-    btn.className = 'edit-match-btn';
-    btn.textContent = 'Rediger';
-    btn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      openMatchPopup(card.dataset.matchId || card.id);
-    });
-    card.querySelector('.kamp-detaljer')?.appendChild(btn);
-  });
-});
 
 
         </script>
