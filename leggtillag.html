@@ -11,27 +11,50 @@
       position: relative;
       z-index: 2000;
     }
+
+    /* Wrapper rundt sidebar og hovedinnhold */
+    .content-wrapper {
+      position: relative;
+      display: flex;
+      align-items: flex-start;
+      gap: 20px;
+    }
+
     /* Oppdatert stil for FAQ-sidebar på høyre side */
     #sidebar {
-      position: fixed;
-      top: 310px; /* Starter under header og nav – juster verdien ved behov */
+      position: absolute;
+      top: 0;
       right: 0;
       width: 250px;
-      height: calc(100vh - 280px);
       background: #f4f4f4;
       padding: 20px;
       box-shadow: -2px 0 5px rgba(0,0,0,0.1);
       transform: translateX(100%); /* Skjult til høyre */
       transition: transform 0.3s ease-in-out;
       z-index: 1500;
+      height: 100%;
     }
     #sidebar.open {
       transform: translateX(0);
     }
+
     /* Juster hovedinnholdet slik at header og nav ikke dekkes */
     main {
       padding: 40px;
       margin-top: 20px;
+      flex-grow: 1;
+    }
+
+    @media (max-width: 768px) {
+      .content-wrapper {
+        flex-direction: column;
+      }
+      #sidebar {
+        position: relative;
+        width: 100%;
+        height: auto;
+        transform: none;
+      }
     }
     /* Eksempel på styling for lenker i sidebar */
     #sidebar ul {
@@ -271,7 +294,8 @@
       <li><a href="kamper.html">Kamper</a></li>
     </ul>
   </nav>
-  
+
+  <div class="content-wrapper">
   <aside id="sidebar">
     <ul>
       <li><a href="faq.html">FAQ</a></li>
@@ -280,7 +304,7 @@
       <!-- Flere lenker kan legges til -->
     </ul>
   </aside>
-  
+
   <main>
 <!-- Team Popup -->
 <div id="teamPopup" class="modal">
@@ -339,7 +363,7 @@
       <button class="tab-btn active" onclick="showTab('teams', this)">Teams</button>
       <button class="tab-btn" onclick="showTab('refs', this)">Referees</button>
     </div>
-    <div id="teams" class="tab-section active">
+    <section id="teams" class="tab-section active">
       <div class="actions">
         <select id="divisionDropdown" onchange="hentOgVisLag()">
           <!-- Divisjoner vil bli populert her av JavaScript -->
@@ -347,16 +371,17 @@
         <button id="addTeamBtn" onclick="openTeamForm()">Add team</button>
       </div>
       <div id="lagContainer" class="card-list"></div>
-    </div>
+    </section>
 
-    <div id="refs" class="tab-section">
+    <section id="refs" class="tab-section">
       <div class="actions">
         <button id="addref" onclick="openRefereeForm()">Add referee</button>
       </div>
       <div id="dommerListe" class="card-list"></div>
-    </div>
+    </section>
 
   </main>
+  </div>
   <footer class="site-footer">
     <div class="footer-container">
       <p>Contact us: <a href="mailto:contact@example.com">contact@example.com</a></p>
