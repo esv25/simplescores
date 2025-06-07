@@ -190,6 +190,25 @@
     .slide.active {
       opacity: 1;
     }
+
+    /* Layout-klasser */
+    .slide.layout-1 {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .slide.layout-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      text-align: left;
+    }
+    .slide.layout-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+      text-align: left;
+    }
     /* Loader styling */
     .loader {
       border: 8px solid #f3f3f3;
@@ -467,6 +486,7 @@ function renderSlidesOverview() {
       <div>
         <strong>Slide ${index + 1}</strong>: ${slide.title || "Uten tittel"} –
         Divisjon: ${slide.division}, Fase: ${slide.fase},
+        Layout: ${slide.layout || 1},
         Innhold: ${slide.elements.join(', ')}
       </div>
     `;
@@ -490,6 +510,7 @@ function previewSlideConfig() {
   const fase       = document.getElementById('faseSelection')?.value      || '-';
   const title      = document.getElementById('slideTitle')?.value         || 'Slide Tittel';
   const duration   = document.getElementById('durationSelection')?.value  || 'n/a';
+  const layout     = document.getElementById('layoutSelection')?.value   || '1';
   const transition = document.getElementById('transitionSelection')?.value|| 'fade';
 
   const elements = [];
@@ -499,7 +520,7 @@ function previewSlideConfig() {
 
   // Bygg HTML
   let previewHTML = `
-    <div class="slide active">
+    <div class="slide active layout-${layout}">
       <h2>${title}</h2>
       <p><strong>Divisjon:</strong> ${division} | <strong>Fase:</strong> ${fase}</p>
       <p><strong>Varighet:</strong> ${duration} sekunder | <strong>Overgang:</strong> ${transition}</p>
@@ -533,8 +554,9 @@ function showSlide(index) {
   const slide = slides[index];
 
   // Bygg nytt innhold
+  const layoutClass = `layout-${slide.layout || 1}`;
   let content = `
-    <div class="slide active">
+    <div class="slide active ${layoutClass}">
       <h2>${slide.title || 'Slide'}</h2>
       <p><strong>Divisjon:</strong> ${slide.division} | <strong>Fase:</strong> ${slide.fase}</p>
   `;
@@ -824,6 +846,14 @@ function showSlide(index) {
             <input type="number" id="durationSelection" value="10" min="5" max="60">
           </div>
           <div>
+            <label for="layoutSelection">Layout:</label>
+            <select id="layoutSelection">
+              <option value="1">1 kolonne</option>
+              <option value="2">2 kolonner</option>
+              <option value="3">3 kolonner</option>
+            </select>
+          </div>
+          <div>
             <label for="transitionSelection">Overgangseffekt:</label>
             <select id="transitionSelection">
               <option value="fade">Fade</option>
@@ -847,6 +877,7 @@ function showSlide(index) {
           });
           document.getElementById('slideTitle').value = editingSlide.title || "";
           document.getElementById('durationSelection').value = editingSlide.duration || 10;
+          document.getElementById('layoutSelection').value = editingSlide.layout || "1";
           document.getElementById('transitionSelection').value = editingSlide.transition || "fade";
           if(editingSlide.elements) {
             document.getElementById('kamperCheckbox').checked = editingSlide.elements.includes('kamper');
@@ -904,6 +935,7 @@ function showSlide(index) {
       const faseSelection = document.getElementById('faseSelection').value;
       const slideTitle = document.getElementById('slideTitle').value;
       const duration = parseInt(document.getElementById('durationSelection').value) || 10;
+      const layout = parseInt(document.getElementById('layoutSelection').value) || 1;
       const transition = document.getElementById('transitionSelection').value;
       const kamperChecked = document.getElementById('kamperCheckbox').checked;
       const tabellerChecked = document.getElementById('tabellerCheckbox').checked;
@@ -923,6 +955,7 @@ function showSlide(index) {
         fase: faseSelection,
         title: slideTitle,
         duration: duration,
+        layout: layout,
         transition: transition,
         elements: []
       };
