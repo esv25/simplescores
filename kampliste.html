@@ -101,6 +101,19 @@
       color: #4a5568;
       margin-top: 8px;
     }
+    .match.compact .team {
+      display: none;
+    }
+    .compact-teams {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 4px;
+      flex-wrap: nowrap;
+    }
+    .compact-teams .score {
+      font-size: 1rem;
+    }
 
     /* Filter toggle button */
     #toggleFilters {
@@ -122,8 +135,14 @@
       .match {
         padding: 8px 12px;
       }
+      .match.compact {
+        padding: 6px 8px;
+      }
       .name {
         font-size: 0.9rem;
+      }
+      .compact-teams .name {
+        font-size: 0.85rem;
       }
       .info {
         font-size: 0.8rem;
@@ -326,14 +345,35 @@
     }
 
     function renderMatchCard(m) {
-      const finished = m.status.toLowerCase() === 'ferdig';
-      const notStarted = m.currentPeriod == null && !finished;
-      let timeBox = '';
+      const finished    = m.status.toLowerCase() === 'ferdig';
+      const notStarted  = m.currentPeriod == null && !finished;
+      let timeBox       = '';
       if (m.currentPeriod != null) {
-        timeBox = `<div class="time-box">Periode ${m.currentPeriod}, ${m.remainingTime}</div>`;
+        timeBox = `<span class="time-box">Periode ${m.currentPeriod}, ${m.remainingTime}</span>`;
       }
-      const homeScore = notStarted ? '<span class="score draw">-</span>' : `<span class="score ${finished?(m.score1>m.score2?'win':m.score1<m.score2?'loss':'draw'):''}">${m.score1}</span>`;
-      const awayScore = notStarted ? '<span class="score draw">-</span>' : `<span class="score ${finished?(m.score2>m.score1?'win':m.score2<m.score1?'loss':'draw'):''}">${m.score2}</span>`;
+      const homeScore = notStarted
+        ? '<span class="score draw">-</span>'
+        : `<span class="score ${finished?(m.score1>m.score2?'win':m.score1<m.score2?'loss':'draw'):''}">${m.score1}</span>`;
+      const awayScore = notStarted
+        ? '<span class="score draw">-</span>'
+        : `<span class="score ${finished?(m.score2>m.score1?'win':m.score2<m.score1?'loss':'draw'):''}">${m.score2}</span>`;
+
+      if (window.innerWidth <= 768) {
+        return `
+          <a href="kampdetaljer.html?id=${m.id}&tournamentid=${tournamentId}" class="match-link">
+            <div class="match compact ${finished?'finished':''}">
+              <div class="compact-teams">
+                <span class="name">${m.hjemmelag}</span>
+                ${homeScore}
+                <span class="dash">-</span>
+                ${awayScore}
+                <span class="name">${m.bortelag}</span>
+              </div>
+              <div class="info">${timeBox} Start: ${m.timeStr} &nbsp; Dommere: ${m.referees.join(', ')||'Ingen'}</div>
+            </div>
+          </a>
+        `;
+      }
 
       return `
         <a href="kampdetaljer.html?id=${m.id}&tournamentid=${tournamentId}" class="match-link">
