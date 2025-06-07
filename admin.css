@@ -214,7 +214,7 @@ main {
 }
 
 /* Button Styling */
-button {
+button:not([class]) {
     background-color: #4f46e5; /* indigo-600 */
     color: white;
     padding: 0.5rem 1rem;
@@ -227,13 +227,13 @@ button {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
-button:hover {
+button:not([class]):hover {
     background-color: #4338ca; /* indigo-700 */
     transform: scale(1.05);
 }
 
 /* Disabled Button */
-button[disabled] {
+button:not([class])[disabled] {
     background-color: #cccccc;
     cursor: not-allowed;
     box-shadow: none;
