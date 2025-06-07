@@ -149,59 +149,6 @@
 .modal-content button:hover {
   background-color: #4a5ddd;
 }
-
-    /* Container for spillerliste */
-    #spillereListe {
-      margin-bottom: 20px;
-      max-height: 300px;    /* Eventuelt for scroll */
-      overflow-y: auto;     /* Rull hvis mange spillere */
-    }
-    /* Hvert spiller-element på en egen linje */
-    #spillereListe > div {
-      display: flex;
-      align-items: center;
-      justify-content: space-between; /* Navn til venstre, knapp til høyre */
-      margin-bottom: 10px;
-    }
-    /* Delete-knappen */
-    #spillereListe > div > button {
-      background-color: #596bff; 
-      color: #fff;
-      border: none;
-      padding: 6px 10px;
-      border-radius: 4px;
-      cursor: pointer;
-      font-size: 0.9rem;
-    }
-    #spillereListe > div > button:hover {
-      background-color: #4a5ddd;
-    }
-    /* Området for å legge til ny spiller */
-    .modal-content .add-player-container {
-      display: flex;
-      gap: 10px;
-      margin-top: 20px;
-      align-items: center;
-    }
-    .modal-content .add-player-container input[type="text"] {
-      flex: 1;
-      padding: 8px;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-    }
-    .modal-content .add-player-container button {
-      background-color: #596bff;
-      color: #fff;
-      border: none;
-      padding: 8px 14px;
-      border-radius: 4px;
-      cursor: pointer;
-      font-size: 0.9rem;
-    }
-    .modal-content .add-player-container button:hover {
-      background-color: #4a5ddd;
-    }
-
     /* Tabs and cards */
     .tabs {
       display: flex;
@@ -224,8 +171,8 @@
     .actions { margin-bottom: 10px; display: flex; gap: 10px; align-items: center; }
 
     .card-list {
-      display: flex;
-      flex-direction: column;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
       gap: 1rem;
     }
     .team-card, .ref-card {
@@ -237,13 +184,14 @@
       cursor: pointer;
       position: relative;
       display: flex;
-      justify-content: space-between;
-      align-items: center;
+      flex-direction: column;
+      gap: 0.5rem;
     }
     .team-card .actions, .ref-card .actions {
-      margin-top: 0;
+      margin-top: auto;
       display: flex;
       gap: 5px;
+      align-self: flex-end;
     }
     .team-card button, .ref-card button {
       background-color: #596bff;
@@ -255,6 +203,8 @@
       font-size: 0.8rem;
     }
     .team-card button:hover, .ref-card button:hover { background-color: #4a5ddd; }
+
+    .team-card ul { list-style: disc; padding-left: 1.2rem; margin: 0; width: 100%; }
 
     @media (min-width: 768px) {
       .modal.desktop .modal-content {
@@ -320,19 +270,7 @@
       <button id="saveTeamBtn" onclick="saveTeam()" type="button">Add team</button>
     </form>
   </div>
-</div>
 
-
-    <!-- The Modal for spillere -->
-    <div id="myModal" class="modal" style="display: none;">
-      <div class="modal-content">
-        <span class="close" onclick="document.getElementById('myModal').style.display='none'">&times;</span>
-        <h2>Players on the team:</h2>
-        <div id="spillereListe"></div>
-        <input type="text" id="nySpillerNavn" placeholder="Player name">
-        <button onclick="leggTilSpiller()" id="addplayer" type="button">Add player</button>
-      </div>
-    </div>
 
 <!-- Referee Form Popup -->
 <div id="refereeForm" class="modal">
@@ -633,17 +571,29 @@ document.addEventListener('DOMContentLoaded', () => {
             const lag = doc.data();
             const card = document.createElement('div');
             card.className = 'team-card';
-            card.innerHTML = `<h3>${lag.lagNavn}</h3>`;
             card.addEventListener('click', () => openTeamForm(doc.id));
+            const header = document.createElement('h3');
+            header.textContent = lag.lagNavn;
+            card.appendChild(header);
+            const list = document.createElement('ul');
+            const players = lag.spillere || [];
+            if(players.length){
+              players.forEach(p => {
+                const li = document.createElement('li');
+                li.textContent = p;
+                list.appendChild(li);
+              });
+            } else {
+              const li = document.createElement('li');
+              li.textContent = 'No players';
+              list.appendChild(li);
+            }
+            card.appendChild(list);
             const actions = document.createElement('div');
             actions.className = 'actions';
-            const playersBtn = document.createElement('button');
-            playersBtn.textContent = 'Players';
-            playersBtn.onclick = (e) => { e.stopPropagation(); visSpillere(doc.id); };
             const delBtn = document.createElement('button');
             delBtn.textContent = 'Delete';
             delBtn.onclick = (e) => { e.stopPropagation(); slettLag(doc.id); };
-            actions.appendChild(playersBtn);
             actions.appendChild(delBtn);
             card.appendChild(actions);
             container.appendChild(card);
@@ -651,67 +601,6 @@ document.addEventListener('DOMContentLoaded', () => {
         })
         .catch(error => console.error('Error fetching teams: ', error));
     }
-    
-    function visSpillere(lagId) {
-      if (!lagId) {
-        console.error("lagId is undefined or empty");
-        return;
-      }
-      var modal = document.getElementById("myModal");
-      var spillereListe = document.getElementById("spillereListe");
-      spillereListe.innerHTML = '';
-      
-      db.collection('turneringer').doc(turneringId)
-        .collection('lag').doc(lagId).get()
-        .then(doc => {
-          if (doc.exists) {
-            const teamData = doc.data();
-            const spillereArray = teamData.spillere || [];
-            spillereArray.forEach((spiller, index) => {
-              const spillerElement = document.createElement("div");
-              spillerElement.textContent = spiller;
-              const slettKnapp = document.createElement("button");
-              slettKnapp.textContent = "Delete";
-              slettKnapp.onclick = function() {
-                slettSpiller(spiller, lagId);
-              };
-              spillerElement.appendChild(slettKnapp);
-              spillereListe.appendChild(spillerElement);
-            });
-            modal.style.display = "block";
-            let addButton = document.getElementById("addplayer");
-            addButton.onclick = function() {
-              let spillernavnet = document.getElementById("nySpillerNavn").value; 
-              leggTilSpiller(spillernavnet, lagId);
-              document.getElementById("nySpillerNavn").value ='';
-            };
-          } else {
-            console.error("Ingen data funnet for laget");
-          }
-        })
-        .catch(error => console.error("Error fetching team data: ", error));
-    }
-    
-    function slettSpiller(spillerNavn, lagId) {
-      db.collection('turneringer').doc(turneringId).collection('lag').doc(lagId).get().then(doc => {
-        if (!doc.exists) {
-          console.error('No such document!');
-          return;
-        }
-        let oppdaterteSpillere = doc.data().spillere.filter(spiller => spiller !== spillerNavn);
-        db.collection('turneringer').doc(turneringId).collection('lag').doc(lagId).update({
-          spillere: oppdaterteSpillere
-        }).then(() => {
-          console.log('Player successfully deleted');
-          visSpillere(lagId);
-        }).catch(error => {
-          console.error('Error removing player: ', error);
-        });
-      }).catch(error => {
-        console.error('Error getting document:', error);
-      });
-    }
-    
     function toggleSidebar() {
       const sidebar = document.getElementById('sidebar');
       sidebar.classList.toggle('open');
@@ -723,74 +612,6 @@ document.addEventListener('DOMContentLoaded', () => {
       document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
       if(btn) btn.classList.add('active');
     }
-    
-    function leggTilSpiller(spillerNavn, lagId) {
-      const lagRef = db.collection('turneringer').doc(turneringId).collection('lag').doc(lagId);
-      lagRef.get().then(doc => {
-        if (!doc.exists) {
-          console.log('No such document!');
-          return;
-        }
-        let spillereArray = doc.data().spillere || [];
-        spillereArray.push(spillerNavn);
-        lagRef.update({
-          spillere: spillereArray
-        }).then(() => {
-          console.log("Spiller lagt til");
-          visSpillere(lagId);
-        }).catch(error => {
-          console.error("Error adding player: ", error);
-        });
-      }).catch(error => {
-        console.error("Error getting document:", error);
-      });
-    }
-    
-    function slettLag(lagId) {
-      db.collection('turneringer').doc(turneringId).collection('lag').doc(lagId).delete().then(() => {
-        console.log('Lag slettet');
-        hentOgVisLag();
-      }).catch(error => {
-        console.error('Feil ved sletting av lag:', error);
-      });
-    }
-    
-  // 3) Les av valgte divisjoner i addReferee()
-function saveReferee(){
-  const name       = document.getElementById('refereeName').value;
-  const teamEl     = document.getElementById('refereeTeam');
-  const teamId     = teamEl.value;
-  const teamName   = teamId ? teamEl.selectedOptions[0].text : null;
-
-  const checkedEls = Array.from(
-    document.querySelectorAll(
-      '#refereeDivisionsContainer input[name="refereeDivisions"]:checked'
-    )
-  );
-  const divisions  = checkedEls.map(cb => cb.value);
-
-  const dommerdata = {
-    dommer:    name,
-    teamId:    teamId,
-    teamName:  teamName,
-    divisions: divisions
-  };
-
-  // nullstill skjema
-  document.getElementById('refereeName').value = '';
-  teamEl.value                             = '';
-  checkedEls.forEach(cb => cb.checked       = false);
-
-  const ref = db.collection('turneringer').doc(turneringId).collection('dommere');
-  const p = editingRefereeId ? ref.doc(editingRefereeId).set(dommerdata) : ref.doc().set(dommerdata);
-  p.then(() => {
-      document.getElementById('refereeForm').style.display = 'none';
-      editingRefereeId = null;
-      hentDommere();
-    })
-    .catch(console.error);
-}
-
 
 function hentDommere() {
   db.collection('turneringer')
