@@ -60,7 +60,7 @@
       color: #fff;
     }
     /* Enkel responsivitet: skjul noen kolonner på mobil */
-    @media (max-width: 768px) {
+    @media (max-width: 700px) {
       .divisjonstabell th:nth-child(3),
       .divisjonstabell td:nth-child(3),
       .divisjonstabell th:nth-child(5),
@@ -118,15 +118,16 @@
   --box-radius: 8px;
   --connector-color: #ccc;
   --header-bg: #b2f2e8;
+  --connector-gap: 2rem;   /* avstand for linjer mellom runder */
 }
 
 /* ===== Knockout-bracket styling ===== */
 /* ===== Knockout-bracket styling ===== */
 .bracket-container {
   display: grid;
-  /* --- sentrerer alle kolonner/rader i midten av beholderen --- */
   align-content: center;
-  grid-template-columns: repeat(auto-fit, minmax(var(--box-width), 1fr));
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(var(--box-width), 1fr);
   column-gap: var(--round-gap);
   row-gap: var(--row-gap);
   padding: var(--round-gap) 0;
@@ -145,6 +146,8 @@
   line-height: var(--box-height);
   font-weight: 600;
   text-align: center;
+  background: var(--header-bg);
+  text-transform: uppercase;
 }
 .match-box {
   background: #fff;
@@ -157,11 +160,22 @@
   flex-direction: column;
   justify-content: space-between;
   width: 100%;
+  border-top: 2px solid var(--header-bg);
 }
 .match-box.vertical .team-row {
   display: flex;
   justify-content: space-between;
   padding: 0.25rem 0;
+}
+.match-box.vertical .team-row + .team-row {
+  border-top: 1px solid #eaeaea;
+}
+
+.bracket-round {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
 }
 .match-box .name {
   font-weight: 600;
@@ -172,25 +186,34 @@
 }
 .match-box.vinner .score-box { color: #48bb78; }
 .match-box.taper  .score-box { color: #f56565; opacity: 0.8; }
-/* Canvas-linjer */
-svg.bracket-svg,
-canvas#bracket-canvas {
+
+/* Linjer mellom runder */
+.bracket-round:not(:last-child) .match-box::after {
+  content: '';
   position: absolute;
-  top:0; left:0;
-  width:100%; height:100%;
-  pointer-events: none;
-  z-index:1;
+  top: 50%;
+  right: calc(-1 * var(--connector-gap));
+  width: var(--connector-gap);
+  border-top: 2px solid var(--connector-color);
+}
+.bracket-round:not(:last-child) .match-box[data-side="upper"]::before,
+.bracket-round:not(:last-child) .match-box[data-side="lower"]::before {
+  content: '';
+  position: absolute;
+  right: calc(-1 * var(--connector-gap));
+  width: 2px;
+  background: var(--connector-color);
+}
+.bracket-round:not(:last-child) .match-box[data-side="upper"]::before {
+  top: 50%;
+  height: calc(var(--row-gap) / 2 + var(--box-height) / 2);
+}
+.bracket-round:not(:last-child) .match-box[data-side="lower"]::before {
+  bottom: 50%;
+  height: calc(var(--row-gap) / 2 + var(--box-height) / 2);
 }
 
-/* SVG-linjene */
-svg.bracket-svg {
-  position: absolute;
-  top: 0; left: 0;
-  width: 100%; height: 100%;
-  pointer-events: none;
-}
-
-@media (max-width: 768px) {
+@media (max-width: 700px) {
   :root {
     --round-gap:    1rem;   /* redusert avstand mellom kolonner */
     --row-gap:      0.75rem;/* redusert avstand mellom rader */
@@ -206,6 +229,13 @@ svg.bracket-svg {
   .match-box .score {
     width: 2rem;
     font-size: 0.85rem;
+  }
+  .match-box::before,
+  .match-box::after {
+    display: none;
+  }
+  .bracket-container {
+    grid-auto-flow: row;
   }
 
   /* Vis selector for å velge runde */
@@ -223,7 +253,7 @@ svg.bracket-svg {
     font-size: 0.9rem;
   }
 }
-@media (max-width: 768px) {
+@media (max-width: 700px) {
   .popup-overlay {
     position: fixed;
     top: 0; left: 0;
@@ -590,17 +620,17 @@ async function renderKnockoutBracket(division, phaseNum, parentElement, utslagsr
     .filter(r => typeof r.runde === 'number')
     .sort((a,b) => a.runde - b.runde);
 
-  // Runde-titler
   normalRounds.forEach((runde, ri) => {
+    const roundDiv = document.createElement('div');
+    roundDiv.className = 'bracket-round';
+    roundDiv.dataset.round = runde.runde;
+    bracket.appendChild(roundDiv);
+
     const title = document.createElement('div');
     title.className = 'round-title';
     title.textContent = `Runde ${runde.runde}`;
-    title.style.gridColumnStart = ri + 1;
-    bracket.appendChild(title);
-  });
+    roundDiv.appendChild(title);
 
-  // Kamp-bokser
-  normalRounds.forEach((runde, ri) => {
     runde.kamper.forEach((kampDef, mi) => {
       const data = matchesByNumber[kampDef.kampNummer] || {};
       const hjem = data.hjemmelag  || kampDef.lag1 || '–';
@@ -612,8 +642,12 @@ async function renderKnockoutBracket(division, phaseNum, parentElement, utslagsr
       box.className = 'match-box vertical';
       box.dataset.roundIndex = ri;
       box.dataset.matchIndex = mi;
-      box.style.gridColumnStart = ri + 1;
-      box.style.gridRowStart = (mi * Math.pow(2, ri)) + 2;
+      box.dataset.matchId = kampDef.kampNummer;
+      box.dataset.side = (mi % 2 === 0) ? 'upper' : 'lower';
+      if (normalRounds[ri + 1]) {
+        const nextMatch = normalRounds[ri + 1].kamper[Math.floor(mi / 2)];
+        if (nextMatch) box.dataset.nextId = nextMatch.kampNummer;
+      }
       box.innerHTML = `
         <div class="team-row"><span class="name">${hjem}</span><span class="score-box">${sH}</span></div>
         <div class="team-row"><span class="name">${bort}</span><span class="score-box">${sA}</span></div>
@@ -624,12 +658,11 @@ async function renderKnockoutBracket(division, phaseNum, parentElement, utslagsr
         else if (sA > sH) box.classList.add('taper');
       }
 
-      bracket.appendChild(box);
+      roundDiv.appendChild(box);
     });
   });
 
-  // Tegn linjer etter at DOM er oppdatert
-  setTimeout(drawBracketConnections, 100);
+
 
   // Bronsefinale (hvis definert)
   const bronze = utslagsrunder.find(r => typeof r.runde !== 'number');
@@ -710,77 +743,6 @@ document.addEventListener("DOMContentLoaded", async () => {
  * Tegner myke, avrundede linjer bak .match-box i .bracket-container
  * ved å bruke offsetLeft/Top for korrekte koordinater.
  */
-function drawBracketConnections() {
-  const container = document.querySelector('.bracket-container');
-  if (!container) return;
-
-  // Finn/lag canvas
-  let canvas = container.querySelector('#bracket-canvas');
-  if (!canvas) {
-    canvas = document.createElement('canvas');
-    canvas.id = 'bracket-canvas';
-    canvas.style.position       = 'absolute';
-    canvas.style.top            = '0';
-    canvas.style.left           = '0';
-    canvas.style.pointerEvents  = 'none';
-    canvas.style.zIndex         = '1';
-    container.insertBefore(canvas, container.firstChild);
-  }
-
-  // Sett størrelsen til å dekke hele container
-  canvas.width  = container.clientWidth;
-  canvas.height = container.clientHeight;
-
-  const ctx = canvas.getContext('2d');
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-  // Stil
-  ctx.strokeStyle = '#E2E8F0';  // samme som boks-border
-  ctx.lineWidth   = 2;
-  ctx.lineCap     = 'round';
-  ctx.lineJoin    = 'round';
-
-  // Samle bokser per runde
-  const boxes = Array.from(container.querySelectorAll('.match-box'));
-  const rounds = boxes.reduce((acc, box) => {
-    const ri = +box.dataset.roundIndex;
-    (acc[ri] = acc[ri] || []).push(box);
-    return acc;
-  }, {});
-
-  // Tegn fra hver runde til neste
-  Object.keys(rounds).map(Number).forEach(roundIndex => {
-    const curr = rounds[roundIndex];
-    const next = rounds[roundIndex + 1];
-    if (!next) return;
-
-    curr.forEach(box => {
-      const mi = +box.dataset.matchIndex;
-      const targetIdx = Math.floor(mi / 2);
-      const target = next.find(nb => +nb.dataset.matchIndex === targetIdx);
-      if (!target) return;
-
-      // Startpunkt: midten på høyre kant
-      const startX = box.offsetLeft + box.offsetWidth;
-      const startY = box.offsetTop + box.offsetHeight / 2;
-
-      // Sluttpunkt: midten på venstre kant
-      const endX   = target.offsetLeft;
-      const endY   = target.offsetTop + target.offsetHeight / 2;
-
-      // Tegn med en liten Bezier-bue
-      const midX = (startX + endX) / 2;
-      ctx.beginPath();
-      ctx.moveTo(startX, startY);
-      ctx.bezierCurveTo(midX, startY, midX, endY, endX, endY);
-      ctx.stroke();
-    });
-  });
-}
-
-// Kjør på oppstart og ved resizing
-window.addEventListener('load',  drawBracketConnections);
-window.addEventListener('resize', drawBracketConnections);
 
 
 /**
