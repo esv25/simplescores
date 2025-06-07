@@ -375,7 +375,8 @@ function kallGruppespill(){
     const numGroups       = parseInt(document.getElementById("numberOfGroups").value, 10);
     const teamsPerGroup   = parseInt(document.getElementById("teamsPerGroup").value, 10);
     gruppeMoterPerPar     = parseInt(document.getElementById("meetingsPerPair").value, 10) || 1;
-    createTables(numGroups, teamsPerGroup, fasesjekk);
+    const segIndex = faseSegments[fasesjekk].length;
+    createTables(numGroups, teamsPerGroup, fasesjekk, segIndex);
     // skjul popup
     document.getElementById('groupPlayOptions').style.display = 'none';
     document.getElementById('formatPopup').style.display     = 'none';
@@ -383,7 +384,8 @@ function kallGruppespill(){
 
         function kallEnkeltKamper() {
             const numMatches = parseInt(document.getElementById("numberOfSingleMatches").value, 10);
-            createSingleMatches(numMatches, fasesjekk);
+            const segIndex = faseSegments[fasesjekk].length;
+            createSingleMatches(numMatches, fasesjekk, segIndex);
             document.getElementById('singleMatchOptions').style.display = 'none';
             document.getElementById('formatPopup').style.display = 'none';
         }
@@ -392,7 +394,8 @@ function kallGruppespill(){
     const numKnockoutTeams = parseInt(document.getElementById("numberOfKnockoutTeams").value, 10);
     const includeBronze    = document.getElementById("bronzeFinal").checked;
     // Kall med riktig flagg!
-    generateKnockoutBracket(fasesjekk, numKnockoutTeams, includeBronze);
+    const segIndex = faseSegments[fasesjekk].length;
+    generateKnockoutBracket(fasesjekk, numKnockoutTeams, includeBronze, segIndex);
     // Så kan vi lukke popup’en
     document.getElementById('knockoutOptions').style.display = 'none';
     document.getElementById('formatPopup').style.display = 'none';
@@ -557,7 +560,7 @@ document.getElementById('divisionDropdown')
         }
 
         let numTables;
-        async function createTables(numGroups, teamsPerGroup, fasesjekk) {
+        async function createTables(numGroups, teamsPerGroup, fasesjekk, segmentIndex) {
     // Hent container basert på hvilken fase vi jobber med
     let container;
     if (fasesjekk == 1) {
@@ -577,8 +580,9 @@ document.getElementById('divisionDropdown')
 
     const segmentDiv = document.createElement('div');
     segmentDiv.classList.add('segment');
+    segmentDiv.dataset.segment = segmentIndex;
     container.appendChild(segmentDiv);
-    faseSegments[fasesjekk].push({ type: 'gruppespill', element: segmentDiv });
+    faseSegments[fasesjekk].push({ type: 'gruppespill', element: segmentDiv, index: segmentIndex });
 
     // Bygg opp tabellene med et fast antall rader (lag) per gruppe.
     for (let i = 0; i < numGroups; i++) {
@@ -600,8 +604,10 @@ document.getElementById('divisionDropdown')
             const cell = document.createElement('td');
             const select = document.createElement('select');
             select.classList.add('teamDropdown', `gruppe-${fasesjekk}-dropdown`);
-            select.setAttribute('id', `fase-${fasesjekk}-dropdown-gruppe-${i+1}-lag-${j+1}`);
-            select.setAttribute('name', `dropdown-gruppe-${fasesjekk}-lag-${j+1}`);
+            select.setAttribute('id', `fase-${fasesjekk}-seg${segmentIndex}-dropdown-gruppe-${i+1}-lag-${j+1}`);
+            select.setAttribute('name', `dropdown-gruppe-${fasesjekk}-seg${segmentIndex}-lag-${j+1}`);
+            select.dataset.fase = fasesjekk;
+            select.dataset.segment = segmentIndex;
             cell.appendChild(select);
             row.appendChild(cell);
             tbody.appendChild(row);
@@ -609,7 +615,7 @@ document.getElementById('divisionDropdown')
         table.appendChild(tbody);
         segmentDiv.appendChild(table);
     }
-    populateGDropdowns(fasesjekk);
+    populateGDropdowns(fasesjekk, segmentIndex);
 }
 
 
@@ -729,14 +735,15 @@ async function visFaseData(faseNummer) {
     else if (faseData.type) segments = [faseData];
 
     for (const seg of segments) {
+      const segIndex = faseSegments[faseNummer].length;
       if (seg.type === 'gruppespill') {
         const grupper = seg.grupper;
         const antallGrupper = Object.keys(grupper).length;
         const antallLagPerGruppe = grupper[Object.keys(grupper)[0]].length;
-        await createTables(antallGrupper, antallLagPerGruppe, faseNummer);
-        await waitForDropdownsToBeReady(faseNummer, seg, 'gruppe');
+        await createTables(antallGrupper, antallLagPerGruppe, faseNummer, segIndex);
+        await waitForDropdownsToBeReady(faseNummer, segIndex, seg, 'gruppe');
 
-        const dropdowns = document.querySelectorAll(`.teamDropdown.gruppe-${faseNummer}-dropdown`);
+        const dropdowns = document.querySelectorAll(`.teamDropdown.gruppe-${faseNummer}-dropdown[data-segment="${segIndex}"]`);
         let idx = 0;
         for (const grpName of Object.keys(grupper)) {
           for (const lagId of grupper[grpName]) {
@@ -745,8 +752,8 @@ async function visFaseData(faseNummer) {
         }
       } else if (seg.type === 'enkeltkamp') {
         const antall = seg.kamper.length;
-        await createSingleMatches(antall, faseNummer);
-        const matchDivs = faseContainer.querySelectorAll('.single-match');
+        await createSingleMatches(antall, faseNummer, segIndex);
+        const matchDivs = faseContainer.querySelectorAll(`.single-match[data-segment="${segIndex}"]`);
         matchDivs.forEach((md, i) => {
           const sels = md.querySelectorAll('.single-match-team-select');
           setDropdownValue(sels[0], seg.kamper[i].lag1);
@@ -758,13 +765,13 @@ async function visFaseData(faseNummer) {
         const numKnockoutTeams = matchesInFirst * 2;
         const includeBronze = seg.utslagsrunder.some(r => r.kamper.some(k => k.bronse));
 
-        await generateKnockoutBracket(faseNummer, numKnockoutTeams, includeBronze);
-        await waitForDropdownsToBeReady(faseNummer, seg, 'utslag');
+        await generateKnockoutBracket(faseNummer, numKnockoutTeams, includeBronze, segIndex);
+        await waitForDropdownsToBeReady(faseNummer, segIndex, seg, 'utslag');
 
-        Array.from(faseContainer.querySelectorAll('.round'))
+        Array.from(faseContainer.querySelectorAll(`.segment[data-segment="${segIndex}"] .round`))
           .forEach((rd, idx) => { if (idx >= savedRounds) rd.remove(); });
 
-        const allSelects = faseContainer.querySelectorAll('.knockout-team-select');
+        const allSelects = faseContainer.querySelectorAll(`.knockout-team-select[data-fase="${faseNummer}"][data-segment="${segIndex}"]`);
         const savedValues = seg.utslagsrunder
           .flatMap(r => r.kamper.flatMap(k => [k.lag1, k.lag2]))
           .filter(v => v);
@@ -781,7 +788,7 @@ async function visFaseData(faseNummer) {
 
         if (includeBronze) {
           const bronzeMatch = faseContainer
-            .querySelector('.round:last-child .match[data-bronze="true"]');
+            .querySelector(`.segment[data-segment="${segIndex}"] .round:last-child .match[data-bronze="true"]`);
           const bronzeSels = bronzeMatch.querySelectorAll('.knockout-team-select');
           const bronzeData = seg.utslagsrunder
             .flatMap(r => r.kamper.filter(k => k.bronse))[0];
@@ -798,7 +805,7 @@ async function visFaseData(faseNummer) {
         }
 
         seg.utslagsrunder.forEach((rundeData, ri) => {
-          const roundDivs = faseContainer.querySelectorAll('.round');
+          const roundDivs = faseContainer.querySelectorAll(`.segment[data-segment="${segIndex}"] .round`);
           const roundDiv = roundDivs[ri];
           if (!roundDiv) return;
           const matchDivs = roundDiv.querySelectorAll('.match:not([data-bronze])');
@@ -812,7 +819,7 @@ async function visFaseData(faseNummer) {
 
         if (includeBronze) {
           const bronzeSels = faseContainer
-            .querySelectorAll('.round:last-child .match[data-bronze="true"] .knockout-team-select');
+            .querySelectorAll(`.segment[data-segment="${segIndex}"] .round:last-child .match[data-bronze="true"] .knockout-team-select`);
           const bronzeData = seg.utslagsrunder
             .flatMap(r => r.kamper.filter(k => k.bronse))[0];
           setDropdownValue(bronzeSels[0], bronzeData.lag1);
@@ -828,16 +835,16 @@ async function visFaseData(faseNummer) {
 
 
 
-        function waitForDropdownsToBeReady(faseNummer, faseData, type) {
+        function waitForDropdownsToBeReady(faseNummer, segmentIndex, faseData, type) {
             return new Promise((resolve) => {
                 const observer = new MutationObserver((mutations, obs) => {
                     let dropdowns;
-                    let expectedDropdownCount = calculateExpectedDropdownCount(faseNummer, faseData, type);
+                    let expectedDropdownCount = calculateExpectedDropdownCount(faseData, type);
 
                     if (type === 'gruppe') {
-                        dropdowns = document.querySelectorAll(`.teamDropdown.gruppe-${faseNummer}-dropdown`);
+                        dropdowns = document.querySelectorAll(`.teamDropdown.gruppe-${faseNummer}-dropdown[data-segment="${segmentIndex}"]`);
                     } else if (type === 'utslag') {
-                        dropdowns = document.querySelectorAll(`.knockout-team-select[data-fase="${faseNummer}"]`);
+                        dropdowns = document.querySelectorAll(`.knockout-team-select[data-fase="${faseNummer}"][data-segment="${segmentIndex}"]`);
                     }
 
                     if (dropdowns.length === expectedDropdownCount) {
@@ -848,7 +855,7 @@ async function visFaseData(faseNummer) {
                     }
                 });
 
-                const targetNode = document.getElementById(`fase${faseNummer}`);
+                const targetNode = document.querySelector(`#fase${faseNummer} .segment[data-segment="${segmentIndex}"]`);
                 if (targetNode) {
                     observer.observe(targetNode, { childList: true, subtree: true });
                 } else {
@@ -857,7 +864,7 @@ async function visFaseData(faseNummer) {
             });
         }
 
-        function calculateExpectedDropdownCount(faseNummer, faseData, type) {
+        function calculateExpectedDropdownCount(faseData, type) {
             if (type === 'gruppe') {
                 return Object.values(faseData.grupper).flat().length;
             } else if (type === 'utslag') {
@@ -910,12 +917,12 @@ async function visFaseData(faseNummer) {
             });
         });
 
-        function updateNextRoundWinner(faseNummer, currentRound, currentMatch, winnerTeam) {
+function updateNextRoundWinner(faseNummer, segmentIndex, currentRound, currentMatch, winnerTeam) {
   const nextRound = currentRound + 1;
   const nextMatch = Math.floor(currentMatch / 2);
   // Bestem hvilken dropdown i neste runde som skal oppdateres:
   const spot = (currentMatch % 2 === 0) ? 1 : 2;
-  const nextSelectId = `knockout-select-${faseNummer}-${nextRound}-${nextMatch}-${spot}`;
+  const nextSelectId = `knockout-select-${faseNummer}-seg${segmentIndex}-${nextRound}-${nextMatch}-${spot}`;
   const nextSelect = document.getElementById(nextSelectId);
   if (nextSelect) {
     nextSelect.disabled = false; // Sikrer at feltet er aktivt
@@ -938,7 +945,7 @@ async function visFaseData(faseNummer) {
   }
 }
 
-async function generateKnockoutBracket(fasesjekk, numKnockoutTeams, includeBronze) {
+async function generateKnockoutBracket(fasesjekk, numKnockoutTeams, includeBronze, segmentIndex) {
   try {
     // 1) Finn antall lag
     let numTeams = numKnockoutTeams;
@@ -962,8 +969,9 @@ async function generateKnockoutBracket(fasesjekk, numKnockoutTeams, includeBronz
 
     const segmentDiv = document.createElement('div');
     segmentDiv.classList.add('segment');
+    segmentDiv.dataset.segment = segmentIndex;
     container.appendChild(segmentDiv);
-    faseSegments[fasesjekk].push({ type: 'utslag', element: segmentDiv });
+    faseSegments[fasesjekk].push({ type: 'utslag', element: segmentDiv, index: segmentIndex });
 
     // 3) Generer hver runde med navn og dropdowns
     for (let round = 0; round < rounds; round++) {
@@ -998,7 +1006,8 @@ async function generateKnockoutBracket(fasesjekk, numKnockoutTeams, includeBronz
           sel.classList.add('knockout-team-select');
           sel.dataset.fase  = fasesjekk;
           sel.dataset.round = round;
-          sel.id            = `knockout-select-${fasesjekk}-${round}-${match}-${idx}`;
+          sel.dataset.segment = segmentIndex;
+          sel.id            = `knockout-select-${fasesjekk}-seg${segmentIndex}-${round}-${match}-${idx}`;
           sel.innerHTML     = '<option value="">Velg et lag</option><option value="empty">Tom (Walkover)</option>';
           matchDiv.appendChild(sel);
           if (idx === 1) matchDiv.appendChild(document.createTextNode(' vs '));
@@ -1009,7 +1018,7 @@ async function generateKnockoutBracket(fasesjekk, numKnockoutTeams, includeBronz
             const allSelects = Array.from(matchDiv.querySelectorAll('select'));
             const other = allSelects.find(el => el !== sel);
             if (sel.value && (!other.value || other.value === 'empty')) {
-              updateNextRoundWinner(fasesjekk, round, match, sel.value);
+              updateNextRoundWinner(fasesjekk, segmentIndex, round, match, sel.value);
             }
           });
         }
@@ -1038,8 +1047,9 @@ async function generateKnockoutBracket(fasesjekk, numKnockoutTeams, includeBronz
         sel.classList.add('knockout-team-select');
         sel.dataset.fase   = fasesjekk;
         sel.dataset.round  = rounds - 1;       // samme runde som finalen
+        sel.dataset.segment = segmentIndex;
         sel.dataset.bronze = 'true';
-        sel.id             = `bronze-select-${fasesjekk}-${idx}`;
+        sel.id             = `bronze-select-${fasesjekk}-seg${segmentIndex}-${idx}`;
         sel.innerHTML      = '<option value="">Velg lag</option><option value="empty">Tom (Walkover)</option>';
         bronzeMatch.appendChild(sel);
         if (idx === 1) bronzeMatch.appendChild(document.createTextNode(' vs '));
@@ -1049,7 +1059,7 @@ async function generateKnockoutBracket(fasesjekk, numKnockoutTeams, includeBronz
           const allSelects = Array.from(bronzeMatch.querySelectorAll('select'));
           const other = allSelects.find(el => el !== sel);
           if (sel.value && (!other.value || other.value === 'empty')) {
-            updateNextRoundWinner(fasesjekk, rounds - 1, /*kamp*/ 0, sel.value);
+            updateNextRoundWinner(fasesjekk, segmentIndex, rounds - 1, /*kamp*/ 0, sel.value);
           }
         });
       }
@@ -1058,7 +1068,7 @@ async function generateKnockoutBracket(fasesjekk, numKnockoutTeams, includeBronz
     }
 
     // 5) Fyll alle dropdowns med alternativer
-    await populateKnockoutDropdowns(fasesjekk, rounds, 'knockout-team-select');
+    await populateKnockoutDropdowns(fasesjekk, segmentIndex, rounds, 'knockout-team-select');
 
   } catch (error) {
     console.error("Feil ved generering av bracket:", error);
@@ -1067,7 +1077,7 @@ async function generateKnockoutBracket(fasesjekk, numKnockoutTeams, includeBronz
 }
 // Oppdatert funksjon for å fylle utslags-dropdownene med lag-ID og navn
 // Fullstendig funksjon for å fylle utslags-dropdownene med lag-ID og navn
-async function populateKnockoutDropdowns(faseNummer, totalRounds, dropdownClass) {
+async function populateKnockoutDropdowns(faseNummer, segmentIndex, totalRounds, dropdownClass) {
   try {
     // Hent data fra forrige fase (gruppespill eller utslag)
     const forrigeFaseData = await hentForrigeFaseData(faseNummer);
@@ -1088,7 +1098,7 @@ async function populateKnockoutDropdowns(faseNummer, totalRounds, dropdownClass)
     for (let round = 0; round < totalRounds; round++) {
       // Finn alle <select>-elementer for denne runden
       const teamSelects = document.querySelectorAll(
-        `.${dropdownClass}[data-fase="${faseNummer}"][data-round="${round}"]`
+        `.${dropdownClass}[data-fase="${faseNummer}"][data-segment="${segmentIndex}"][data-round="${round}"]`
       );
 
       // Sett basis-alternativer i hver select
@@ -1129,7 +1139,7 @@ async function populateKnockoutDropdowns(faseNummer, totalRounds, dropdownClass)
         // Senere runder: vinnere/tapere fra forrige runde
         const options = new Map();
         const prevSelects = document.querySelectorAll(
-          `.${dropdownClass}[data-fase="${faseNummer}"][data-round="${round - 1}"]`
+          `.${dropdownClass}[data-fase="${faseNummer}"][data-segment="${segmentIndex}"][data-round="${round - 1}"]`
         );
         prevSelects.forEach((prev, idx) => {
           const matchIdx = Math.floor(idx / 2);
@@ -1152,7 +1162,7 @@ async function populateKnockoutDropdowns(faseNummer, totalRounds, dropdownClass)
 
     // Bronsefinale-selects (dersom inkludert)
     const bronseSelects = document.querySelectorAll(
-      `.${dropdownClass}[data-fase="${faseNummer}"][data-bronze="true"]`
+      `.${dropdownClass}[data-fase="${faseNummer}"][data-segment="${segmentIndex}"][data-bronze="true"]`
     );
     if (bronseSelects.length) {
       const semiIdx = totalRounds - 2;
@@ -1212,7 +1222,7 @@ async function populateKnockoutDropdowns(faseNummer, totalRounds, dropdownClass)
         }
 
 // Funksjon for å opprette flere enkeltkamper
-async function createSingleMatches(numMatches, fasesjekk) {
+async function createSingleMatches(numMatches, fasesjekk, segmentIndex) {
     let container;
     if (fasesjekk == 1) {
         container = document.getElementById("fase1");
@@ -1232,8 +1242,9 @@ async function createSingleMatches(numMatches, fasesjekk) {
 
     const segmentDiv = document.createElement('div');
     segmentDiv.classList.add('segment');
+    segmentDiv.dataset.segment = segmentIndex;
     container.appendChild(segmentDiv);
-    faseSegments[fasesjekk].push({ type: 'enkeltkamp', element: segmentDiv });
+    faseSegments[fasesjekk].push({ type: 'enkeltkamp', element: segmentDiv, index: segmentIndex });
 
     for (let i = 0; i < numMatches; i++) {
         const select1 = document.createElement('select');
@@ -1243,14 +1254,16 @@ async function createSingleMatches(numMatches, fasesjekk) {
         select2.classList.add('single-match-team-select');
 
         // Legg til unike id-er og name-attributter
-        select1.id = `teamSelect1-fase${fasesjekk}-match${i}`;
-        select2.id = `teamSelect2-fase${fasesjekk}-match${i}`;
-        select1.setAttribute('name', `teamSelect1-fase${fasesjekk}-match${i}`);
-        select2.setAttribute('name', `teamSelect2-fase${fasesjekk}-match${i}`);
+        select1.id = `teamSelect1-fase${fasesjekk}-seg${segmentIndex}-match${i}`;
+        select2.id = `teamSelect2-fase${fasesjekk}-seg${segmentIndex}-match${i}`;
+        select1.setAttribute('name', `teamSelect1-fase${fasesjekk}-seg${segmentIndex}-match${i}`);
+        select2.setAttribute('name', `teamSelect2-fase${fasesjekk}-seg${segmentIndex}-match${i}`);
 
         // Legg til data-attributter
         select1.setAttribute('data-fase', fasesjekk);
         select2.setAttribute('data-fase', fasesjekk);
+        select1.setAttribute('data-segment', segmentIndex);
+        select2.setAttribute('data-segment', segmentIndex);
         select1.setAttribute('data-round', 0); // Juster til riktig round
         select2.setAttribute('data-round', 0); // Juster til riktig round
 
@@ -1266,6 +1279,7 @@ async function createSingleMatches(numMatches, fasesjekk) {
 
         const matchDiv = document.createElement('div');
         matchDiv.className = 'single-match';
+        matchDiv.dataset.segment = segmentIndex;
 
         const matchTitle = document.createElement('h4');
         matchTitle.textContent = `Enkeltkamp ${i + 1}`;
@@ -1294,12 +1308,12 @@ async function createSingleMatches(numMatches, fasesjekk) {
     }
 
     // Kall populateKnockoutDropdowns for å oppdatere dropdownene etter at kampene er opprettet
-    await populateKnockoutDropdowns(fasesjekk, 1, 'single-match-team-select');
+    await populateKnockoutDropdowns(fasesjekk, segmentIndex, 1, 'single-match-team-select');
 }
 
 
 // === GRUPPESPILL ===
-async function populateGDropdowns(faseNummer) {
+async function populateGDropdowns(faseNummer, segmentIndex) {
   let forrige;
   try {
     forrige = await hentForrigeFaseData(faseNummer);
@@ -1309,7 +1323,7 @@ async function populateGDropdowns(faseNummer) {
   }
 
   // Finn alle select-felter i denne fasen
-  const selects = document.querySelectorAll(`.teamDropdown.gruppe-${faseNummer}-dropdown`);
+  const selects = document.querySelectorAll(`.teamDropdown.gruppe-${faseNummer}-dropdown[data-segment="${segmentIndex}"]`);
   if (!selects.length) return;
 
   // Hjelpefunksjon: nullstill alle selects
