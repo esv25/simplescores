@@ -552,6 +552,10 @@ function showStep(stepNumber) {
   if (stepNumber === 1) {
     loadDateTimesWizard();
   }
+  // Last inn baner når man navigerer til steg 4
+  if (stepNumber === 4) {
+    loadFieldsWizard();
+  }
 }
 
 function nextStep() {
