@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Manuell kampoversikt</title>
+  <link rel="stylesheet" href="admin.css">
+  <style>
+    .kamp-item {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 1rem;
+      align-items: center;
+      background: #fff;
+      padding: 1rem 1.5rem;
+      margin-bottom: 1rem;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    }
+    .kamp-item-info {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+      color: #444;
+    }
+    .kamp-item-info p {
+      margin: 0;
+      font-size: 0.95rem;
+    }
+    .kamp-item-info p strong { color:#222; }
+    .kamp-item-buttons {
+      display:flex;
+      flex-direction:column;
+      gap:0.5rem;
+    }
+    .kamp-item-buttons button {
+      padding:0.5rem 1rem;
+      border:none;
+      border-radius:6px;
+      font-size:0.9rem;
+      cursor:pointer;
+      transition:background 0.2s;
+    }
+    .scoreboard-btn { background-color:#5C6BC0; color:#fff; }
+    .scoreboard-btn:hover { background-color:#4b57a1; }
+    .result-btn { background-color:#42a5f5; color:#fff; }
+    .result-btn:hover { background-color:#3598dc; }
+    .modal {
+      display:none; position:fixed; z-index:1000; left:0; top:0; width:100%; height:100%;
+      overflow:auto; background-color:rgba(0,0,0,0.4);
+    }
+    .modal-content {
+      background-color:white; margin:10% auto; padding:1.5rem; border:1px solid #888;
+      width:90%; max-width:400px; border-radius:10px;
+    }
+    .modal-content input { width:3rem; margin:0 0.5rem; }
+    .modal-content label { display:block; margin-bottom:1rem; font-size:1rem; }
+    .modal-content button { margin-top:1rem; padding:0.5rem 1rem; font-size:1rem; border:none; border-radius:5px; background-color:#007bff; color:white; cursor:pointer; }
+    .modal-content .close { float:right; font-size:1.5rem; cursor:pointer; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="logo-title">
+      <a href="nyTurnering.html"><img src="logo.png" alt="Simple Scores Logo" class="logo"></a>
+    </div>
+    <div class="nav2">
+      <button id="user-button" onclick="toggleUserMenu()">Bruker</button>
+      <div id="user-menu" class="user-menu" style="display:none;">
+        <p>Logget inn som <span id="mail"></span></p>
+        <button id="loggut" onclick="loggut()">Logg ut</button>
+      </div>
+      <button onclick="window.location.href='publikum.html'">Publikum</button>
+    </div>
+  </header>
+
+  <main class="p-4 max-w-3xl mx-auto">
+    <section class="mb-8">
+      <h2 class="text-xl font-semibold mb-2">Legg til kamp</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label for="homeTeam">Hjemmelag</label>
+          <input id="homeTeam" type="text" class="border p-2 w-full" />
+        </div>
+        <div>
+          <label for="awayTeam">Bortelag</label>
+          <input id="awayTeam" type="text" class="border p-2 w-full" />
+        </div>
+        <div>
+          <label for="matchDate">Dato</label>
+          <select id="matchDate" class="border p-2 w-full"></select>
+        </div>
+        <div>
+          <label for="matchTime">Tid</label>
+          <input id="matchTime" type="time" class="border p-2 w-full" />
+        </div>
+        <div>
+          <label for="matchField">Bane</label>
+          <input id="matchField" type="text" class="border p-2 w-full" />
+        </div>
+        <div>
+          <label for="matchDivision">Divisjon</label>
+          <input id="matchDivision" type="text" class="border p-2 w-full" />
+        </div>
+      </div>
+      <button onclick="addMatch()" class="mt-4 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-4 rounded">Legg til kamp</button>
+    </section>
+
+    <h2 class="text-xl font-semibold mb-2">Kamper</h2>
+    <div id="matches"></div>
+  </main>
+
+  <div id="resultModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeResultModal()">&times;</span>
+      <h2>Legg inn resultat</h2>
+      <p id="modalMatchTeams" style="font-weight:600;"></p>
+      <label>Hjemmelag: <input type="number" id="homeScoreInput" min="0"></label>
+      <label>Bortelag: <input type="number" id="awayScoreInput" min="0"></label>
+      <button id="confirmResultBtn">Bekreft</button>
+    </div>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/8.2.0/firebase-app.js"></script>
+  <script src="firebaseConfig.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.2.0/firebase-firestore.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.2.0/firebase-auth.js"></script>
+  <script>
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    const auth = firebase.auth();
+
+    function loggut() {
+      auth.signOut().then(() => {
+        window.location.href = 'login.html';
+      }).catch(error => {
+        console.error('Feil ved utlogging:', error);
+      });
+    }
+
+    function toggleUserMenu() {
+      const userMenu = document.getElementById('user-menu');
+      if (userMenu.style.display === 'none' || userMenu.style.display === '') {
+        userMenu.style.display = 'block';
+      } else {
+        userMenu.style.display = 'none';
+      }
+    }
+
+    auth.onAuthStateChanged(user => {
+      if (user) {
+        document.getElementById('mail').textContent = user.email;
+      } else {
+        window.location.href = 'login.html';
+      }
+    });
+
+    const params = new URLSearchParams(window.location.search);
+    const turneringId = params.get('id');
+    let availableDates = [];
+
+    document.addEventListener('DOMContentLoaded', () => {
+      if (!turneringId) {
+        window.location.href = 'nyTurnering.html';
+        return;
+      }
+      hentTurnering();
+    });
+
+    async function hentTurnering() {
+      try {
+        const tDoc = await db.collection('turneringer').doc(turneringId).get();
+        if (tDoc.exists) {
+          availableDates = tDoc.data().dates || [];
+          oppdaterDatoDropdown();
+        }
+      } catch (e) {
+        console.error('Kunne ikke hente turnering:', e);
+      } finally {
+        hentKamper();
+      }
+    }
+
+    function oppdaterDatoDropdown() {
+      const sel = document.getElementById('matchDate');
+      sel.innerHTML = '';
+      availableDates.forEach(d => {
+        const opt = document.createElement('option');
+        opt.value = d;
+        opt.textContent = d;
+        sel.appendChild(opt);
+      });
+    }
+
+    async function addMatch() {
+      const home  = document.getElementById('homeTeam').value.trim();
+      const away  = document.getElementById('awayTeam').value.trim();
+      const date  = document.getElementById('matchDate').value;
+      const time  = document.getElementById('matchTime').value;
+      const field = document.getElementById('matchField').value.trim();
+      const div   = document.getElementById('matchDivision').value.trim();
+      if (!home || !away || !date || !time) {
+        alert('Fyll inn alle påkrevde felter');
+        return;
+      }
+      const start = firebase.firestore.Timestamp.fromDate(new Date(`${date}T${time}`));
+      await db.collection('turneringer').doc(turneringId).collection('kamper').add({
+        hjemmelag: home,
+        bortelag: away,
+        starttid: start,
+        bane: field,
+        divisjon: div,
+        status: 'planlagt'
+      });
+      document.getElementById('homeTeam').value = '';
+      document.getElementById('awayTeam').value = '';
+      document.getElementById('matchDate').selectedIndex = 0;
+      document.getElementById('matchTime').value = '';
+      document.getElementById('matchField').value = '';
+      document.getElementById('matchDivision').value = '';
+      hentKamper();
+    }
+
+    async function hentKamper() {
+      const container = document.getElementById('matches');
+      container.innerHTML = '';
+      const snapshot = await db.collection('turneringer').doc(turneringId)
+        .collection('kamper').orderBy('starttid','asc').get();
+      snapshot.forEach(doc => {
+        const k = doc.data();
+        let startDate = null;
+        if (k.starttid) {
+          startDate = k.starttid.toDate ? k.starttid.toDate() : new Date(k.starttid);
+        } else if (k.dato && k.tidskode) {
+          startDate = new Date(`${k.dato}T${k.tidskode}`);
+        }
+        const formattedTime = startDate
+              ? startDate.toLocaleString('no-NO', { day:'numeric', month:'long', hour:'2-digit', minute:'2-digit' })
+              : 'Ukjent';
+        const card = document.createElement('div');
+        card.classList.add('kamp-item');
+        const info = document.createElement('div');
+        info.classList.add('kamp-item-info');
+        let resultatHtml = '';
+        if (k.status === 'ferdig' && k.hjemmelagScore != null && k.bortelagScore != null) {
+          resultatHtml = `<p><strong>Resultat:</strong> ${k.hjemmelagScore} – ${k.bortelagScore}</p>`;
+        }
+        info.innerHTML = `
+          <p><strong>${k.hjemmelag}</strong> vs <strong>${k.bortelag}</strong></p>
+          ${resultatHtml}
+          <p>Starttid: ${formattedTime} | Bane: ${k.bane || ''}</p>
+          <p>Divisjon: ${k.divisjon || ''}</p>
+          <p>Status: ${k.status || 'Udefinert'}</p>
+        `;
+        const btnContainer = document.createElement('div');
+        btnContainer.classList.add('kamp-item-buttons');
+        const sbBtn = document.createElement('button');
+        sbBtn.classList.add('scoreboard-btn');
+        sbBtn.textContent = 'Gå til scoreboard';
+        sbBtn.onclick = () => gåTilScoreboard(encodeURIComponent(doc.id));
+        const resBtn = document.createElement('button');
+        resBtn.classList.add('result-btn');
+        resBtn.textContent = 'Legg inn resultat';
+        resBtn.onclick = () => openResultModal(doc.id, k.hjemmelag, k.bortelag);
+        btnContainer.append(sbBtn, resBtn);
+        card.append(info, btnContainer);
+        container.appendChild(card);
+      });
+    }
+
+    function gåTilScoreboard(kampId) {
+      window.location.href = `scoreboard.html?kampId=${kampId}&id=${turneringId}`;
+    }
+
+    let currentEditMatchId = null;
+    function openResultModal(matchId, homeName, awayName) {
+      currentEditMatchId = matchId;
+      document.getElementById('modalMatchTeams').textContent = `${homeName} vs ${awayName}`;
+      document.getElementById('homeScoreInput').value = '';
+      document.getElementById('awayScoreInput').value = '';
+      document.getElementById('resultModal').style.display = 'block';
+    }
+    function closeResultModal() {
+      document.getElementById('resultModal').style.display = 'none';
+      currentEditMatchId = null;
+    }
+    document.getElementById('confirmResultBtn').addEventListener('click', async () => {
+      const h = parseInt(document.getElementById('homeScoreInput').value, 10);
+      const a = parseInt(document.getElementById('awayScoreInput').value, 10);
+      if (isNaN(h) || isNaN(a)) {
+        alert('Vennligst oppgi gyldige resultater.');
+        return;
+      }
+      try {
+        await db.collection('turneringer').doc(turneringId)
+          .collection('kamper').doc(currentEditMatchId)
+          .update({
+            hjemmelagScore: h,
+            bortelagScore: a,
+            status: 'ferdig',
+            remainingTime: '00:00',
+            avslutningstidspunkt: firebase.firestore.FieldValue.serverTimestamp()
+          });
+        alert('Resultat og status oppdatert.');
+        closeResultModal();
+        hentKamper();
+      } catch (err) {
+        console.error(err);
+        alert('Kunne ikke oppdatere resultat.');
+      }
+    });
+  </script>
+</body>
+</html>
