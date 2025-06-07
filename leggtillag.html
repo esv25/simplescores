@@ -74,6 +74,15 @@
   font-family: "Roboto", sans-serif;
 }
 
+.modal.desktop {
+  background-color: transparent;
+  pointer-events: none;
+}
+
+.modal.desktop .modal-content {
+  pointer-events: auto;
+}
+
 /* Close-knapp */
 .modal-content .close {
   position: absolute;
@@ -190,8 +199,8 @@
     .actions { margin-bottom: 10px; display: flex; gap: 10px; align-items: center; }
 
     .card-list {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      display: flex;
+      flex-direction: column;
       gap: 1rem;
     }
     .team-card, .ref-card {
@@ -202,9 +211,12 @@
       box-shadow: 0 2px 4px rgba(0,0,0,0.1);
       cursor: pointer;
       position: relative;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
     .team-card .actions, .ref-card .actions {
-      margin-top: 0.5rem;
+      margin-top: 0;
       display: flex;
       gap: 5px;
     }
@@ -645,7 +657,7 @@ document.addEventListener('DOMContentLoaded', () => {
           spillere: oppdaterteSpillere
         }).then(() => {
           console.log('Player successfully deleted');
-          visSpillere(oppdaterteSpillere, lagId);
+          visSpillere(lagId);
         }).catch(error => {
           console.error('Error removing player: ', error);
         });
@@ -679,7 +691,7 @@ document.addEventListener('DOMContentLoaded', () => {
           spillere: spillereArray
         }).then(() => {
           console.log("Spiller lagt til");
-          visSpillere(spillereArray, lagId);
+          visSpillere(lagId);
         }).catch(error => {
           console.error("Error adding player: ", error);
         });
@@ -797,6 +809,9 @@ function hentDommere() {
     });
     
     hentDommere();
+    document.addEventListener('DOMContentLoaded', function() {
+      openTeamForm();
+    });
   </script>
   
   <!-- Ekstra script for å bevare query-parametere på alle interne lenker -->
