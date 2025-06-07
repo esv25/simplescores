@@ -94,6 +94,47 @@
       display: none;
     }
   }
+/* Knockout bracket styles */
+.bracket-container {
+  display: grid;
+  align-content: center;
+  grid-template-columns: repeat(auto-fit, minmax(var(--box-width,16rem), 1fr));
+  column-gap: var(--round-gap,4rem);
+  row-gap: var(--row-gap,2rem);
+  padding: var(--round-gap,4rem) 0;
+  position: relative;
+}
+.bracket-container .match { width: var(--box-width,16rem); margin-bottom: var(--row-gap,2rem); }
+.round-title {
+  grid-row: 1;
+  height: var(--box-height,4rem);
+  line-height: var(--box-height,4rem);
+  font-weight: 600;
+  text-align: center;
+}
+.match-box {
+  background:#fff;
+  border-radius: var(--box-radius,8px);
+  padding: var(--box-padding,1rem);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+  position: relative;
+  z-index:3;
+  display:flex;
+  flex-direction:column;
+  justify-content:space-between;
+  width:100%;
+}
+.match-box.vertical .team-row{display:flex;justify-content:space-between;padding:0.25rem 0;}
+.match-box .name{font-weight:600;}
+.match-box .score-box{font-size:1.1rem;font-weight:600;}
+.match-box.vinner .score-box{color:#48bb78;}
+.match-box.taper .score-box{color:#f56565;opacity:0.8;}
+svg.bracket-svg,canvas#bracket-canvas{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:1;}
+@media (max-width:768px){
+  :root{--round-gap:1rem;--row-gap:0.75rem;--box-width:12rem;--box-height:3rem;}
+  .match-box{padding:0.5rem;font-size:0.85rem;}
+  .match-box .score{width:2rem;font-size:0.85rem;}
+}
 </style>
 
 
@@ -574,6 +615,7 @@ async function fetchDivisjonTabell(divisjon, fasenummer) {
     if (!divisjon) {
       console.warn('fetchDivisjonTabell: mangler "divisjon"');
       divisjonContainer.style.display = 'none';
+      bracketContainer.style.display = 'none';
       return;
     }
     const phaseNum = fasenummer != null
@@ -582,6 +624,7 @@ async function fetchDivisjonTabell(divisjon, fasenummer) {
     if (isNaN(phaseNum)) {
       console.warn('fetchDivisjonTabell: ugyldig fasenummer', fasenummer);
       divisjonContainer.style.display = 'block';
+      bracketContainer.style.display = 'none';
       divisjonTabellBodyElement.innerHTML =
         '<tr><td colspan="10">Ugyldig fase valgt.</td></tr>';
       return;
@@ -589,6 +632,7 @@ async function fetchDivisjonTabell(divisjon, fasenummer) {
 
     // 2) Vis tabell­container og overskrift
     divisjonContainer.style.display = 'block';
+    bracketContainer.style.display = 'none';
     divisjonOverskriftElement.textContent = `Tabell: ${divisjon} – Fase ${phaseNum}`;
     divisjonTabellHeadElement.innerHTML = `
       <tr>
@@ -757,7 +801,12 @@ async function fetchPhaseType(divisjon, fasenummer) {
 // 4) Wrapper for å hente fasedata (her kun tabell)
 async function fetchPhaseData(divisjon, fasenummer) {
   try {
-    await fetchDivisjonTabell(divisjon, fasenummer);
+    phaseType = await fetchPhaseType(divisjon, fasenummer);
+    if (phaseType === 'utslag') {
+      await fetchKnockoutBracket(divisjon, fasenummer);
+    } else {
+      await fetchDivisjonTabell(divisjon, fasenummer);
+    }
   } catch (err) {
     console.error('Feil ved henting av fasedata:', err);
   }
@@ -775,8 +824,13 @@ function createPhaseButtons() {
     btn.dataset.phaseType = phase.type;
     btn.addEventListener('click', async () => {
       kampFase = phase.name;
+      phaseType = phase.type;
       updatePhaseButtons(kampFase);
-      await fetchDivisjonTabell(kampDivisjon, kampFase);
+      if (phase.type === 'utslag') {
+        await fetchKnockoutBracket(kampDivisjon, kampFase);
+      } else {
+        await fetchDivisjonTabell(kampDivisjon, kampFase);
+      }
     });
     phaseButtonsContainer.appendChild(btn);
   });
@@ -841,44 +895,64 @@ tabButtons.forEach(btn => {
         async function fetchKnockoutBracket(divisjon, fase) {
             try {
                 divisjonOverskriftElement.textContent = `Utslag - ${fase}`;
+                bracketContainer.style.display = 'grid';
+                divisjonContainer.style.display = 'none';
 
-                const kamperSnapshot = await db.collection('turneringer')
+                const snap = await db.collection('turneringer')
                     .doc(tournamentId)
                     .collection('kamper')
                     .where('divisjon', '==', divisjon)
                     .where('fase', '==', fase)
                     .get();
 
-                if (kamperSnapshot.empty) {
+                if (snap.empty) {
                     bracketContainer.innerHTML = '<p>Ingen kamper tilgjengelige for denne fasen.</p>';
                     return;
                 }
 
+                const roundsMap = {};
+                snap.forEach(doc => {
+                    const d = doc.data();
+                    const r = d.rundeNummer ?? d.runde ?? d.rundenummer ?? 1;
+                    if (!roundsMap[r]) roundsMap[r] = [];
+                    roundsMap[r].push({ id: doc.id, data: d });
+                });
+
                 bracketContainer.innerHTML = '';
-
-                const matches = [];
-                kamperSnapshot.forEach(doc => {
-                    const kamp = doc.data();
-                    matches.push({
-                        hjemmelag: kamp.hjemmelag || 'TBD',
-                        bortelag: kamp.bortelag || 'TBD',
-                        score: (kamp.hjemmelagScore != null && kamp.bortelagScore != null)
-                            ? `${kamp.hjemmelagScore} - ${kamp.bortelagScore}`
-                            : '',
-                        kampId: doc.id
-                    });
+                const roundNums = Object.keys(roundsMap).map(n => parseInt(n,10)).sort((a,b)=>a-b);
+                roundNums.forEach((r, idx) => {
+                    const title = document.createElement('div');
+                    title.className = 'round-title';
+                    title.textContent = `Runde ${r}`;
+                    title.style.gridColumnStart = idx + 1;
+                    bracketContainer.appendChild(title);
                 });
 
-                matches.forEach(match => {
-                    const matchDiv = document.createElement('div');
-                    matchDiv.classList.add('bracket-match');
-                    matchDiv.innerHTML = `
-                        <p>${match.hjemmelag} vs ${match.bortelag}</p>
-                        <p>${match.score}</p>
-                        <a href="kampdetaljer.html?id=${match.kampId}">Se detaljer</a>
-                    `;
-                    bracketContainer.appendChild(matchDiv);
+                roundNums.forEach((r, idx) => {
+                    roundsMap[r].sort((a,b) => (a.data.kampNummer ?? 0) - (b.data.kampNummer ?? 0))
+                        .forEach((obj, mi) => {
+                            const k = obj.data;
+                            const box = document.createElement('div');
+                            box.className = 'match-box vertical';
+                            box.dataset.roundIndex = idx;
+                            box.dataset.matchIndex = mi;
+                            box.style.gridColumnStart = idx + 1;
+                            box.style.gridRowStart = (mi * Math.pow(2, idx)) + 2;
+                            const sH = k.hjemmelagScore ?? '';
+                            const sA = k.bortelagScore ?? '';
+                            box.innerHTML = `
+                                <div class="team-row"><span class="name">${k.hjemmelag || '–'}</span><span class="score-box">${sH}</span></div>
+                                <div class="team-row"><span class="name">${k.bortelag || '–'}</span><span class="score-box">${sA}</span></div>
+                            `;
+                            if (sH !== '' && sA !== '') {
+                                if (sH > sA) box.classList.add('vinner');
+                                else if (sA > sH) box.classList.add('taper');
+                            }
+                            bracketContainer.appendChild(box);
+                        });
                 });
+
+                setTimeout(drawBracketConnections, 100);
 
             } catch (error) {
                 console.error('Feil ved henting av utslagskamper:', error);
@@ -1003,10 +1077,71 @@ tabButtons.forEach(btn => {
                     console.error('Feil under timeout-nedtelling:', error);
                     clearInterval(timeoutInterval);
                     timeoutTimerElement.style.display = 'none';
-                    currentTimeoutTeam = null;
-                }
-            }, 1000);
+            currentTimeoutTeam = null;
+            }
+        }, 1000);
         }
+
+        function drawBracketConnections() {
+            const container = document.querySelector('.bracket-container');
+            if (!container) return;
+
+            let canvas = container.querySelector('#bracket-canvas');
+            if (!canvas) {
+                canvas = document.createElement('canvas');
+                canvas.id = 'bracket-canvas';
+                canvas.style.position = 'absolute';
+                canvas.style.top = '0';
+                canvas.style.left = '0';
+                canvas.style.pointerEvents = 'none';
+                canvas.style.zIndex = '1';
+                container.insertBefore(canvas, container.firstChild);
+            }
+
+            canvas.width = container.clientWidth;
+            canvas.height = container.clientHeight;
+
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.strokeStyle = '#E2E8F0';
+            ctx.lineWidth = 2;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+
+            const boxes = Array.from(container.querySelectorAll('.match-box'));
+            const rounds = boxes.reduce((acc, box) => {
+                const ri = +box.dataset.roundIndex;
+                (acc[ri] = acc[ri] || []).push(box);
+                return acc;
+            }, {});
+
+            Object.keys(rounds).map(Number).forEach(roundIndex => {
+                const curr = rounds[roundIndex];
+                const next = rounds[roundIndex + 1];
+                if (!next) return;
+
+                curr.forEach(box => {
+                    const mi = +box.dataset.matchIndex;
+                    const targetIdx = Math.floor(mi / 2);
+                    const target = next.find(nb => +nb.dataset.matchIndex === targetIdx);
+                    if (!target) return;
+
+                    const startX = box.offsetLeft + box.offsetWidth;
+                    const startY = box.offsetTop + box.offsetHeight / 2;
+                    const endX = target.offsetLeft;
+                    const endY = target.offsetTop + target.offsetHeight / 2;
+
+                    const midX = (startX + endX) / 2;
+                    ctx.beginPath();
+                    ctx.moveTo(startX, startY);
+                    ctx.bezierCurveTo(midX, startY, midX, endY, endX, endY);
+                    ctx.stroke();
+                });
+            });
+        }
+
+        window.addEventListener('load', drawBracketConnections);
+        window.addEventListener('resize', drawBracketConnections);
 
 
     </script>
