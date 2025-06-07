@@ -477,6 +477,11 @@
           option.value = division.name;
           divisionDropdown.appendChild(option);
         });
+        // Velg første divisjon automatisk og hent lag
+        if (divisions.length) {
+          divisionDropdown.value = divisions[0].name;
+          hentOgVisLag();
+        }
       } catch (error) {
         console.error('Feil ved henting av divisjoner:', error);
       }
@@ -539,6 +544,7 @@ document.addEventListener('DOMContentLoaded', () => {
       document.getElementById('saveRefBtn').textContent = editingRefereeId ? 'Save' : 'Add Referee';
       document.getElementById('refereeName').value = '';
       document.getElementById('refereeTeam').value = '';
+      populateTeamsDropdown();
       populateDivisionsCheckboxes().then(() => {
         if(id){
           db.collection('turneringer').doc(turneringId).collection('dommere').doc(id).get().then(doc => {
@@ -603,6 +609,7 @@ document.addEventListener('DOMContentLoaded', () => {
           document.getElementById('teamPopup').style.display = 'none';
           editingTeamId = null;
           hentOgVisLag();
+          populateTeamsDropdown();
         })
         .catch(error => console.error('Feil ved lagring av lag:', error));
     }
@@ -612,6 +619,7 @@ document.addEventListener('DOMContentLoaded', () => {
         .then(() => {
           console.log('Lag slettet');
           hentOgVisLag();
+          populateTeamsDropdown();
         })
         .catch(error => {
           console.error('Feil ved sletting av lag:', error);
