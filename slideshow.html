@@ -399,7 +399,6 @@
             <button id="loggut" onclick="loggut()">Logg ut</button>
         </div>
         <button onclick="window.location.href='publikum.html'">Publikum</button>
-        <button onclick="displaysidebar()" type="button">Q&A</button>
     </div>
 </header>
 
@@ -449,12 +448,6 @@
   <div id="previewOverlay"></div>
 
   <!-- Q&A Seksjon -->
-  <div id="qa-section" style="display: none;">
-    <button class="close-btn" onclick="closeSection()">&times;</button>
-    <div class="question" onclick="toggleAnswer(0)">Hvordan oppretter jeg en ny turnering?</div>
-    <div class="answer">For å opprette en ny turnering, gå til "Opprett Turnering" siden og fyll ut navn, datoer og arrangørinformasjon. Deretter kan du legge til divisjoner og lag.</div>
-    <!-- Flere spørsmål/svar ... -->
-  </div>
 
   <!-- Firebase SDKs -->
   <script src="https://www.gstatic.com/firebasejs/8.2.0/firebase-app.js"></script>
@@ -774,47 +767,6 @@ function showSlide(index) {
 }
 
     // Juster Q&A sidebar posisjon
-    function adjustSidebarPosition() {
-      const header = document.querySelector('header');
-      const nav = document.querySelector('nav');
-      const qaSection = document.getElementById('qa-section');
-      if (header && nav && qaSection) {
-        const totalHeight = header.offsetHeight + nav.offsetHeight;
-        qaSection.style.top = `${totalHeight}px`;
-        qaSection.style.maxHeight = `calc(100vh - ${totalHeight}px)`;
-      }
-    }
-    document.addEventListener('DOMContentLoaded', adjustSidebarPosition);
-    window.addEventListener('resize', adjustSidebarPosition);
-
-    // Q&A-funksjoner
-    function displaysidebar(){
-      const qaSection = document.getElementById('qa-section');
-      if (qaSection) {
-        qaSection.style.display = "block";
-        setTimeout(() => {
-          qaSection.style.transform = "translateX(0)";
-          qaSection.style.opacity = "1";
-        }, 10);
-      }
-    }
-    function closeSection(){
-      const qaSection = document.getElementById('qa-section');
-      if (qaSection) {
-        qaSection.style.transform = "translateX(100%)";
-        qaSection.style.opacity = "0";
-        qaSection.addEventListener('transitionend', function handler() {
-          qaSection.style.display = "none";
-          qaSection.removeEventListener('transitionend', handler);
-        });
-      }
-    }
-    function toggleAnswer(index) {
-      const answers = document.querySelectorAll('#qa-section .answer');
-      if (answers[index]) {
-        answers[index].style.display = (answers[index].style.display === "block") ? "none" : "block";
-      }
-    }
 
     // Fullskjermsmodus: toggle full screen
     function toggleFullScreen() {

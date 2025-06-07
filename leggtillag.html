@@ -27,60 +27,6 @@
       gap: 20px;
     }
 
-    /* Oppdatert stil for FAQ-sidebar på høyre side */
-    #sidebar {
-      position: fixed;
-      top: 0;
-      right: 0;
-      width: 250px;
-      background: #f4f4f4;
-      padding: 20px;
-      box-shadow: -2px 0 5px rgba(0,0,0,0.1);
-      transform: translateX(100%); /* Skjult til høyre */
-      transition: transform 0.3s ease-in-out;
-      z-index: 2500;
-      height: 100%;
-    }
-    #sidebar.open {
-      transform: translateX(0);
-    }
-
-    /* Juster hovedinnholdet slik at header og nav ikke dekkes */
-    main {
-      padding: 40px;
-      margin-top: 20px;
-      flex-grow: 1;
-    }
-
-    @media (max-width: 768px) {
-      .content-wrapper {
-        flex-direction: column;
-      }
-      #sidebar {
-        position: relative;
-        width: 100%;
-        height: auto;
-        transform: none;
-        z-index: auto;
-      }
-    }
-    /* Eksempel på styling for lenker i sidebar */
-    #sidebar ul {
-      list-style: none;
-      padding: 0;
-      margin: 0;
-    }
-    #sidebar ul li {
-      margin-bottom: 10px;
-    }
-    #sidebar ul li a {
-      text-decoration: none;
-      color: #333;
-    }
-    /* Stil for toggle-knappen (kan justeres etter behov) */
-    #sidebar-toggle {
-      margin-left: 10px;
-    }
 
     /* Sideheading */
     .page-header {
@@ -287,8 +233,6 @@
         <button id="loggut" onclick="loggut()">Sign out</button>
       </div>
       <button onclick="window.location.href='publikum.html'">Publikum</button>
-      <!-- Toggle-knapp for sidebar -->
-      <button id="sidebar-toggle" onclick="toggleSidebar()">Help</button>
     </div>
   </header>
   <nav>
@@ -309,14 +253,6 @@
   </div>
 
   <div class="content-wrapper">
-  <aside id="sidebar">
-    <ul>
-      <li><a href="faq.html">FAQ</a></li>
-      <li><a href="omoss.html">Om oss</a></li>
-      <li><a href="kontakt.html">Kontakt</a></li>
-      <!-- Flere lenker kan legges til -->
-    </ul>
-  </aside>
 
   <main>
 <div id="teamSidebar" class="team-form-sidebar">
@@ -697,10 +633,6 @@ document.addEventListener('DOMContentLoaded', () => {
           });
         })
         .catch(error => console.error('Error fetching teams: ', error));
-    }
-    function toggleSidebar() {
-      const sidebar = document.getElementById('sidebar');
-      sidebar.classList.toggle('open');
     }
 
     function showTab(id, btn){

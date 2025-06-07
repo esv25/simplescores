@@ -67,7 +67,6 @@
                 <button id="loggut" onclick="loggut()">Log out</button>
             </div>
             <button onclick="window.location.href='publikum.html'">Publikum</button>
-            <button onclick="displaysidebar()" type="button">Q&A</button>
         </div>
     </header>
     
@@ -172,37 +171,6 @@
   </div>
   
 
-        <!-- Q&A Seksjon -->
-        <div id="qa-section" style="display: none;">
-            <button class="close-btn" onclick="closeSection()">&times;</button>
-        
-            <div class="question" onclick="toggleAnswer(0)">How do I create a new tournament?</div>
-            <div class="answer">To create a new tournament, go to the "Create Tournament" page and fill in the name, dates, and organizer information. Then you can add divisions and teams.</div>
-        
-            <div class="question" onclick="toggleAnswer(1)">How can I add or manage teams?</div>
-            <div class="answer">To add or manage teams, navigate to the "Add Teams" section. Enter team names and player information, and manage existing teams by selecting divisions.</div>
-        
-            <div class="question" onclick="toggleAnswer(2)">How do I set up match schedules?</div>
-            <div class="answer">In the "Match Schedule" section, you can assign fields, select match times, and generate a schedule based on the number of teams and matches.</div>
-        
-            <div class="question" onclick="toggleAnswer(3)">Can I assign referees to matches?</div>
-            <div class="answer">Yes, in the "Match Schedule" section, you can assign referees to each match. Specify how many referees are required per match and assign them as needed.</div>
-        
-            <div class="question" onclick="toggleAnswer(4)">How do I update match scores in real-time?</div>
-            <div class="answer">Use the "Scoreboard" feature to update match scores in real-time. You can manually enter scores, which will be displayed live to both administrators and the audience.</div>
-        
-            <div class="question" onclick="toggleAnswer(5)">What customization options are available for tournament formats?</div>
-            <div class="answer">In the "Format" section, you can choose between group play, knockout rounds, or single matches. Customize tournament progression based on the selected format.</div>
-        
-            <div class="question" onclick="toggleAnswer(6)">How do I log out of the admin panel?</div>
-            <div class="answer">Click the "Log Out" button at the top-right of the dashboard to log out. Remember to save any changes before logging out.</div>
-        
-            <div class="question" onclick="toggleAnswer(7)">How can I assign fields to matches?</div>
-            <div class="answer">In the "Match Schedule" section, you can manually assign fields to each match. Choose from existing fields or add new ones as needed.</div>
-        
-            <div class="question" onclick="toggleAnswer(8)">How do I manage tournament settings and audience access?</div>
-            <div class="answer">In the "Settings" section, you can control general tournament settings and determine what the audience can view, such as match scores, details, and statistics.</div>
-        </div>
         
 
     <!-- Firebase og JavaScript-filer -->
@@ -265,83 +233,6 @@ const turneringId = new URLSearchParams(window.location.search).get('id');
   });
   let gruppeMoterPerPar = 1;
 
-        function adjustSidebarPosition() {
-    const header = document.querySelector('header');
-    const nav = document.querySelector('nav');
-    const qaSection = document.getElementById('qa-section');
-    
-    if (header && nav && qaSection) {
-        const headerHeight = header.offsetHeight;
-        const navHeight = nav.offsetHeight;
-        const totalHeight = headerHeight + navHeight;
-        
-        qaSection.style.top = `${totalHeight}px`;
-        qaSection.style.maxHeight = `calc(100vh - ${totalHeight}px)`;
-    }
-}
-
-// Kall funksjonen når siden laster og når vindusstørrelsen endres
-document.addEventListener('DOMContentLoaded', adjustSidebarPosition);
-window.addEventListener('resize', adjustSidebarPosition);
-
-// Funksjon for å vise Q&A-sidebaren
-function displaysidebar(){
-    const qaSection = document.getElementById('qa-section');
-    if (qaSection) {
-        qaSection.style.display = "block"; // Vis sidebaren
-        // Animasjon: skyv sidebaren inn fra høyre
-        setTimeout(() => {
-            qaSection.style.transform = "translateX(0)";
-            qaSection.style.opacity = "1";
-        }, 10); // Lite delay for å trigge CSS transition
-    } else {
-        console.error("Element med id 'qa-section' ble ikke funnet.");
-    }
-}
-
-function toggleFormatOptions() {
-  const format = document.getElementById("formatDropdown").value;
-  document.getElementById('groupPlayOptions').style.display = 'none';
-  document.getElementById('knockoutOptions').style.display = 'none';
-  document.getElementById('singleMatchOptions').style.display = 'none';
-
-  if (format === 'gruppespill') {
-    document.getElementById('groupPlayOptions').style.display = 'block';
-  } else if (format === 'utslag') {
-    document.getElementById('knockoutOptions').style.display = 'block';
-  } else if (format === 'enkeltkamp') {
-    document.getElementById('singleMatchOptions').style.display = 'block';
-  }
-}
-
-// Funksjon for å skjule Q&A-sidebaren
-function closeSection(){
-    const qaSection = document.getElementById('qa-section');
-    if (qaSection) {
-        // Animasjon: skyv sidebaren ut til høyre
-        qaSection.style.transform = "translateX(100%)";
-        qaSection.style.opacity = "0";
-        // Etter animasjonen, skjul sidebaren
-        qaSection.addEventListener('transitionend', function handler() {
-            qaSection.style.display = "none";
-            qaSection.removeEventListener('transitionend', handler);
-        });
-    } else {
-        console.error("Element med id 'qa-section' ble ikke funnet.");
-    }
-}
-
-// Funksjon for å toggle (vise/skjule) et svar
-function toggleAnswer(index) {
-    const answers = document.querySelectorAll('#qa-section .answer');
-    if (answers[index]) {
-        if (answers[index].style.display === "none" || answers[index].style.display === "") {
-            answers[index].style.display = "block";
-        } else {
-            answers[index].style.display = "none";
-        }
-    }
-}
 
         let fasesjekk;
         const faseSegments = { 1: [], 2: [], 3: [] };
