@@ -419,6 +419,40 @@ button:not([class])[disabled] {
     box-shadow: none;
 }
 
+
+/* Legacy Bootstrap-style buttons */
+.btn,
+.btn-primary,
+.btn-secondary,
+.btn-danger {
+    background-color: #4c51bf;
+    color: white;
+    padding: 12px 24px;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.btn:hover,
+.btn-primary:hover,
+.btn-secondary:hover,
+.btn-danger:hover {
+    background-color: #434190;
+    transform: scale(1.05);
+}
+
+.btn[disabled],
+.btn-primary[disabled],
+.btn-secondary[disabled],
+.btn-danger[disabled] {
+    background-color: #cccccc;
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
 /* General dropdown (select) styling */
 select {
     width: 100%;
