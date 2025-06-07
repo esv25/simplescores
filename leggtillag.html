@@ -564,7 +564,25 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       modal.style.display= "block";
     }
-    
+
+    function saveReferee() {
+      const name = document.getElementById('refereeName').value.trim();
+      const teamId = document.getElementById('refereeTeam').value || null;
+      const teamName = teamId ? document.querySelector(`#refereeTeam option[value="${teamId}"]`).textContent : '';
+      const divisions = Array.from(document.querySelectorAll('#refereeDivisionsContainer input[name="refereeDivisions"]:checked')).map(cb => cb.value);
+
+      const refData = { dommer: name, teamId, teamName, divisions };
+      const refsRef = db.collection('turneringer').doc(turneringId).collection('dommere');
+
+      const p = editingRefereeId ? refsRef.doc(editingRefereeId).set(refData) : refsRef.add(refData);
+      p.then(() => {
+          document.getElementById('refereeForm').style.display = 'none';
+          editingRefereeId = null;
+          hentDommere();
+        })
+        .catch(error => console.error('Feil ved lagring av dommer:', error));
+    }
+
     function saveTeam() {
       const lagNavn = document.getElementById('teamName').value.trim();
       const spillerliste = document.getElementById('spillerliste')
@@ -587,6 +605,17 @@ document.addEventListener('DOMContentLoaded', () => {
           hentOgVisLag();
         })
         .catch(error => console.error('Feil ved lagring av lag:', error));
+    }
+
+    function slettLag(lagId){
+      db.collection('turneringer').doc(turneringId).collection('lag').doc(lagId).delete()
+        .then(() => {
+          console.log('Lag slettet');
+          hentOgVisLag();
+        })
+        .catch(error => {
+          console.error('Feil ved sletting av lag:', error);
+        });
     }
 
     function hentOgVisLag() {
