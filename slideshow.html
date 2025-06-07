@@ -342,6 +342,49 @@
     #popupOverlay.active, #previewOverlay.active {
       display: block;
     }
+    /* --- Drag and drop layout editor --- */
+    #elementLibrary {
+      margin-top: 10px;
+      display: flex;
+      gap: 10px;
+    }
+    .draggable-element {
+      padding: 6px 10px;
+      background: #edf2f7;
+      border: 1px solid #a0aec0;
+      border-radius: 4px;
+      cursor: grab;
+    }
+    .layout-canvas {
+      margin-top: 10px;
+      display: grid;
+      gap: 10px;
+      border: 1px dashed #a0aec0;
+      padding: 10px;
+    }
+    .layout-canvas.one {
+      grid-template-columns: 1fr;
+    }
+    .layout-canvas.two {
+      grid-template-columns: 1fr 1fr;
+    }
+    .layout-canvas.three {
+      grid-template-columns: repeat(3, 1fr);
+    }
+    .drop-cell {
+      min-height: 60px;
+      border: 1px dashed #cbd5e0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .layout-cell { padding: 5px; }
+    .cell-element {
+      padding: 4px 6px;
+      background: #48bb78;
+      color: #fff;
+      border-radius: 4px;
+    }
   </style>
 </head>
 <body>
@@ -458,6 +501,7 @@
 let slides = [];
 let currentSlideIndex = 0;
 let editingSlide = null;
+let currentSlideElements = [];
 
 // Elementreferanser (settes når DOM er ferdig lastet)
 let slideList, slidesOverview, slidesContainer;
@@ -487,7 +531,7 @@ function renderSlidesOverview() {
         <strong>Slide ${index + 1}</strong>: ${slide.title || "Uten tittel"} –
         Divisjon: ${slide.division}, Fase: ${slide.fase},
         Layout: ${slide.layout || 1},
-        Innhold: ${slide.elements.join(', ')}
+        Innhold: ${Array.isArray(slide.elements) ? slide.elements.map(e => e.type || e).join(', ') : ''}
       </div>
     `;
     const editBtn = document.createElement('button');
@@ -513,10 +557,7 @@ function previewSlideConfig() {
   const layout     = document.getElementById('layoutSelection')?.value   || '1';
   const transition = document.getElementById('transitionSelection')?.value|| 'fade';
 
-  const elements = [];
-  if (document.getElementById('kamperCheckbox')?.checked)          elements.push('kamper');
-  if (document.getElementById('tabellerCheckbox')?.checked)        elements.push('tabeller');
-  if (document.getElementById('kommendeKamperCheckbox')?.checked)  elements.push('kommendeKamper');
+  const elements = currentSlideElements.map(e => e.type);
 
   // Bygg HTML
   let previewHTML = `
@@ -549,58 +590,54 @@ function showSlide(index) {
     return;
   }
 
-  // Tøm ut eksisterende slide
   slidesContainer.innerHTML = '';
   const slide = slides[index];
+  const layout = slide.layout || 1;
 
-  // Bygg nytt innhold
-  const layoutClass = `layout-${slide.layout || 1}`;
-  let content = `
-    <div class="slide active ${layoutClass}">
-      <h2>${slide.title || 'Slide'}</h2>
-      <p><strong>Divisjon:</strong> ${slide.division} | <strong>Fase:</strong> ${slide.fase}</p>
-  `;
+  const slideDiv = document.createElement('div');
+  slideDiv.className = `slide active layout-${layout}`;
+  slideDiv.innerHTML = `<h2>${slide.title || 'Slide'}</h2>
+    <p><strong>Divisjon:</strong> ${slide.division} | <strong>Fase:</strong> ${slide.fase}</p>`;
 
-  // Legg til tabell eller ubrakett-placeholder
-  if (slide.elements.includes('tabeller')) {
-    if (slide.fase === 'utslag') {
-      content += `
-        <div class="divisjonstabell-container bracket-container">
-          <h2>Utslagsbrakett: ${slide.division} – ${slide.fase}</h2>
-          <div class="loader"></div>
-        </div>
-      `;
-    } else {
-      content += `
-        <div class="divisjonstabell-container">
-          <table id="divisjonTabell">
-            <thead>
-              <tr>
-                <th>Plass</th><th>Lag</th><th>Spilt</th><th>Vunnet</th>
-                <th>Uavgjort</th><th>Tapt</th><th>Mål+</th><th>Mål-</th><th>Poeng</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr><td colspan="9"><div class="loader"></div></td></tr>
-            </tbody>
-          </table>
-        </div>
-      `;
-    }
+  const cells = [];
+  for(let i=0;i<layout;i++) {
+    const c = document.createElement('div');
+    c.className = 'layout-cell';
+    c.dataset.index = i;
+    slideDiv.appendChild(c);
+    cells.push(c);
   }
 
-  // Avslutt slide-DIV
-  content += `</div>`;
-  slidesContainer.innerHTML = content;
+  slidesContainer.appendChild(slideDiv);
 
-  // Last inn data for tabell eller bracket
-  if (slide.elements.includes('tabeller')) {
-    if (slide.fase === 'utslag') {
-      loadBracket(slide.division, slide.fase);
-    } else {
-      loadTabeller(slide.division, slide.fase);
+  const elements = Array.isArray(slide.elements) ? slide.elements : [];
+  elements.forEach((el, idx) => {
+    const type = el.type || el;
+    const cellIndex = (el.cell != null) ? el.cell : idx % layout;
+    const container = cells[cellIndex] || slideDiv;
+    if (type === 'tabeller') {
+      const wrap = document.createElement('div');
+      wrap.className = 'divisjonstabell-container';
+      if (slide.fase === 'utslag') wrap.classList.add('bracket-container');
+      container.appendChild(wrap);
+      if (slide.fase === 'utslag') {
+        loadBracket(slide.division, slide.fase, wrap);
+      } else {
+        const tableId = `divisjonTabell_${index}_${cellIndex}`;
+        wrap.innerHTML = `<table id="${tableId}"><thead></thead><tbody><tr><td colspan='9'><div class='loader'></div></td></tr></tbody></table>`;
+        loadTabeller(slide.division, slide.fase, tableId);
+      }
+    } else if (type === 'kamper') {
+      const ul = document.createElement('ul');
+      ul.id = `kampListe_${index}_${cellIndex}`;
+      container.appendChild(ul);
+      loadKamper(slide.division, slide.fase, html => { ul.innerHTML = html; });
+    } else if (type === 'kommendeKamper') {
+      const div = document.createElement('div');
+      div.textContent = 'Kommende kamper';
+      container.appendChild(div);
     }
-  }
+  });
 }
 
 
@@ -632,7 +669,7 @@ function showSlide(index) {
  * Forutsetter at fase-navnet er "utslag".
  */
  
- async function loadBracket(divisjon, faseType) {
+ async function loadBracket(divisjon, faseType, targetEl) {
   try {
     const snapshot = await db
       .collection('turneringer')
@@ -642,7 +679,7 @@ function showSlide(index) {
       .where('faseType', '==', faseType)
       .get();
 
-    const container = document.querySelector('.bracket-container');
+    const container = targetEl || document.querySelector('.bracket-container');
     if (!container) return;
 
     if (snapshot.empty) {
@@ -731,8 +768,8 @@ function showSlide(index) {
 
   } catch (e) {
     console.error('Feil ved generering av utslagsbrakett:', e);
-    document.querySelector('.bracket-container').innerHTML =
-      '<p>Kunne ikke laste bracket. ☹️</p>';
+    const fallback = targetEl || document.querySelector('.bracket-container');
+    if (fallback) fallback.innerHTML = '<p>Kunne ikke laste bracket. ☹️</p>';
   }
 }
 
@@ -795,7 +832,15 @@ function showSlide(index) {
     // Hente slides fra Firestore
     function loadSlides() {
       db.collection('turneringer').doc(turneringId).collection('slides').get().then(snapshot => {
-        slides = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        slides = snapshot.docs.map(doc => {
+          const d = doc.data();
+          let elems = [];
+          if (Array.isArray(d.elements)) {
+            if (typeof d.elements[0] === 'object') elems = d.elements;
+            else elems = d.elements.map((t,i)=>({type:t, cell:i}));
+          }
+          return { id: doc.id, ...d, elements: elems };
+        });
         if (slides.length > 0) {
           renderSlidesOverview();
         } else {
@@ -867,9 +912,16 @@ function showSlide(index) {
             <label><input type="checkbox" value="tabeller" id="tabellerCheckbox"> Tabeller</label>
             <label><input type="checkbox" value="kommendeKamper" id="kommendeKamperCheckbox"> Kommende Kamper</label>
           </div>
+          <div id="elementLibrary"></div>
+          <div id="layoutCanvas" class="layout-canvas one"></div>
         `;
         loadDivisionsForPopup();
         addDivisionChangeListener();
+        document.getElementById('layoutSelection').addEventListener('change', setupLayoutCanvas);
+        ['kamperCheckbox','tabellerCheckbox','kommendeKamperCheckbox'].forEach(id=>{
+          const el = document.getElementById(id);
+          if(el) el.addEventListener('change', updateElementLibrary);
+        });
         if(editingSlide) {
           document.getElementById('divisionSelection').value = editingSlide.division;
           loadFaser(editingSlide.division).then(() => {
@@ -879,12 +931,23 @@ function showSlide(index) {
           document.getElementById('durationSelection').value = editingSlide.duration || 10;
           document.getElementById('layoutSelection').value = editingSlide.layout || "1";
           document.getElementById('transitionSelection').value = editingSlide.transition || "fade";
-          if(editingSlide.elements) {
-            document.getElementById('kamperCheckbox').checked = editingSlide.elements.includes('kamper');
-            document.getElementById('tabellerCheckbox').checked = editingSlide.elements.includes('tabeller');
-            document.getElementById('kommendeKamperCheckbox').checked = editingSlide.elements.includes('kommendeKamper');
+          currentSlideElements = [];
+          if(Array.isArray(editingSlide.elements)) {
+            if(typeof editingSlide.elements[0] === 'object') {
+              currentSlideElements = editingSlide.elements.map(e=>({type:e.type, cell:e.cell}));
+            } else {
+              currentSlideElements = editingSlide.elements.map((t,i)=>({type:t, cell:i}));
+            }
+            // sett checkboxer basert på element-typer
+            const types = editingSlide.elements.map(e=>e.type || e);
+            document.getElementById('kamperCheckbox').checked = types.includes('kamper');
+            document.getElementById('tabellerCheckbox').checked = types.includes('tabeller');
+            document.getElementById('kommendeKamperCheckbox').checked = types.includes('kommendeKamper');
           }
         }
+        setupLayoutCanvas();
+        updateElementLibrary();
+        renderLayoutCells();
       }
     }
 
@@ -910,7 +973,7 @@ function showSlide(index) {
     }
 
     // Lytter for divisjonsendring
-    function addDivisionChangeListener() {
+function addDivisionChangeListener() {
       const divisionSelection = document.getElementById('divisionSelection');
       const faseSelection = document.getElementById('faseSelection');
       if (divisionSelection && faseSelection) {
@@ -937,9 +1000,6 @@ function showSlide(index) {
       const duration = parseInt(document.getElementById('durationSelection').value) || 10;
       const layout = parseInt(document.getElementById('layoutSelection').value) || 1;
       const transition = document.getElementById('transitionSelection').value;
-      const kamperChecked = document.getElementById('kamperCheckbox').checked;
-      const tabellerChecked = document.getElementById('tabellerCheckbox').checked;
-      const kommendeKamperChecked = document.getElementById('kommendeKamperCheckbox').checked;
 
       if (!divisionSelection) {
         alert('Velg en divisjon.');
@@ -957,11 +1017,8 @@ function showSlide(index) {
         duration: duration,
         layout: layout,
         transition: transition,
-        elements: []
+        elements: currentSlideElements.slice()
       };
-      if (kamperChecked) slideData.elements.push('kamper');
-      if (tabellerChecked) slideData.elements.push('tabeller');
-      if (kommendeKamperChecked) slideData.elements.push('kommendeKamper');
 
       if(editingSlide) {
         db.collection('turneringer').doc(turneringId).collection('slides').doc(editingSlide.id)
@@ -1012,6 +1069,7 @@ function showSlide(index) {
       document.getElementById('slideConfigPopup').classList.remove('active');
       document.getElementById('popupOverlay').classList.remove('active');
       editingSlide = null;
+      currentSlideElements = [];
     }
 
     let slideTimer;  // holder referansen til timeout’en
@@ -1021,6 +1079,66 @@ function startPresentation() {
   currentSlideIndex = 0;
   showSlide(currentSlideIndex);
   scheduleNextSlide();
+}
+
+function updateElementLibrary() {
+  const library = document.getElementById('elementLibrary');
+  if(!library) return;
+  library.innerHTML = '';
+  ['kamper','tabeller','kommendeKamper'].forEach(type => {
+    const checkbox = document.getElementById(type + 'Checkbox');
+    if(checkbox && checkbox.checked) {
+      const item = document.createElement('div');
+      item.className = 'draggable-element';
+      item.textContent = type;
+      item.draggable = true;
+      item.dataset.type = type;
+      item.addEventListener('dragstart', e => {
+        e.dataTransfer.setData('text/plain', type);
+      });
+      library.appendChild(item);
+    }
+  });
+}
+
+function setupLayoutCanvas() {
+  const canvas = document.getElementById('layoutCanvas');
+  const layout = parseInt(document.getElementById('layoutSelection').value) || 1;
+  if(!canvas) return;
+  canvas.className = 'layout-canvas ' + (layout===1?'one':layout===2?'two':'three');
+  canvas.innerHTML = '';
+  for(let i=0;i<layout;i++) {
+    const cell = document.createElement('div');
+    cell.className = 'drop-cell';
+    cell.dataset.index = i;
+    cell.addEventListener('dragover', e=>e.preventDefault());
+    cell.addEventListener('drop', handleDrop);
+    canvas.appendChild(cell);
+  }
+}
+
+function handleDrop(e) {
+  e.preventDefault();
+  const type = e.dataTransfer.getData('text/plain');
+  const idx = parseInt(this.dataset.index);
+  const existing = currentSlideElements.find(el => el.cell === idx);
+  if(existing) existing.type = type; else currentSlideElements.push({type, cell:idx});
+  renderLayoutCells();
+}
+
+function renderLayoutCells() {
+  const cells = document.querySelectorAll('#layoutCanvas .drop-cell');
+  cells.forEach(cell => {
+    cell.innerHTML = '';
+    const idx = parseInt(cell.dataset.index);
+    const el = currentSlideElements.find(e=>e.cell===idx);
+    if(el) {
+      const div = document.createElement('div');
+      div.className = 'cell-element';
+      div.textContent = el.type;
+      cell.appendChild(div);
+    }
+  });
 }
 
 // Setter opp neste automatisk slide-switch basert på slide.duration (i sekunder)
@@ -1121,7 +1239,7 @@ function dynamicSort(a, b) {
 // Henter alle lag i divisjon/fase og akkumulerer statistikk kun for
 // kamper med status 'startet'. Øvrige lag vises med 0 i alle kolonner.
 // -----------------------------------------------------------------------------
-async function loadTabeller(divisjon, fase) {
+async function loadTabeller(divisjon, fase, tableId) {
   // 1) Konverter fase (streng eller tall) til et tall som matcher feltet 'fasenummer'
   const phaseNum = Number(fase.toString().replace(/\D/g, ''));
 
@@ -1202,7 +1320,7 @@ async function loadTabeller(divisjon, fase) {
   );
 
   // 7) Render tabellen i DOM
-  const table = document.getElementById('divisjonTabell');
+  const table = document.getElementById(tableId || 'divisjonTabell');
   const thead = table.querySelector('thead');
   const tbody = table.querySelector('tbody');
 
