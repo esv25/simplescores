@@ -96,6 +96,38 @@
     font-size: 16px;
 }
 
+/* Ryddigere start/sluttid-felter */
+.date-time-entry {
+    border: 1px solid #e2e8f0;
+    padding: 12px;
+    margin-bottom: 16px;
+    border-radius: 8px;
+}
+
+.date-time-entry h3 {
+    margin: 0 0 8px 0;
+    font-size: 18px;
+}
+
+.date-time-entry .time-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.date-time-entry .time-group label {
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.date-time-entry .time-group input[type="time"] {
+    padding: 8px;
+    width: auto;
+    border: 1px solid #68d391;
+    border-radius: 6px;
+}
+
 .wizard-footer {
     display: flex;
     justify-content: space-between;
@@ -534,31 +566,39 @@ async function loadDateTimesWizard() {
   const container = document.getElementById("dateTimesWizardContainer");
   container.innerHTML = "";
 
-  // 3) For hver dato: opprett én label + to <input type="time">
+  // 3) For hver dato: opprett ryddig blokk med start- og sluttid
   tournamentDates.forEach(date => {
     const entry = document.createElement("div");
     entry.className = "date-time-entry";
     entry.dataset.date = date;
 
+    const header = document.createElement("h3");
+    header.textContent = `Dato ${date}`;
+    entry.appendChild(header);
+
+    const startWrap = document.createElement("div");
+    startWrap.className = "time-group";
     const lblStart = document.createElement("label");
     lblStart.setAttribute("for", `wizard_startTime-${date}`);
-    lblStart.textContent = `Dato ${date} – Start:`;
-    entry.appendChild(lblStart);
-
+    lblStart.textContent = "Start:";
+    startWrap.appendChild(lblStart);
     const startIn = document.createElement("input");
     startIn.type = "time";
-    startIn.id   = `wizard_startTime-${date}`;
-    entry.appendChild(startIn);
+    startIn.id = `wizard_startTime-${date}`;
+    startWrap.appendChild(startIn);
+    entry.appendChild(startWrap);
 
+    const endWrap = document.createElement("div");
+    endWrap.className = "time-group";
     const lblEnd = document.createElement("label");
     lblEnd.setAttribute("for", `wizard_endTime-${date}`);
-    lblEnd.textContent = `Slutt:`;
-    entry.appendChild(lblEnd);
-
+    lblEnd.textContent = "Slutt:";
+    endWrap.appendChild(lblEnd);
     const endIn = document.createElement("input");
     endIn.type = "time";
-    endIn.id   = `wizard_endTime-${date}`;
-    entry.appendChild(endIn);
+    endIn.id = `wizard_endTime-${date}`;
+    endWrap.appendChild(endIn);
+    entry.appendChild(endWrap);
 
     container.appendChild(entry);
   });
