@@ -6,133 +6,23 @@
   <meta name="description" content="Discover Simple Scores, your trusted source for live sports scores and updates. Choose your page to access the public or admin section.">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="canonical" href="https://dinsideeksempel.no/">
-  <link rel="stylesheet" href="./admin.css">
-  <!-- Open Graph meta tags -->
-  <meta property="og:title" content="Simple Scores – Score Service">
-  <meta property="og:description" content="Discover Simple Scores, your trusted source for live sports scores and updates.">
-  <meta property="og:image" content="logo.png">
-  <meta property="og:url" content="https://dinsideeksempel.no/">
-  <meta property="og:type" content="website">
-  <script type="application/ld+json">
-  {
-    "@context": "https://schema.org",
-    "@type": "WebSite",
-    "url": "https://dinsideeksempel.no/",
-    "name": "Simple Scores",
-    "description": "Discover Simple Scores, your trusted source for live sports scores and updates."
-  }
-  </script>
-  <style>
-    body {
-      font-family: 'Poppins', sans-serif;
-      background-color: #1a202c;
-      color: #f0f2f5;
-      margin: 0;
-      padding: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      min-height: 100vh;
-    }
-    .container {
-      display: flex;
-      width: 80%;
-      max-width: 1200px;
-      background-color: #2d3748;
-      border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-      overflow: hidden;
-    }
-    .logo-section {
-      flex: 1;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: linear-gradient(135deg, #3b3f73, #2f8656);
-      padding: 20px;
-    }
-    .logo-section img {
-      max-width: 80%;
-      max-height: 80%;
-      filter: drop-shadow(0px 4px 6px rgba(0, 0, 0, 0.4));
-    }
-    .choice-section {
-      flex: 1;
-      padding: 40px;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-    }
-    .choice-section h1 {
-      text-align: center;
-      margin-bottom: 20px;
-      color: #f0f2f5;
-    }
-    .choice-section p {
-      text-align: center;
-      margin-bottom: 30px;
-      color: #cbd5e0;
-    }
-    .choice-section button {
-      width: 100%;
-      padding: 12px;
-      margin: 10px 0;
-      background-color: #68d391;
-      color: white;
-      font-size: 16px;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      transition: background-color 0.3s ease;
-    }
-    .choice-section button:hover {
-      background-color: #48bb78;
-    }
-    @media (max-width: 768px) {
-      .container {
-        flex-direction: column;
-        width: 90%;
-      }
-      .logo-section {
-        border-top-left-radius: 12px;
-        border-bottom-left-radius: 0;
-        border-top-right-radius: 12px;
-        padding: 40px 20px;
-      }
-      .logo-section img {
-        max-width: 100%;
-        height: auto;
-        max-height: 150px;
-        object-fit: contain;
-      }
-      .choice-section {
-        padding: 20px;
-      }
-      .choice-section h1 {
-        font-size: 24px;
-        margin-bottom: 16px;
-      }
-      .choice-section button {
-        padding: 10px;
-        font-size: 14px;
-      }
-    }
-  </style>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-  <main class="container">
+<body class="font-[Poppins] bg-gray-900 text-gray-200 flex items-center justify-center min-h-screen m-0">
+  <main class="flex flex-col md:flex-row w-11/12 md:w-4/5 max-w-5xl bg-gray-800 rounded-xl shadow-lg overflow-hidden">
     <!-- Logo Section -->
-    <section class="logo-section">
-      <img src="logo.png" alt="Simple Scores Logo">
+    <section class="flex flex-1 items-center justify-center bg-gradient-to-br from-indigo-700 to-green-700 p-5">
+      <img src="logo.png" alt="Simple Scores Logo" class="max-w-4/5 max-h-4/5 drop-shadow-lg">
     </section>
 
     <!-- Choice Section -->
-    <section class="choice-section">
-      <h1>Choose Your Page</h1>
-      <p>Welcome to Simple Scores, your trusted source for live sports scores and updates. Choose your page to continue.</p>
-      <button onclick="window.location.href='publikum.html'">Go to Public Page</button>
-      <button onclick="window.location.href='login.html'">Go to Admin Page</button>
-      <button onclick="window.location.href='basicscore.html'">Go to Basic Scoreboard</button>
+    <section class="flex flex-col justify-center flex-1 p-10">
+      <h1 class="text-center mb-4 text-3xl text-gray-100 font-bold">Choose Your Page</h1>
+      <p class="text-center mb-8 text-gray-300">Welcome to Simple Scores, your trusted source for live sports scores and updates. Choose your page to continue.</p>
+      <button class="w-full py-3 mb-3 bg-green-400 text-white text-lg rounded-md hover:bg-green-500" onclick="window.location.href='publikum.html'">Go to Public Page</button>
+      <button class="w-full py-3 mb-3 bg-green-400 text-white text-lg rounded-md hover:bg-green-500" onclick="window.location.href='login.html'">Go to Admin Page</button>
+      <button class="w-full py-3 bg-green-400 text-white text-lg rounded-md hover:bg-green-500" onclick="window.location.href='basicscore.html'">Go to Basic Scoreboard</button>
     </section>
   </main>
 </body>
