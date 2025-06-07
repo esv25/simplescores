@@ -6,10 +6,15 @@
   <link rel="stylesheet" type="text/css" href="./admin.css">
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
   <style>
-    /* Sørg for at header og nav alltid ligger over sidebaren */
+    /* Sørg for at header og nav alltid ligger over innhold */
     header, nav {
       position: relative;
       z-index: 2000;
+    }
+
+    /* Hindrer at siden kan skrolle horisontalt */
+    html, body {
+      overflow-x: hidden;
     }
 
     /* Wrapper rundt sidebar og hovedinnhold */
@@ -22,7 +27,7 @@
 
     /* Oppdatert stil for FAQ-sidebar på høyre side */
     #sidebar {
-      position: absolute;
+      position: fixed;
       top: 0;
       right: 0;
       width: 250px;
@@ -31,7 +36,7 @@
       box-shadow: -2px 0 5px rgba(0,0,0,0.1);
       transform: translateX(100%); /* Skjult til høyre */
       transition: transform 0.3s ease-in-out;
-      z-index: 1500;
+      z-index: 2500;
       height: 100%;
     }
     #sidebar.open {
@@ -54,6 +59,7 @@
         width: 100%;
         height: auto;
         transform: none;
+        z-index: auto;
       }
     }
     /* Eksempel på styling for lenker i sidebar */
@@ -703,9 +709,6 @@ function hentDommere() {
     });
     
     hentDommere();
-    document.addEventListener('DOMContentLoaded', function() {
-      openTeamForm();
-    });
   </script>
   
   <!-- Ekstra script for å bevare query-parametere på alle interne lenker -->
