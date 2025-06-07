@@ -65,6 +65,21 @@
     border-bottom-color: #007bff; /* Aktiv farge */
   }
 
+  /* Fase- og segmentknapper */
+  .phase-buttons button,
+  .segment-buttons button {
+    margin-right: 0.25rem;
+    padding: 0.25rem 0.5rem;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background: #f0f0f0;
+    cursor: pointer;
+  }
+  .phase-buttons button.active,
+  .segment-buttons button.active {
+    background: #b2f2e8;
+  }
+
   /* Tab-innhold (utenfor main .tab-content, hvis du bruker flere nivåer) */
   .tab-content {
     display: none;
@@ -244,6 +259,10 @@
           <div class="phase-buttons" id="phaseButtons">
             <!-- Dynamisk genererte fase-knapper -->
           </div>
+          <!-- Segment-knapper -->
+          <div class="segment-buttons" id="segmentButtons" style="margin-top:0.5rem;">
+            <!-- Dynamisk genererte segment-knapper -->
+          </div>
       
           <!-- Divisjonstabell -->
           <div class="divisjonstabell-container" id="divisjonContainer">
@@ -279,12 +298,14 @@ const rtdb = firebase.database();
 
         // Globale variabler
         let kampId;
-        let kampFase; 
-        let kampDivisjon; 
-        let phaseType; 
-        let currentHomeTeam; 
-        let currentAwayTeam; 
-        let availablePhases = []; 
+        let kampFase;
+        let kampDivisjon;
+        let kampSegment;
+        let phaseType;
+        let availableSegments = [];
+        let currentHomeTeam;
+        let currentAwayTeam;
+        let availablePhases = [];
         let timerInterval; 
         let timeoutInterval; 
         let currentTimeoutTeam = null; 
@@ -317,6 +338,7 @@ let currentStatus = null;
 
 
         const phaseButtonsContainer = document.getElementById('phaseButtons');
+        const segmentButtonsContainer = document.getElementById('segmentButtons');
         const divisjonContainer = document.getElementById('divisjonContainer');
         const bracketContainer = document.getElementById('bracketContainer');
 
@@ -378,9 +400,10 @@ async function initializePage() {
     }
     const data = snap.data();
 
-    // Lagre divisjon og fasenummer globalt
+    // Lagre divisjon, fase og segment globalt
     kampDivisjon = data.divisjon;
     kampFase     = data.fasenummer;
+    kampSegment  = data.segment || kampSegment;
 
     // Oppdater detaljer i <div id="kampDetails">
     const updateDetail = (label, value) => {
@@ -404,7 +427,7 @@ async function initializePage() {
     }
 
     // Hent og vis tabell for valgt divisjon/fase
-    await fetchPhaseData(kampDivisjon, kampFase);
+    await fetchPhaseData(kampDivisjon, kampFase, kampSegment);
 
     // Hvis kampen er startet, koble sanntids-lytter
     if (data.status === 'startet') {
@@ -510,8 +533,7 @@ const phaseDateElement = document.getElementById('phaseDate');
       document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
 
       if (btn.dataset.tab === 'table') {
-        // Nå finnes kampDocRef globalt
-        await fetchPhaseData(kampDivisjon, kampFase, kampDocRef);
+        await fetchPhaseData(kampDivisjon, kampFase, kampSegment);
       }
     });
   });
@@ -622,7 +644,8 @@ const phaseDateElement = document.getElementById('phaseDate');
 
     // Oppdater tabell/oversikt om ønsket
     if (data.divisjon && data.fasenummer != null) {
-      fetchDivisjonTabell(data.divisjon, data.fasenummer)
+      kampSegment = data.segment || kampSegment;
+      fetchDivisjonTabell(data.divisjon, data.fasenummer, kampSegment)
         .catch(err => console.error('[DEBUG] fetchDivisjonTabell:', err));
     }
   }, err => {
@@ -636,7 +659,7 @@ document.addEventListener('DOMContentLoaded', () => {
   setupRealtimeListener();
 }); 
 
-async function fetchDivisjonTabell(divisjon, fasenummer) {
+async function fetchDivisjonTabell(divisjon, fasenummer, segmentName) {
   try {
     // 1) Valider inputs
     if (!divisjon) {
@@ -660,7 +683,8 @@ async function fetchDivisjonTabell(divisjon, fasenummer) {
     // 2) Vis tabell­container og overskrift
     divisjonContainer.style.display = 'block';
     bracketContainer.style.display = 'none';
-    divisjonOverskriftElement.textContent = `Tabell: ${divisjon} – Fase ${phaseNum}`;
+    const segTxt = segmentName ? ` – ${segmentName}` : '';
+    divisjonOverskriftElement.textContent = `Tabell: ${divisjon} – Fase ${phaseNum}${segTxt}`;
     divisjonTabellHeadElement.innerHTML = `
       <tr>
         <th>Plass</th><th>Lag</th><th>Spilt</th><th>V</th>
@@ -669,13 +693,15 @@ async function fetchDivisjonTabell(divisjon, fasenummer) {
     `;
 
     // 3) Hent ALLE kamper for å finne hvilke lag som skal vises (uavhengig av status)
-    const allSnap = await db
+    let allQuery = db
       .collection('turneringer').doc(tournamentId)
       .collection('kamper')
       .where('divisjon',   '==', divisjon)
-      .where('fasenummer', '==', phaseNum)
-      .get();
-
+      .where('fasenummer', '==', phaseNum);
+    if (segmentName) {
+      allQuery = allQuery.where('segment', '==', segmentName);
+    }
+    const allSnap = await allQuery.get();
     const teams = new Set();
     allSnap.forEach(doc => {
       const d = doc.data();
@@ -689,13 +715,15 @@ async function fetchDivisjonTabell(divisjon, fasenummer) {
     }
 
     // 4) Hent kun kamper med status "startet" ELLER "ferdig"
-    const relevantSnap = await db
-      .collection('turneringer').doc(tournamentId)
+    let query = db.collection('turneringer').doc(tournamentId)
       .collection('kamper')
       .where('divisjon',   '==', divisjon)
       .where('fasenummer', '==', phaseNum)
-      .where('status',     'in', ['startet','ferdig'])
-      .get();
+      .where('status',     'in', ['startet','ferdig']);
+    if (segmentName) {
+      query = query.where('segment', '==', segmentName);
+    }
+    const relevantSnap = await query.get();
 
     // 5) Initialiser statistikk for alle lag med nuller
     const stats = {};
@@ -779,7 +807,7 @@ async function fetchAvailablePhases() {
  * Returnerer phase.type (f.eks. 'utslag' eller 'gruppen').
  */
 // 3) Hent og vis fase-metadata (navn, type, dato)
-async function fetchPhaseType(divisjon, fasenummer) {
+async function fetchPhaseType(divisjon, fasenummer, segmentName) {
   try {
     if (!divisjon || fasenummer == null) {
       console.warn('fetchPhaseType: mangler divisjon eller fasenummer');
@@ -797,22 +825,62 @@ async function fetchPhaseType(divisjon, fasenummer) {
     }
 
     const data = snap.data();
-    // Oppdater <p><strong>Fase:</strong> …</p>
-    const faseP = Array.from(kampDetails.querySelectorAll('p')).find(p =>
-      p.querySelector('strong')?.textContent === 'Fase:'
-    );
-    if (faseP) {
-      faseP.innerHTML = `<strong>Fase:</strong> ${data.navn || 'Ukjent'} (${data.type || 'Ukjent'})`;
-    }
-    // Oppdater <p><strong>Dato:</strong> …</p>
-    const datoP = Array.from(kampDetails.querySelectorAll('p')).find(p =>
-      p.querySelector('strong')?.textContent === 'Dato:'
-    );
-    if (datoP && data.starttid) {
-      datoP.innerHTML = `<strong>Dato:</strong> ${formatDate(data.starttid)}`;
-    }
+    availableSegments = Array.isArray(data.segmenter) ? data.segmenter : [];
 
-    return data.type || null;
+    let selectedSeg = null;
+    if (availableSegments.length) {
+      if (segmentName) {
+        selectedSeg = availableSegments.find(s => s.name === segmentName);
+      }
+      if (!selectedSeg && kampSegment) {
+        selectedSeg = availableSegments.find(s => s.name === kampSegment);
+      }
+      if (!selectedSeg && phaseType) {
+        selectedSeg = availableSegments.find(s => s.type === phaseType);
+      }
+      if (!selectedSeg) selectedSeg = availableSegments[0];
+
+      kampSegment = selectedSeg.name;
+      phaseType   = selectedSeg.type || data.type;
+      createSegmentButtons();
+      updateSegmentButtons(kampSegment);
+
+      const faseP = Array.from(kampDetails.querySelectorAll('p')).find(p =>
+        p.querySelector('strong')?.textContent === 'Fase:'
+      );
+      if (faseP) {
+        const segText = selectedSeg.name ? ` – ${selectedSeg.name}` : '';
+        faseP.innerHTML = `<strong>Fase:</strong> ${data.navn || 'Ukjent'}${segText} (${phaseType || 'Ukjent'})`;
+      }
+      const datoP = Array.from(kampDetails.querySelectorAll('p')).find(p =>
+        p.querySelector('strong')?.textContent === 'Dato:'
+      );
+      if (datoP && (selectedSeg.starttid || data.starttid)) {
+        const st = selectedSeg.starttid || data.starttid;
+        datoP.innerHTML = `<strong>Dato:</strong> ${formatDate(st)}`;
+      }
+
+      return phaseType;
+
+    } else {
+      phaseType = data.type || null;
+      kampSegment = null;
+      availableSegments = [];
+      segmentButtonsContainer.innerHTML = '';
+      const faseP = Array.from(kampDetails.querySelectorAll('p')).find(p =>
+        p.querySelector('strong')?.textContent === 'Fase:'
+      );
+      if (faseP) {
+        faseP.innerHTML = `<strong>Fase:</strong> ${data.navn || 'Ukjent'} (${phaseType || 'Ukjent'})`;
+      }
+      const datoP = Array.from(kampDetails.querySelectorAll('p')).find(p =>
+        p.querySelector('strong')?.textContent === 'Dato:'
+      );
+      if (datoP && data.starttid) {
+        datoP.innerHTML = `<strong>Dato:</strong> ${formatDate(data.starttid)}`;
+      }
+      return phaseType;
+    }
 
   } catch (err) {
     console.error('Feil i fetchPhaseType:', err);
@@ -826,13 +894,13 @@ async function fetchPhaseType(divisjon, fasenummer) {
 
 
 // 4) Wrapper for å hente fasedata (her kun tabell)
-async function fetchPhaseData(divisjon, fasenummer) {
+async function fetchPhaseData(divisjon, fasenummer, segmentName) {
   try {
-    phaseType = await fetchPhaseType(divisjon, fasenummer);
+    phaseType = await fetchPhaseType(divisjon, fasenummer, segmentName);
     if (phaseType === 'utslag') {
-      await fetchKnockoutBracket(divisjon, fasenummer);
+      await fetchKnockoutBracket(divisjon, fasenummer, kampSegment);
     } else {
-      await fetchDivisjonTabell(divisjon, fasenummer);
+      await fetchDivisjonTabell(divisjon, fasenummer, kampSegment);
     }
   } catch (err) {
     console.error('Feil ved henting av fasedata:', err);
@@ -853,11 +921,7 @@ function createPhaseButtons() {
       kampFase = phase.name;
       phaseType = phase.type;
       updatePhaseButtons(kampFase);
-      if (phase.type === 'utslag') {
-        await fetchKnockoutBracket(kampDivisjon, kampFase);
-      } else {
-        await fetchDivisjonTabell(kampDivisjon, kampFase);
-      }
+      await fetchPhaseData(kampDivisjon, kampFase, kampSegment);
     });
     phaseButtonsContainer.appendChild(btn);
   });
@@ -866,6 +930,34 @@ function createPhaseButtons() {
 function updatePhaseButtons(activePhase) {
   Array.from(phaseButtonsContainer.children).forEach(btn => {
     btn.classList.toggle('active', btn.dataset.phaseName === activePhase);
+  });
+}
+
+function createSegmentButtons() {
+  segmentButtonsContainer.innerHTML = '';
+  if (!availableSegments || availableSegments.length <= 1) {
+    segmentButtonsContainer.style.display = 'none';
+    return;
+  }
+  segmentButtonsContainer.style.display = 'block';
+  availableSegments.forEach(seg => {
+    const btn = document.createElement('button');
+    btn.textContent = seg.name || seg.navn || seg.id;
+    btn.classList.add('phase-button');
+    btn.dataset.segmentName = seg.name;
+    btn.addEventListener('click', async () => {
+      kampSegment = seg.name;
+      phaseType   = seg.type;
+      updateSegmentButtons(kampSegment);
+      await fetchPhaseData(kampDivisjon, kampFase, kampSegment);
+    });
+    segmentButtonsContainer.appendChild(btn);
+  });
+}
+
+function updateSegmentButtons(activeSegment) {
+  Array.from(segmentButtonsContainer.children).forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.segmentName === activeSegment);
   });
 }
 
@@ -887,7 +979,7 @@ tabButtons.forEach(btn => {
 
     // Hvis det er Tabell-fanen, hent data på nytt
     if (btn.dataset.tab === 'table') {
-      await fetchPhaseData(kampDivisjon, kampFase, kampDocRef);
+      await fetchPhaseData(kampDivisjon, kampFase, kampSegment);
     }
   });
 });
@@ -903,6 +995,7 @@ tabButtons.forEach(btn => {
             divisjonContainer.style.display = 'none';
             document.querySelector('.scorers-section').style.display = 'none';
             phaseButtonsContainer.style.display = 'none';
+            segmentButtonsContainer.style.display = 'none';
         }
 
         // *Valgfritt*: Funksjon for å vise elementer
@@ -911,6 +1004,7 @@ tabButtons.forEach(btn => {
             divisjonContainer.style.display = 'block';
             document.querySelector('.scorers-section').style.display = 'block';
             phaseButtonsContainer.style.display = 'block';
+            segmentButtonsContainer.style.display = 'block';
         }
 
 
@@ -919,18 +1013,22 @@ tabButtons.forEach(btn => {
 
 
         // Hent knockout
-        async function fetchKnockoutBracket(divisjon, fase) {
+        async function fetchKnockoutBracket(divisjon, fase, segmentName) {
             try {
-                divisjonOverskriftElement.textContent = `Utslag - ${fase}`;
+                const segTxt = segmentName ? ` - ${segmentName}` : '';
+                divisjonOverskriftElement.textContent = `Utslag - ${fase}${segTxt}`;
                 bracketContainer.style.display = 'grid';
                 divisjonContainer.style.display = 'none';
 
-                const snap = await db.collection('turneringer')
+                let q = db.collection('turneringer')
                     .doc(tournamentId)
                     .collection('kamper')
                     .where('divisjon', '==', divisjon)
-                    .where('fase', '==', fase)
-                    .get();
+                    .where('fase', '==', fase);
+                if (segmentName) {
+                    q = q.where('segment', '==', segmentName);
+                }
+                const snap = await q.get();
 
                 if (snap.empty) {
                     bracketContainer.innerHTML = '<p>Ingen kamper tilgjengelige for denne fasen.</p>';
