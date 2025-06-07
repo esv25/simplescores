@@ -711,11 +711,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
       if(id === 'teams') {
         document.getElementById('refereeForm').style.display = 'none';
-        openTeamForm();
+        const sidebar = document.getElementById('teamSidebar');
+        if(sidebar) sidebar.style.display = 'block';
       } else if(id === 'refs') {
         const sidebar = document.getElementById('teamSidebar');
         if(sidebar) sidebar.style.display = 'none';
-        openRefereeForm();
+        const modal = document.getElementById('refereeForm');
+        if(modal) modal.style.display = 'block';
       }
     }
 
