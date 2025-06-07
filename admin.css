@@ -315,7 +315,32 @@ input[type="date"] {
     color: #333;
 }
 
+/* Stil for tekstbaserte input-felt */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="number"],
+input[type="time"],
+input[type="search"],
+textarea {
+    width: 100%;
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid #68d391;
+    font-size: 16px;
+    background-color: #ffffff;
+    color: #333;
+    box-sizing: border-box;
+}
+
 input[type="date"]:focus {
+    outline: none;
+    border-color: #4c51bf;
+    box-shadow: 0 0 5px rgba(76, 81, 191, 0.5);
+}
+
+input:focus,
+textarea:focus {
     outline: none;
     border-color: #4c51bf;
     box-shadow: 0 0 5px rgba(76, 81, 191, 0.5);

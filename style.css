@@ -1273,3 +1273,47 @@ table td button:hover {
     color: #555;
     margin-top: 5px;
 }
+
+/* --------------------------------------------------
+   Generell styling for inputfelter og dropdowns
+   -------------------------------------------------- */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="number"],
+input[type="date"],
+input[type="time"],
+input[type="search"],
+textarea,
+select {
+    width: 100%;
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: 1px solid #68d391;
+    font-size: 16px;
+    background-color: #ffffff;
+    color: #2d3e50;
+    box-sizing: border-box;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+    outline: none;
+    border-color: #4c51bf;
+    box-shadow: 0 0 5px rgba(76, 81, 191, 0.5);
+}
+
+select {
+    appearance: none;
+    background-image: url('data:image/svg+xml;charset=US-ASCII,<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 10 10"><path fill="%23333" d="M0 3l5 5 5-5z"/></svg>');
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    background-size: 10px;
+    padding-right: 30px; /* plass til pilen */
+    cursor: pointer;
+}
+
+::placeholder {
+    color: #999;
+}
