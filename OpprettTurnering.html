@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="no">
 <head>
+  <script src="https://cdn.tailwindcss.com"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">    
     <link rel="stylesheet" type="text/css" href="./admin.css">
@@ -125,13 +126,13 @@
           <a href="nyTurnering.html"><img src="logo.png" alt="Simple Scores Logo" class="logo"></a>
         </div>
         <div class="nav2">
-          <button id="user-button" onclick="toggleUserMenu()">Bruker</button>
+          <button id="user-button" onclick="toggleUserMenu()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-4 rounded">Bruker</button>
           <div id="user-menu" class="user-menu" style="display: none;">
             <p>Logget inn som <span id="mail"></span></p>
-            <button id="loggut" onclick="loggut()">Logg ut</button>
+            <button id="loggut" onclick="loggut()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-4 rounded">Logg ut</button>
           </div>
-          <button onclick="window.location.href='publikum.html'">Publikum</button>
-          <button onclick="displaysidebar()" type="button">Q&A</button>
+          <button onclick="window.location.href='publikum.html'" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-4 rounded">Publikum</button>
+          <button onclick="displaysidebar()" type="button" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-4 rounded">Q&A</button>
         </div>
       </header>
       
@@ -142,14 +143,14 @@
 
         <h3>Legg til datoer</h3>
         <input type="date" id="tournamentDate">
-        <button type="button" onclick="addDate()">Legg til dato</button>
+        <button type="button" onclick="addDate()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-4 rounded">Legg til dato</button>
 
         <h3>Lagrede datoer</h3>
         <ul id="dateList">
             <!-- Lister datoer her -->
         </ul>
 
-        <button type="button" onclick="nextStep(1)">Neste</button>
+        <button type="button" onclick="nextStep(1)" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-4 rounded mt-2">Neste</button>
     </div>
 
     <div id="step2" class="step">
@@ -159,15 +160,15 @@
     
         <h3>Legg til co-arrangører</h3>
         <input type="email" id="coOrganizerEmail" placeholder="Co-arrangør e-post">
-        <button type="button" onclick="addCoOrganizer()">Legg til co-arrangør</button>
+        <button type="button" onclick="addCoOrganizer()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-4 rounded">Legg til co-arrangør</button>
     
         <h3>Lagrede co-arrangører</h3>
         <ul id="coOrganizerList">
             <!-- Lister co-arrangører her -->
         </ul>
     
-        <button type="button" onclick="nextStep(2)">Neste</button>
-        <button type="button" onclick="previousStep(2)">Tilbake</button>
+        <button type="button" onclick="nextStep(2)" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-4 rounded mt-2">Neste</button>
+        <button type="button" onclick="previousStep(2)" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-4 rounded mt-2">Tilbake</button>
     </div>
     
 
@@ -175,8 +176,8 @@
         <h2>Sted</h2>
         <label for="location">Sted:</label>
         <input type="text" id="location" name="location"><br><br>
-        <button type="button" onclick="nextStep(3)">Neste</button>
-        <button type="button" onclick="previousStep(3)">Tilbake</button>
+        <button type="button" onclick="nextStep(3)" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-4 rounded">Neste</button>
+        <button type="button" onclick="previousStep(3)" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-4 rounded mt-2">Tilbake</button>
     </div>
 
     <div id="step4" class="step">
@@ -187,15 +188,15 @@
             <input type="checkbox" id="hideResults" class="checkbox">
             Skjul resultater fra offentligheten
         </label>
-        <button type="button" onclick="addDivision()">Legg til Divisjon</button>
+        <button type="button" onclick="addDivision()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-4 rounded">Legg til Divisjon</button>
 
         <h3>Lagrede divisjoner</h3>
         <ul id="divisionList">
             <!-- Lister divisjoner her -->
         </ul>
 
-        <button type="button" onclick="submitTournament()">Fullfør</button>
-        <button type="button" onclick="previousStep(4)">Tilbake</button>
+        <button type="button" onclick="submitTournament()" class="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded">Fullfør</button>
+        <button type="button" onclick="previousStep(4)" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-4 rounded mt-2">Tilbake</button>
     </div>
     
 
