@@ -8,30 +8,14 @@
   <title>Legg til Turnering</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
   <!-- Ekstra stil for turneringskortene -->
-  <style>
-    /* Container for knappene inni hvert turneringskort */
-    .turnering-actions {
-      display: flex;
-      justify-content: space-between;
-      gap: 10px;
-      margin-top: 15px;
-    }
-    .turnering-actions button {
-      flex: 1;
-      padding: 8px 0;
-      font-size: 14px;
-      border-radius: 6px;
-      /* Bruk samme farge som resten av knappene (overstyres evt. av admin.css) */
-      background-color: #4c51bf;
-      color: white;
-      border: none;
-      cursor: pointer;
-      transition: background-color 0.3s ease, transform 0.2s;
-    }
-    .turnering-actions button:hover {
-      background-color: #434190;
-      transform: scale(1.05);
-    }
+    <style>
+      /* Container for knappene inni hvert turneringskort */
+      .turnering-actions {
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+        margin-top: 15px;
+      }
   </style>
 </head>
 <body id="wrapper">
@@ -50,7 +34,7 @@
     </div>
   </header>
   
-  <button onclick="endre()">Opprett turnering</button>
+  <button onclick="endre()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-4 rounded mt-4">Opprett turnering</button>
   
   <main id="turneringListe" class="turnering-container"></main>
   <main id="coArrangorTurneringListe">
@@ -195,6 +179,7 @@
             // Rediger-knapp
             const editButton = document.createElement('button');
             editButton.textContent = 'Rediger';
+            editButton.className = 'flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 rounded';
             editButton.onclick = function(e) {
               e.stopPropagation();
               const newName = prompt("Skriv inn nytt navn for turneringen:", turnering.tournamentName);
@@ -214,6 +199,7 @@
             // Slett-knapp
             const deleteButton = document.createElement('button');
             deleteButton.textContent = 'Slett';
+            deleteButton.className = 'flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 rounded';
             deleteButton.onclick = function(e) {
               e.stopPropagation();
               if (confirm("Er du sikker på at du vil slette turneringen?")) {
