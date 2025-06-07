@@ -98,21 +98,21 @@
             <div class="fase-container">
                 <h5>Phase 1</h5>
                 <div class="button-container">
-                    <button onclick="Endre(1)" id="fase1knapp" class="btn btn-primary">Legg til format for fase</button>
+                    <button onclick="Endre(1)" id="fase1knapp" class="btn btn-primary">Legg til segment</button>
                 </div>
                 <div id="fase1"></div> <!-- Dynamic content for Fase 1 -->
             </div>
             <div class="fase-container">
                 <h5>Phase 2</h5>
                 <div class="button-container">
-                    <button onclick="Endre(2)" id="fase2knapp" class="btn btn-primary" style="display: none;">Legg til format for fase</button>
+                    <button onclick="Endre(2)" id="fase2knapp" class="btn btn-primary" style="display: none;">Legg til segment</button>
                 </div>
                 <div id="fase2"></div> <!-- Dynamic content for Fase 2 -->
             </div>
             <div class="fase-container">
                 <h5>Phase 3</h5>
                 <div class="button-container">
-                    <button onclick="Endre(3)" id="fase3knapp" class="btn btn-primary" style="display: none;">Legg til format for fase</button>
+                    <button onclick="Endre(3)" id="fase3knapp" class="btn btn-primary" style="display: none;">Legg til segment</button>
 
                 </div>
                 <div id="fase3"></div> <!-- Dynamic content for Fase 3 -->
@@ -344,9 +344,7 @@ function toggleAnswer(index) {
 }
 
         let fasesjekk;
-        let fasenummer1;
-        let fasenummer2;
-        let fasenummer3;
+        const faseSegments = { 1: [], 2: [], 3: [] };
 
         function Endre(fase){
             document.getElementById("formatPopup").style.display = "block";
@@ -483,7 +481,7 @@ document.getElementById('divisionDropdown')
 
         function Endrer(faseNummer) {
             const currentPhaseButton = document.getElementById(`fase${faseNummer}knapp`);
-            currentPhaseButton.textContent = 'Endre format for fase';
+            currentPhaseButton.textContent = 'Legg til segment';
 
             let buttonContainer = currentPhaseButton.parentNode;
 
@@ -498,7 +496,7 @@ document.getElementById('divisionDropdown')
             if (!deleteButton) {
                 deleteButton = document.createElement('button');
                 deleteButton.id = `fase${faseNummer}slett`;
-                deleteButton.textContent = 'Slett fase';
+                deleteButton.textContent = 'Slett segmenter';
                 deleteButton.classList.add('btn', 'btn-danger');
                 deleteButton.onclick = function() {
                     slettFase(faseNummer);
@@ -524,7 +522,7 @@ document.getElementById('divisionDropdown')
 
             const currentPhaseButton = document.getElementById(`fase${faseNummer}knapp`);
             if (currentPhaseButton) {
-                currentPhaseButton.textContent = 'Legg til format for fase';
+                currentPhaseButton.textContent = 'Legg til segment';
             }
 
             const deleteButton = document.getElementById(`fase${faseNummer}slett`);
@@ -532,20 +530,13 @@ document.getElementById('divisionDropdown')
                 deleteButton.style.display = 'none';
             }
 
-            // Nullstill fasetype
-            if (faseNummer == 1) {
-                fasenummer1 = undefined;
-            } else if (faseNummer == 2) {
-                fasenummer2 = undefined;
-            } else if (faseNummer == 3) {
-                fasenummer3 = undefined;
-            }
+            faseSegments[faseNummer] = [];
         }
 
         function klarerFase() {
-            fasenummer1 = undefined;
-            fasenummer2 = undefined;
-            fasenummer3 = undefined;
+            faseSegments[1] = [];
+            faseSegments[2] = [];
+            faseSegments[3] = [];
             for (let faseNummer = 1; faseNummer <= 3; faseNummer++) {
                 const faseContainer = document.getElementById(`fase${faseNummer}`);
                 if (faseContainer) {
@@ -554,7 +545,7 @@ document.getElementById('divisionDropdown')
 
                 const currentPhaseButton = document.getElementById(`fase${faseNummer}knapp`);
                 if (currentPhaseButton) {
-                    currentPhaseButton.textContent = 'Legg til format for fase';
+                    currentPhaseButton.textContent = 'Legg til segment';
                 }
 
                 const deleteButton = document.getElementById(`fase${faseNummer}slett`);
@@ -571,22 +562,23 @@ document.getElementById('divisionDropdown')
     let container;
     if (fasesjekk == 1) {
         container = document.getElementById("fase1");
-        fasenummer1 = 'gruppespill';
         Endrer(1);
     } else if (fasesjekk == 2) {
         container = document.getElementById("fase2");
-        fasenummer2 = 'gruppespill';
         Endrer(2);
     } else {
         container = document.getElementById("fase3");
-        fasenummer3 = 'gruppespill';
         Endrer(3);
     }
     if (!container) {
         console.error("Fant ikke container-elementet.");
         return;
     }
-    container.innerHTML = '';
+
+    const segmentDiv = document.createElement('div');
+    segmentDiv.classList.add('segment');
+    container.appendChild(segmentDiv);
+    faseSegments[fasesjekk].push({ type: 'gruppespill', element: segmentDiv });
 
     // Bygg opp tabellene med et fast antall rader (lag) per gruppe.
     for (let i = 0; i < numGroups; i++) {
@@ -615,7 +607,7 @@ document.getElementById('divisionDropdown')
             tbody.appendChild(row);
         }
         table.appendChild(tbody);
-        container.appendChild(table);
+        segmentDiv.appendChild(table);
     }
     populateGDropdowns(fasesjekk);
 }
@@ -639,63 +631,55 @@ document.getElementById('divisionDropdown')
         }
 // --- Lagrer alle faser til Firestore (gruppespill, utslag og enkeltkamper) ---
 async function lagreAlleFaser() {
-  const faseTyper = { 1: fasenummer1, 2: fasenummer2, 3: fasenummer3 };
   const selectedDivision = document.getElementById('divisionDropdown').value;
 
   for (let faseNummer = 1; faseNummer <= 3; faseNummer++) {
-    const fasetype = faseTyper[faseNummer] || await hentFasetype(faseNummer);
-    if (!fasetype) continue;
-
-    const container = document.getElementById(`fase${faseNummer}`);
-    if (!container) continue;
+    const segments = faseSegments[faseNummer];
+    if (!segments.length) continue;
 
     const formatRef = db
       .collection('turneringer').doc(turneringId)
       .collection(`${selectedDivision}_format`)
       .doc(`fase${faseNummer}`);
 
-    const faseData = { type: fasetype };
+    const faseData = { segmenter: [] };
 
-    if (fasetype === 'gruppespill') {
-    faseData.grupper = {};
-    faseData.moter   = gruppeMoterPerPar;   // <-- her legges tallet med
-    const tables = container.querySelectorAll('table[class^="gruppe-"]');
-    tables.forEach((table, gi) => {
-      const dropdowns = table.querySelectorAll(`.gruppe-${faseNummer}-dropdown`);
-      faseData.grupper[`gruppe${gi+1}`] =
-        Array.from(dropdowns).map(dd => dd.value);
-    });
-}
- else if (fasetype === 'utslag') {
-      // --- Utslag: gå gjennom hver runde og hver match i runden ---
-      faseData.utslagsrunder = [];
-      const roundDivs = container.querySelectorAll('.round');
-
-      roundDivs.forEach((rundeDiv, ri) => {
-        const kamper = [];
-        const matchDivs = rundeDiv.querySelectorAll('.match');
-
-        matchDivs.forEach((matchDiv, mi) => {
-          const sels = matchDiv.querySelectorAll('.knockout-team-select');
-          const lag1   = sels[0].value;
-          const lag2   = sels[1].value;
-          const bronse = matchDiv.dataset.bronze === 'true';
-          kamper.push({ lag1, lag2, bronse });
+    segments.forEach(seg => {
+      if (seg.type === 'gruppespill') {
+        const data = { type: 'gruppespill', grupper: {}, moter: gruppeMoterPerPar };
+        const tables = seg.element.querySelectorAll('table');
+        tables.forEach((table, gi) => {
+          const dropdowns = table.querySelectorAll(`.gruppe-${faseNummer}-dropdown`);
+          data.grupper[`gruppe${gi+1}`] = Array.from(dropdowns).map(dd => dd.value);
         });
+        faseData.segmenter.push(data);
+      } else if (seg.type === 'utslag') {
+        const data = { type: 'utslag', utslagsrunder: [] };
+        const roundDivs = seg.element.querySelectorAll('.round');
+        roundDivs.forEach((rundeDiv, ri) => {
+          const kamper = [];
+          const matchDivs = rundeDiv.querySelectorAll('.match');
+          matchDivs.forEach((matchDiv, mi) => {
+            const sels = matchDiv.querySelectorAll('.knockout-team-select');
+            const lag1   = sels[0].value;
+            const lag2   = sels[1].value;
+            const bronse = matchDiv.dataset.bronze === 'true';
+            kamper.push({ lag1, lag2, bronse });
+          });
+          data.utslagsrunder.push({ runde: ri + 1, kamper });
+        });
+        faseData.segmenter.push(data);
+      } else if (seg.type === 'enkeltkamp') {
+        const data = { type: 'enkeltkamp', kamper: [] };
+        const matchDivs = seg.element.querySelectorAll('.single-match');
+        data.kamper = Array.from(matchDivs).map(md => {
+          const sels = md.querySelectorAll('.single-match-team-select');
+          return { lag1: sels[0].value, lag2: sels[1].value };
+        });
+        faseData.segmenter.push(data);
+      }
+    });
 
-        faseData.utslagsrunder.push({ runde: ri + 1, kamper });
-      });
-
-    } else if (fasetype === 'enkeltkamp') {
-      // --- Enkeltkamper: samle lag1/lag2 for hver enkelt-match ---
-      const matchDivs = container.querySelectorAll('.single-match');
-      faseData.kamper = Array.from(matchDivs).map(md => {
-        const sels = md.querySelectorAll('.single-match-team-select');
-        return { lag1: sels[0].value, lag2: sels[1].value };
-      });
-    }
-
-    // Slett evt. gammel dokument og skriv nytt
     try {
       await formatRef.delete();
       await formatRef.set(faseData);
@@ -725,6 +709,7 @@ function setDropdownValue(dropdown, value) {
 async function visFaseData(faseNummer) {
   const faseContainer = document.getElementById(`fase${faseNummer}`);
   faseContainer.innerHTML = '';
+  faseSegments[faseNummer] = [];
 
   try {
     const selectedDivision = document.getElementById('divisionDropdown').value;
@@ -739,113 +724,101 @@ async function visFaseData(faseNummer) {
     }
     const faseData = doc.data();
     Endrer(faseNummer);
+    let segments = [];
+    if (faseData.segmenter) segments = faseData.segmenter;
+    else if (faseData.type) segments = [faseData];
 
-    // --- Gruppespill ---
-    if (faseData.type === 'gruppespill') {
-      const grupper = faseData.grupper;
-      const antallGrupper = Object.keys(grupper).length;
-      const antallLagPerGruppe = grupper[Object.keys(grupper)[0]].length;
-      await createTables(antallGrupper, antallLagPerGruppe, faseNummer);
-      await waitForDropdownsToBeReady(faseNummer, faseData, 'gruppe');
+    for (const seg of segments) {
+      if (seg.type === 'gruppespill') {
+        const grupper = seg.grupper;
+        const antallGrupper = Object.keys(grupper).length;
+        const antallLagPerGruppe = grupper[Object.keys(grupper)[0]].length;
+        await createTables(antallGrupper, antallLagPerGruppe, faseNummer);
+        await waitForDropdownsToBeReady(faseNummer, seg, 'gruppe');
 
-      const dropdowns = document.querySelectorAll(`.teamDropdown.gruppe-${faseNummer}-dropdown`);
-      let idx = 0;
-      for (const grpName of Object.keys(grupper)) {
-        for (const lagId of grupper[grpName]) {
-          setDropdownValue(dropdowns[idx++], lagId);
-        }
-      }
-      return;
-    }
-
-    // --- Enkeltkamp ---
-    if (faseData.type === 'enkeltkamp') {
-      const antall = faseData.kamper.length;
-      await createSingleMatches(antall, faseNummer);
-      const matchDivs = faseContainer.querySelectorAll('.single-match');
-      matchDivs.forEach((md, i) => {
-        const sels = md.querySelectorAll('.single-match-team-select');
-        setDropdownValue(sels[0], faseData.kamper[i].lag1);
-        setDropdownValue(sels[1], faseData.kamper[i].lag2);
-      });
-      return;
-    }
-
-    // --- Utslag ---
-    if (faseData.type === 'utslag') {
-      const savedRounds      = faseData.utslagsrunder.length;
-      const matchesInFirst   = faseData.utslagsrunder[0].kamper.length;
-      const numKnockoutTeams = matchesInFirst * 2;
-      const includeBronze    = faseData.utslagsrunder.some(r => r.kamper.some(k => k.bronse));
-
-      // 1) Generer bracket på nytt og vent til dropdowns er klare
-      await generateKnockoutBracket(faseNummer, numKnockoutTeams, includeBronze);
-      await waitForDropdownsToBeReady(faseNummer, faseData, 'utslag');
-
-      // 2) Fjern runder utover det som er lagret
-      Array.from(faseContainer.querySelectorAll('.round'))
-        .forEach((rd, idx) => { if (idx >= savedRounds) rd.remove(); });
-
-      // 3) Legg til alle lagrede verdier som <option> i hver select
-      const allSelects = faseContainer.querySelectorAll('.knockout-team-select');
-      const savedValues = faseData.utslagsrunder
-        .flatMap(r => r.kamper.flatMap(k => [k.lag1, k.lag2]))
-        .filter(v => v);
-      allSelects.forEach(sel => {
-        savedValues.forEach(val => {
-          if (![...sel.options].some(opt => opt.value === val)) {
-            const opt = document.createElement('option');
-            opt.value       = val;
-            opt.textContent = val;
-            sel.appendChild(opt);
+        const dropdowns = document.querySelectorAll(`.teamDropdown.gruppe-${faseNummer}-dropdown`);
+        let idx = 0;
+        for (const grpName of Object.keys(grupper)) {
+          for (const lagId of grupper[grpName]) {
+            setDropdownValue(dropdowns[idx++], lagId);
           }
+        }
+      } else if (seg.type === 'enkeltkamp') {
+        const antall = seg.kamper.length;
+        await createSingleMatches(antall, faseNummer);
+        const matchDivs = faseContainer.querySelectorAll('.single-match');
+        matchDivs.forEach((md, i) => {
+          const sels = md.querySelectorAll('.single-match-team-select');
+          setDropdownValue(sels[0], seg.kamper[i].lag1);
+          setDropdownValue(sels[1], seg.kamper[i].lag2);
         });
-      });
+      } else if (seg.type === 'utslag') {
+        const savedRounds = seg.utslagsrunder.length;
+        const matchesInFirst = seg.utslagsrunder[0].kamper.length;
+        const numKnockoutTeams = matchesInFirst * 2;
+        const includeBronze = seg.utslagsrunder.some(r => r.kamper.some(k => k.bronse));
 
-      // 3.b) Sørg for at bronsefinale-selects også får alternativene
-      if (includeBronze) {
-        const bronzeMatch = faseContainer
-          .querySelector('.round:last-child .match[data-bronze="true"]');
-        const bronzeSels  = bronzeMatch.querySelectorAll('.knockout-team-select');
-        const bronzeData  = faseData.utslagsrunder
-          .flatMap(r => r.kamper.filter(k => k.bronse))[0];
-        [bronzeData.lag1, bronzeData.lag2].forEach(val => {
-          bronzeSels.forEach(sel => {
-            if (val && ![...sel.options].some(opt => opt.value === val)) {
+        await generateKnockoutBracket(faseNummer, numKnockoutTeams, includeBronze);
+        await waitForDropdownsToBeReady(faseNummer, seg, 'utslag');
+
+        Array.from(faseContainer.querySelectorAll('.round'))
+          .forEach((rd, idx) => { if (idx >= savedRounds) rd.remove(); });
+
+        const allSelects = faseContainer.querySelectorAll('.knockout-team-select');
+        const savedValues = seg.utslagsrunder
+          .flatMap(r => r.kamper.flatMap(k => [k.lag1, k.lag2]))
+          .filter(v => v);
+        allSelects.forEach(sel => {
+          savedValues.forEach(val => {
+            if (![...sel.options].some(opt => opt.value === val)) {
               const opt = document.createElement('option');
-              opt.value       = val;
+              opt.value = val;
               opt.textContent = val;
               sel.appendChild(opt);
             }
           });
         });
-      }
 
-      // 4) Fyll ordinære kamper (ikke bronse)
-      faseData.utslagsrunder.forEach((rundeData, ri) => {
-        const roundDivs = faseContainer.querySelectorAll('.round');
-        const roundDiv  = roundDivs[ri];
-        if (!roundDiv) return;
-        const matchDivs = roundDiv.querySelectorAll('.match:not([data-bronze])');
-        const nonBronze = rundeData.kamper.filter(k => !k.bronse);
-        nonBronze.forEach((kamp, mi) => {
-          const sels = matchDivs[mi].querySelectorAll('.knockout-team-select');
-          setDropdownValue(sels[0], kamp.lag1);
-          setDropdownValue(sels[1], kamp.lag2);
+        if (includeBronze) {
+          const bronzeMatch = faseContainer
+            .querySelector('.round:last-child .match[data-bronze="true"]');
+          const bronzeSels = bronzeMatch.querySelectorAll('.knockout-team-select');
+          const bronzeData = seg.utslagsrunder
+            .flatMap(r => r.kamper.filter(k => k.bronse))[0];
+          [bronzeData.lag1, bronzeData.lag2].forEach(val => {
+            bronzeSels.forEach(sel => {
+              if (val && ![...sel.options].some(opt => opt.value === val)) {
+                const opt = document.createElement('option');
+                opt.value = val;
+                opt.textContent = val;
+                sel.appendChild(opt);
+              }
+            });
+          });
+        }
+
+        seg.utslagsrunder.forEach((rundeData, ri) => {
+          const roundDivs = faseContainer.querySelectorAll('.round');
+          const roundDiv = roundDivs[ri];
+          if (!roundDiv) return;
+          const matchDivs = roundDiv.querySelectorAll('.match:not([data-bronze])');
+          const nonBronze = rundeData.kamper.filter(k => !k.bronse);
+          nonBronze.forEach((kamp, mi) => {
+            const sels = matchDivs[mi].querySelectorAll('.knockout-team-select');
+            setDropdownValue(sels[0], kamp.lag1);
+            setDropdownValue(sels[1], kamp.lag2);
+          });
         });
-      });
 
-      // 5) Fyll bronsefinale med lagrede verdier
-      if (includeBronze) {
-        const bronzeSels = faseContainer
-          .querySelectorAll('.round:last-child .match[data-bronze="true"] .knockout-team-select');
-        const bronzeData = faseData.utslagsrunder
-          .flatMap(r => r.kamper.filter(k => k.bronse))[0];
-        setDropdownValue(bronzeSels[0], bronzeData.lag1);
-        setDropdownValue(bronzeSels[1], bronzeData.lag2);
+        if (includeBronze) {
+          const bronzeSels = faseContainer
+            .querySelectorAll('.round:last-child .match[data-bronze="true"] .knockout-team-select');
+          const bronzeData = seg.utslagsrunder
+            .flatMap(r => r.kamper.filter(k => k.bronse))[0];
+          setDropdownValue(bronzeSels[0], bronzeData.lag1);
+          setDropdownValue(bronzeSels[1], bronzeData.lag2);
+        }
       }
-
-      return;
     }
 
   } catch (error) {
@@ -923,18 +896,12 @@ async function visFaseData(faseNummer) {
 
             const doc = await formatRef.get();
             const faseData = doc.data();
-            
-            if (faseData && faseData.type) {
-                return faseData.type;
-            } else {
-                if (fasenummeret == 1) {
-                    return fasenummer1;
-                } else if (fasenummeret == 2) {
-                    return fasenummer2;
-                } else {
-                    return fasenummer3;
-                }
+
+            if (faseData) {
+                if (faseData.segmenter) return faseData.segmenter;
+                if (faseData.type) return [faseData];
             }
+            return faseSegments[fasenummeret];
         }
 
         document.querySelectorAll('.teamDropdown').forEach(dropdown => {
@@ -984,18 +951,19 @@ async function generateKnockoutBracket(fasesjekk, numKnockoutTeams, includeBronz
     let container;
     if (fasesjekk === 1) {
       container = document.getElementById("fase1");
-      fasenummer1 = 'utslag';
       Endrer(1);
     } else if (fasesjekk === 2) {
       container = document.getElementById("fase2");
-      fasenummer2 = 'utslag';
       Endrer(2);
     } else {
       container = document.getElementById("fase3");
-      fasenummer3 = 'utslag';
       Endrer(3);
     }
-    container.innerHTML = '';
+
+    const segmentDiv = document.createElement('div');
+    segmentDiv.classList.add('segment');
+    container.appendChild(segmentDiv);
+    faseSegments[fasesjekk].push({ type: 'utslag', element: segmentDiv });
 
     // 3) Generer hver runde med navn og dropdowns
     for (let round = 0; round < rounds; round++) {
@@ -1049,12 +1017,12 @@ async function generateKnockoutBracket(fasesjekk, numKnockoutTeams, includeBronz
         roundDiv.appendChild(matchDiv);
       }
 
-      container.appendChild(roundDiv);
+      segmentDiv.appendChild(roundDiv);
     }
 
     // 4) Brenn bronsefinalen inn i finalerunden
     if (includeBronze) {
-      const roundDivs = container.querySelectorAll('.round');
+      const roundDivs = segmentDiv.querySelectorAll('.round');
       const finalRoundDiv = roundDivs[roundDivs.length - 1];
 
       const bronzeMatch = document.createElement('div');
@@ -1248,15 +1216,12 @@ async function createSingleMatches(numMatches, fasesjekk) {
     let container;
     if (fasesjekk == 1) {
         container = document.getElementById("fase1");
-        fasenummer1 = 'enkeltkamp';
         Endrer(1);
     } else if (fasesjekk == 2) {
         container = document.getElementById("fase2");
-        fasenummer2 = 'enkeltkamp';
         Endrer(2);
     } else {
         container = document.getElementById("fase3");
-        fasenummer3 = 'enkeltkamp';
         Endrer(3);
     }
 
@@ -1265,7 +1230,10 @@ async function createSingleMatches(numMatches, fasesjekk) {
         return;
     }
 
-    container.innerHTML = '';
+    const segmentDiv = document.createElement('div');
+    segmentDiv.classList.add('segment');
+    container.appendChild(segmentDiv);
+    faseSegments[fasesjekk].push({ type: 'enkeltkamp', element: segmentDiv });
 
     for (let i = 0; i < numMatches; i++) {
         const select1 = document.createElement('select');
@@ -1322,7 +1290,7 @@ async function createSingleMatches(numMatches, fasesjekk) {
             }
         });
 
-        container.appendChild(matchDiv);
+        segmentDiv.appendChild(matchDiv);
     }
 
     // Kall populateKnockoutDropdowns for å oppdatere dropdownene etter at kampene er opprettet
