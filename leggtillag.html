@@ -100,6 +100,8 @@
 .modal.desktop {
   background-color: transparent;
   pointer-events: none;
+  top: var(--offset-top, 0);
+  height: calc(100% - var(--offset-top, 0));
 }
 
 .modal.desktop .modal-content {
@@ -258,9 +260,9 @@
       .modal.desktop .modal-content {
         right: 0;
         left: auto;
-        top: 0;
+        top: var(--offset-top, 0);
         transform: none;
-        height: 100%;
+        height: calc(100% - var(--offset-top, 0));
         border-radius: 0;
       }
     }
@@ -442,6 +444,13 @@
 }
 
     // Funksjoner for lag og dommere
+    function applyModalOffset(modal){
+      const header = document.querySelector('header');
+      const nav = document.querySelector('nav');
+      const offset = (header ? header.offsetHeight : 0) + (nav ? nav.offsetHeight : 0);
+      modal.style.setProperty('--offset-top', offset + 'px');
+    }
+
     function openTeamForm(id){
       editingTeamId = id || null;
       document.getElementById('saveTeamBtn').textContent = editingTeamId ? 'Save team' : 'Add team';
@@ -457,7 +466,13 @@
         });
       }
       const modal = document.getElementById('teamPopup');
-      if(window.innerWidth >= 768){ modal.classList.add('desktop'); } else { modal.classList.remove('desktop'); }
+      if(window.innerWidth >= 768){
+        modal.classList.add('desktop');
+        applyModalOffset(modal);
+      } else {
+        modal.classList.remove('desktop');
+        modal.style.removeProperty('--offset-top');
+      }
       modal.style.display = 'block';
     }
     
@@ -569,7 +584,13 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       });
       const modal = document.getElementById('refereeForm');
-      if(window.innerWidth >= 768){ modal.classList.add('desktop'); } else { modal.classList.remove('desktop'); }
+      if(window.innerWidth >= 768){
+        modal.classList.add('desktop');
+        applyModalOffset(modal);
+      } else {
+        modal.classList.remove('desktop');
+        modal.style.removeProperty('--offset-top');
+      }
       modal.style.display= "block";
     }
     
