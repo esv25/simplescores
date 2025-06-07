@@ -89,8 +89,8 @@
         </div>
         <div>
           <label for="matchDate">Dato</label>
+
           <input id="matchDate" type="date" class="border p-2 w-full" />
-        </div>
         <div>
           <label for="matchTime">Tid</label>
           <input id="matchTime" type="time" class="border p-2 w-full" />
@@ -159,13 +159,43 @@
     const params = new URLSearchParams(window.location.search);
     const turneringId = params.get('id');
 
+    let availableDates = [];
+
+
     document.addEventListener('DOMContentLoaded', () => {
       if (!turneringId) {
         window.location.href = 'nyTurnering.html';
         return;
       }
-      hentKamper();
+
+      hentTurnering();
     });
+
+    async function hentTurnering() {
+      try {
+        const tDoc = await db.collection('turneringer').doc(turneringId).get();
+        if (tDoc.exists) {
+          availableDates = tDoc.data().dates || [];
+          oppdaterDatoDropdown();
+        }
+      } catch (e) {
+        console.error('Kunne ikke hente turnering:', e);
+      } finally {
+        hentKamper();
+      }
+    }
+
+    function oppdaterDatoDropdown() {
+      const sel = document.getElementById('matchDate');
+      sel.innerHTML = '';
+      availableDates.forEach(d => {
+        const opt = document.createElement('option');
+        opt.value = d;
+        opt.textContent = d;
+        sel.appendChild(opt);
+      });
+    }
+
 
     async function addMatch() {
       const home  = document.getElementById('homeTeam').value.trim();
@@ -189,7 +219,9 @@
       });
       document.getElementById('homeTeam').value = '';
       document.getElementById('awayTeam').value = '';
-      document.getElementById('matchDate').value = '';
+
+      document.getElementById('matchDate').selectedIndex = 0;
+
       document.getElementById('matchTime').value = '';
       document.getElementById('matchField').value = '';
       document.getElementById('matchDivision').value = '';
@@ -203,8 +235,17 @@
         .collection('kamper').orderBy('starttid','asc').get();
       snapshot.forEach(doc => {
         const k = doc.data();
-        const startDate = k.starttid?.toDate ? k.starttid.toDate() : new Date(k.starttid);
-        const formattedTime = startDate.toLocaleString('no-NO', { day:'numeric', month:'long', hour:'2-digit', minute:'2-digit' });
+
+        let startDate = null;
+        if (k.starttid) {
+          startDate = k.starttid.toDate ? k.starttid.toDate() : new Date(k.starttid);
+        } else if (k.dato && k.tidskode) {
+          startDate = new Date(`${k.dato}T${k.tidskode}`);
+        }
+        const formattedTime = startDate
+              ? startDate.toLocaleString('no-NO', { day:'numeric', month:'long', hour:'2-digit', minute:'2-digit' })
+              : 'Ukjent';
+
         const card = document.createElement('div');
         card.classList.add('kamp-item');
         const info = document.createElement('div');
