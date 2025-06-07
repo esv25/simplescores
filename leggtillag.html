@@ -477,6 +477,11 @@
           option.value = division.name;
           divisionDropdown.appendChild(option);
         });
+        // Velg første divisjon automatisk dersom den finnes
+        if (divisions.length > 0) {
+          divisionDropdown.selectedIndex = 1; // hopp over "Velg divisjon"
+          hentOgVisLag();
+        }
       } catch (error) {
         console.error('Feil ved henting av divisjoner:', error);
       }
@@ -513,6 +518,9 @@ async function populateDivisionsCheckboxes() {
 document.addEventListener('DOMContentLoaded', () => {
   populateTeamsDropdown();           // eksisterende
   populateDivisionsCheckboxes();     // nye funksjonen
+  // Vis skjemaene for å legge til lag og dommere med en gang
+  openTeamForm();
+  openRefereeForm();
 });
 
     async function populateDivisionsDropdown() {
