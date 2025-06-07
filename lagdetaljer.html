@@ -117,7 +117,10 @@
     </section>
 
     <section id="matchesList" class="matches-list">
-      <h2>Kamper</h2>
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <h2>Kamper</h2>
+        <button id="exportIcsBtn" class="btn secondary" style="margin-left:1rem;">Eksporter kalender</button>
+      </div>
       <div id="matches"></div>
     </section>
   </main>
@@ -150,6 +153,8 @@
         }
       });
       fetchTeamDetails();
+      const btn = document.getElementById('exportIcsBtn');
+      if (btn) btn.addEventListener('click', exportMatchesIcs);
     });
 
     async function fetchTeamDetails() {
@@ -178,6 +183,7 @@
             id: doc.id,
             hjemmelag: d.hjemmelag,
             bortelag: d.bortelag,
+            bane: d.bane || '',
             dateStr: start.toLocaleDateString('no-NO',{day:'numeric',month:'short'}),
             timeStr: start.toLocaleTimeString('no-NO',{hour:'2-digit',minute:'2-digit'}),
             ts: start.getTime(),
@@ -201,6 +207,7 @@
           ? [matches[nextIndex], ...matches.slice(nextIndex+1), ...matches.slice(0, nextIndex)]
           : matches;
 
+        window.teamMatches = ordered;
         renderMatches(ordered);
 
       } catch (err) {
@@ -245,6 +252,45 @@
           </div>
         </a>
       `;
+    }
+
+    function exportMatchesIcs() {
+      const data = window.teamMatches || [];
+      if (!Array.isArray(data) || data.length === 0) {
+        alert('Ingen kamper å eksportere.');
+        return;
+      }
+      const lines = [
+        'BEGIN:VCALENDAR',
+        'VERSION:2.0',
+        'PRODID:-//simplescores//TeamSchedule//NO'
+      ];
+      data.forEach(m => {
+        const start = new Date(m.ts);
+        const end   = new Date(start.getTime() + 60*60*1000);
+        const ds    = start.toISOString().slice(0,10);
+        const ts    = start.toTimeString().slice(0,5);
+        const de    = end.toISOString().slice(0,10);
+        const te    = end.toTimeString().slice(0,5);
+        const dtStart = ds.replace(/-/g,'') + 'T' + ts.replace(':','') + '00';
+        const dtEnd   = de.replace(/-/g,'') + 'T' + te.replace(':','') + '00';
+        lines.push('BEGIN:VEVENT');
+        lines.push(`SUMMARY:${m.hjemmelag} - ${m.bortelag}`);
+        lines.push(`DTSTART:${dtStart}`);
+        lines.push(`DTEND:${dtEnd}`);
+        if (m.bane) lines.push(`LOCATION:${m.bane}`);
+        lines.push('END:VEVENT');
+      });
+      lines.push('END:VCALENDAR');
+      const blob = new Blob([lines.join('\r\n')], { type: 'text/calendar' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'kamper.ics';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
     }
   </script>
 </body>
