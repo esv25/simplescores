@@ -1857,83 +1857,90 @@ async function collectMatches() {
     for (const faseDoc of formatSnap.docs) {
       const faseKey = faseDoc.id;           // f.eks. "fase1"
       const fd      = faseDoc.data();
-      const type    = fd.type || "enkelt";
+      const baseType = fd.type || "enkelt";
       result[div][faseKey] = [];
 
-      // ───── GRUPPESPILL ─────
-      if (type === "gruppespill") {
-        const grupper = fd.grupper || {};
-        const moter   = Number(fd.moter) || 1;
-        for (const grpNavn in grupper) {
-          const orig = [...(grupper[grpNavn] || [])];
-          if (orig.length < 2) continue;
-          const teams = orig.length % 2 ? [...orig, null] : orig;
-          const n      = teams.length;
-          const runder = n - 1;
-          for (let rep = 0; rep < moter; rep++) {
-            let T = teams.slice();
-            for (let r = 0; r < runder; r++) {
-              for (let i = 0; i < n / 2; i++) {
-                let home = T[i], away = T[n - 1 - i];
-                if (rep % 2 === 1) {
-                  // Bytt hjemmelag og bortelag i annen hver møte
-                  [home, away] = [away, home];
+      const segments = Array.isArray(fd.segmenter) && fd.segmenter.length
+                       ? fd.segmenter
+                       : [{ ...fd, type: baseType }];
+
+      for (const seg of segments) {
+        const type = seg.type || "enkelt";
+
+        // ───── GRUPPESPILL ─────
+        if (type === "gruppespill") {
+          const grupper = seg.grupper || {};
+          const moter   = Number(seg.moter) || 1;
+          for (const grpNavn in grupper) {
+            const orig = [...(grupper[grpNavn] || [])];
+            if (orig.length < 2) continue;
+            const teams  = orig.length % 2 ? [...orig, null] : orig;
+            const n      = teams.length;
+            const runder = n - 1;
+            for (let rep = 0; rep < moter; rep++) {
+              let T = teams.slice();
+              for (let r = 0; r < runder; r++) {
+                for (let i = 0; i < n / 2; i++) {
+                  let home = T[i], away = T[n - 1 - i];
+                  if (rep % 2 === 1) {
+                    // Bytt hjemmelag og bortelag i annen hver møte
+                    [home, away] = [away, home];
+                  }
+                  if (home && away) {
+                    result[div][faseKey].push({
+                      id:          crypto.randomUUID(),
+                      hjemmelag:   home,
+                      bortelag:    away,
+                      divisjon:    div,
+                      faseType:    "gruppespill",
+                      rundeNummer: r + 1 + rep * runder,
+                      fase:        faseKey,
+                      fasenummer:  parseInt(faseKey.replace("fase", ""), 10) || 1
+                    });
+                  }
                 }
-                if (home && away) {
-                  result[div][faseKey].push({
-                    id:          crypto.randomUUID(),
-                    hjemmelag:   home,
-                    bortelag:    away,
-                    divisjon:    div,
-                    faseType:    "gruppespill",
-                    rundeNummer: r + 1 + rep * runder,
-                    fase:        faseKey,
-                    fasenummer:  parseInt(faseKey.replace("fase", ""), 10) || 1
-                  });
-                }
+                T.splice(1, 0, T.pop());
               }
-              T.splice(1, 0, T.pop());
             }
           }
         }
-      }
-      // ───── UTSLAG ─────
-      else if (type === "utslag") {
-        const rounds = fd.utslagsrunder || [];
-        rounds.forEach((rundeObj, rundeIdx) => {
-          (rundeObj.kamper || []).forEach(k => {
-            if (!k.lag1 || !k.lag2) return;
+        // ───── UTSLAG ─────
+        else if (type === "utslag") {
+          const rounds = seg.utslagsrunder || [];
+          rounds.forEach((rundeObj, rundeIdx) => {
+            (rundeObj.kamper || []).forEach(k => {
+              if (!k.lag1 || !k.lag2) return;
+              result[div][faseKey].push({
+                id:          crypto.randomUUID(),
+                hjemmelag:   k.lag1,
+                bortelag:    k.lag2,
+                divisjon:    div,
+                faseType:    "utslag",
+                rundeNummer: typeof k.runde === "number"
+                              ? k.runde
+                              : (rundeIdx + 1),
+                bronse:      !!k.bronse,
+                fase:        faseKey,
+                fasenummer:  parseInt(faseKey.replace("fase", ""), 10) || 1
+              });
+            });
+          });
+        }
+        // ───── ENKELTKAMP / ANNET ─────
+        else {
+          (seg.kamper || []).forEach(k => {
             result[div][faseKey].push({
               id:          crypto.randomUUID(),
-              hjemmelag:   k.lag1,
-              bortelag:    k.lag2,
+              hjemmelag:   k.lag1 || "TBD",
+              bortelag:    k.lag2 || "TBD",
               divisjon:    div,
-              faseType:    "utslag",
-              // Oppdaterer rundenummer basert på indeksen i 2D-arrayen:
-              rundeNummer: typeof k.runde === "number"
-                            ? k.runde
-                            : (rundeIdx + 1),
-              bronse:      !!k.bronse,
+              faseType:    type,
+              rundeNummer: k.rundeNummer || 1,
               fase:        faseKey,
               fasenummer:  parseInt(faseKey.replace("fase", ""), 10) || 1
             });
           });
-        });
-      }
-      // ───── ENKELTKAMP / ANNET ─────
-      else {
-        (fd.kamper || []).forEach(k => {
-          result[div][faseKey].push({
-            id:          crypto.randomUUID(),
-            hjemmelag:   k.lag1 || "TBD",
-            bortelag:    k.lag2 || "TBD",
-            divisjon:    div,
-            faseType:    type,
-            rundeNummer: k.rundeNummer || 1,
-            fase:        faseKey,
-            fasenummer:  parseInt(faseKey.replace("fase", ""), 10) || 1
-          });
-        });
+        }
       }
 
       console.log(`  ${div}/${faseKey}:`, result[div][faseKey].length, "kamper");
