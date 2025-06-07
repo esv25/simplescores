@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tilbakemelding</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    main {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 40px 20px;
+    }
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+    input, textarea {
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-family: 'Poppins', sans-serif;
+    }
+    button {
+      background-color: #4c51bf;
+      color: white;
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    button:hover {
+      background-color: #434190;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="logo-title">
+      <img src="logo.png" alt="Simple Scores Logo" class="logo">
+    </div>
+  </header>
+
+  <nav>
+    <input type="checkbox" id="menu-toggle" />
+    <label for="menu-toggle" id="menu-icon"></label>
+    <ul id="menu">
+      <li><a href="publikum.html" class="nav-link"><i class="fa-solid fa-house"></i><span>Publikum</span></a></li>
+      <li><a href="login.html" class="nav-link"><i class="fa-solid fa-lock"></i><span>Admin</span></a></li>
+      <li><a href="basicscore.html" class="nav-link"><i class="fa-solid fa-table-list"></i><span>Scoreboard</span></a></li>
+      <li><a href="faq.html" class="nav-link"><i class="fa-solid fa-circle-question"></i><span>FAQ</span></a></li>
+      <li><a href="feedback.html" class="nav-link active"><i class="fa-solid fa-envelope"></i><span>Feedback</span></a></li>
+    </ul>
+  </nav>
+
+  <main>
+    <h1>Send oss din tilbakemelding</h1>
+    <form>
+      <label for="name">Navn</label>
+      <input type="text" id="name" name="name" required>
+      <label for="email">E-post</label>
+      <input type="email" id="email" name="email" required>
+      <label for="message">Melding</label>
+      <textarea id="message" name="message" rows="5" required></textarea>
+      <button type="submit">Send</button>
+    </form>
+  </main>
+
+  <footer>
+    <p>&copy; 2025 Simple Scores. Alle rettigheter reservert.</p>
+  </footer>
+</body>
+</html>

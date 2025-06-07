@@ -1,139 +1,95 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="no">
 <head>
   <meta charset="UTF-8">
-  <title>Simple Scores – Score Service | Choose Your Page</title>
-  <meta name="description" content="Discover Simple Scores, your trusted source for live sports scores and updates. Choose your page to access the public or admin section.">
+  <title>Simple Scores – Din resultatservice</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="canonical" href="https://dinsideeksempel.no/">
-  <link rel="stylesheet" href="./admin.css">
-  <!-- Open Graph meta tags -->
-  <meta property="og:title" content="Simple Scores – Score Service">
-  <meta property="og:description" content="Discover Simple Scores, your trusted source for live sports scores and updates.">
-  <meta property="og:image" content="logo.png">
-  <meta property="og:url" content="https://dinsideeksempel.no/">
-  <meta property="og:type" content="website">
-  <script type="application/ld+json">
-  {
-    "@context": "https://schema.org",
-    "@type": "WebSite",
-    "url": "https://dinsideeksempel.no/",
-    "name": "Simple Scores",
-    "description": "Discover Simple Scores, your trusted source for live sports scores and updates."
-  }
-  </script>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
-    body {
-      font-family: 'Poppins', sans-serif;
-      background-color: #1a202c;
-      color: #f0f2f5;
-      margin: 0;
-      padding: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      min-height: 100vh;
-    }
-    .container {
-      display: flex;
-      width: 80%;
-      max-width: 1200px;
-      background-color: #2d3748;
-      border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-      overflow: hidden;
-    }
-    .logo-section {
-      flex: 1;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: linear-gradient(135deg, #3b3f73, #2f8656);
-      padding: 20px;
-    }
-    .logo-section img {
-      max-width: 80%;
-      max-height: 80%;
-      filter: drop-shadow(0px 4px 6px rgba(0, 0, 0, 0.4));
-    }
-    .choice-section {
-      flex: 1;
-      padding: 40px;
+    .hero {
       display: flex;
       flex-direction: column;
-      justify-content: center;
-    }
-    .choice-section h1 {
+      align-items: center;
       text-align: center;
+      padding: 60px 20px;
+    }
+    .hero img {
+      width: 200px;
       margin-bottom: 20px;
-      color: #f0f2f5;
     }
-    .choice-section p {
-      text-align: center;
-      margin-bottom: 30px;
-      color: #cbd5e0;
+    .hero h1 {
+      color: #68d391;
+      font-size: 2.5em;
+      margin-bottom: 10px;
     }
-    .choice-section button {
-      width: 100%;
-      padding: 12px;
-      margin: 10px 0;
-      background-color: #68d391;
+    .hero p {
+      max-width: 600px;
+    }
+    .main-actions {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 20px;
+      margin-top: 30px;
+    }
+    .main-actions a {
+      background-color: #4c51bf;
       color: white;
-      font-size: 16px;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
+      padding: 12px 24px;
+      border-radius: 8px;
+      text-decoration: none;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.15);
       transition: background-color 0.3s ease;
     }
-    .choice-section button:hover {
-      background-color: #48bb78;
+    .main-actions a:hover {
+      background-color: #434190;
     }
-    @media (max-width: 768px) {
-      .container {
-        flex-direction: column;
-        width: 90%;
-      }
-      .logo-section {
-        border-top-left-radius: 12px;
-        border-bottom-left-radius: 0;
-        border-top-right-radius: 12px;
-        padding: 40px 20px;
-      }
-      .logo-section img {
-        max-width: 100%;
-        height: auto;
-        max-height: 150px;
-        object-fit: contain;
-      }
-      .choice-section {
-        padding: 20px;
-      }
-      .choice-section h1 {
-        font-size: 24px;
-        margin-bottom: 16px;
-      }
-      .choice-section button {
-        padding: 10px;
-        font-size: 14px;
-      }
+    .info-section {
+      padding: 40px 20px;
+      max-width: 800px;
+      margin: 0 auto;
     }
   </style>
 </head>
 <body>
-  <main class="container">
-    <!-- Logo Section -->
-    <section class="logo-section">
-      <img src="logo.png" alt="Simple Scores Logo">
-    </section>
+  <header>
+    <div class="logo-title">
+      <img src="logo.png" alt="Simple Scores Logo" class="logo">
+    </div>
+  </header>
 
-    <!-- Choice Section -->
-    <section class="choice-section">
-      <h1>Choose Your Page</h1>
-      <p>Welcome to Simple Scores, your trusted source for live sports scores and updates. Choose your page to continue.</p>
-      <button onclick="window.location.href='publikum.html'">Go to Public Page</button>
-      <button onclick="window.location.href='login.html'">Go to Admin Page</button>
-      <button onclick="window.location.href='basicscore.html'">Go to Basic Scoreboard</button>
+  <nav>
+    <input type="checkbox" id="menu-toggle" />
+    <label for="menu-toggle" id="menu-icon"></label>
+    <ul id="menu">
+      <li><a href="publikum.html" class="nav-link"><i class="fa-solid fa-house"></i><span>Publikum</span></a></li>
+      <li><a href="login.html" class="nav-link"><i class="fa-solid fa-lock"></i><span>Admin</span></a></li>
+      <li><a href="basicscore.html" class="nav-link"><i class="fa-solid fa-table-list"></i><span>Scoreboard</span></a></li>
+      <li><a href="faq.html" class="nav-link"><i class="fa-solid fa-circle-question"></i><span>FAQ</span></a></li>
+      <li><a href="feedback.html" class="nav-link"><i class="fa-solid fa-envelope"></i><span>Feedback</span></a></li>
+    </ul>
+  </nav>
+
+  <main>
+    <section class="hero">
+      <img src="logo.png" alt="Simple Scores logo">
+      <h1>Velkommen til Simple Scores</h1>
+      <p>Følg turneringer i sanntid og administrer kamper enkelt. Velg siden du ønsker å gå videre til.</p>
+      <div class="main-actions">
+        <a href="publikum.html">Publikum</a>
+        <a href="login.html">Admin</a>
+        <a href="basicscore.html">Scoreboard</a>
+      </div>
+    </section>
+    <section class="info-section">
+      <h2>Hva tilbyr vi?</h2>
+      <p>Simple Scores gir deg full oversikt over kamper og turneringer. På publikumssiden finner du oppdaterte resultater, mens administratorer kan opprette turneringer, lage kampoppsett og registrere score.</p>
     </section>
   </main>
+
+  <footer>
+    <p>&copy; 2025 Simple Scores. Alle rettigheter reservert.</p>
+  </footer>
 </body>
 </html>
