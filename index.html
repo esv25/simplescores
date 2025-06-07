@@ -61,6 +61,39 @@
       padding: 12px 24px;
       font-size: 18px;
     }
+
+    .features, .info-section {
+      padding: 60px 20px;
+      text-align: center;
+    }
+
+    .features {
+      background-color: #ffffff;
+    }
+
+    .feature-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      justify-content: center;
+      margin-top: 30px;
+    }
+
+    .feature-item {
+      background-color: #e2e8f0;
+      padding: 20px;
+      border-radius: 10px;
+      flex: 1 1 250px;
+      max-width: 300px;
+    }
+
+    .info-section {
+      background-color: #e2e8f0;
+    }
+
+    .info-section a, .info-section button {
+      margin-top: 10px;
+    }
   </style>
 </head>
 <body>
@@ -79,6 +112,29 @@
         <button onclick="window.location.href='login.html'">Admin</button>
         <button onclick="window.location.href='basicscore.html'">Basic Scoreboard</button>
       </div>
+    </section>
+    <section class="features">
+      <h2>Nøkkelfunksjoner</h2>
+      <div class="feature-grid">
+        <div class="feature-item">
+          <h3>Enkel administrasjon</h3>
+          <p>Opprett turneringer og oppdater resultater på et blunk.</p>
+        </div>
+        <div class="feature-item">
+          <h3>Live oppdateringer</h3>
+          <p>Følg kamper i sanntid på alle enheter.</p>
+        </div>
+        <div class="feature-item">
+          <h3>Publikumsmodus</h3>
+          <p>Del resultater og tabeller enkelt med publikum.</p>
+        </div>
+      </div>
+    </section>
+    <section class="info-section">
+      <h2>Lær mer</h2>
+      <p>Har du spørsmål? Se vår <a href="faq.html">FAQ</a> eller <a href="qanda.html">Q&amp;A</a>.</p>
+      <p>Vi setter pris på din tilbakemelding.</p>
+      <button onclick="window.location.href='feedback.html'">Gi tilbakemelding</button>
     </section>
   </main>
   <footer>
