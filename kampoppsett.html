@@ -1758,7 +1758,11 @@ async function collectMatches() {
             let T = teams.slice();
             for (let r = 0; r < runder; r++) {
               for (let i = 0; i < n / 2; i++) {
-                const home = T[i], away = T[n - 1 - i];
+                let home = T[i], away = T[n - 1 - i];
+                if (rep % 2 === 1) {
+                  // Bytt hjemmelag og bortelag i annen hver møte
+                  [home, away] = [away, home];
+                }
                 if (home && away) {
                   result[div][faseKey].push({
                     id:          crypto.randomUUID(),
