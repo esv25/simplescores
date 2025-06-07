@@ -116,6 +116,40 @@
       <ul id="players"></ul>
     </section>
 
+    <section id="addMatch" class="add-match mt-8">
+      <h2>Legg til kamp</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-2">
+        <div>
+          <label for="homeAway" class="block">Posisjon</label>
+          <select id="homeAway" class="border p-2 w-full">
+            <option value="home">Hjemme</option>
+            <option value="away">Borte</option>
+          </select>
+        </div>
+        <div>
+          <label for="opponentTeam" class="block">Motstander</label>
+          <select id="opponentTeam" class="border p-2 w-full"></select>
+        </div>
+        <div>
+          <label for="teamMatchDate" class="block">Dato</label>
+          <input id="teamMatchDate" type="date" class="border p-2 w-full" />
+        </div>
+        <div>
+          <label for="teamMatchTime" class="block">Tid</label>
+          <input id="teamMatchTime" type="time" class="border p-2 w-full" />
+        </div>
+        <div>
+          <label for="teamMatchField" class="block">Bane</label>
+          <input id="teamMatchField" type="text" class="border p-2 w-full" />
+        </div>
+        <div>
+          <label for="teamMatchDivision" class="block">Divisjon</label>
+          <input id="teamMatchDivision" type="text" class="border p-2 w-full" />
+        </div>
+      </div>
+      <button onclick="addMatchForTeam()" class="mt-4 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-4 rounded">Legg til kamp</button>
+    </section>
+
     <section id="matchesList" class="matches-list">
       <h2>Kamper</h2>
       <div id="matches"></div>
@@ -133,6 +167,13 @@
     const teamInfo    = document.getElementById('teamInfo');
     const playersList = document.getElementById('players');
     const matchesList = document.getElementById('matches');
+    const opponentSelect  = document.getElementById('opponentTeam');
+    const homeAwaySelect  = document.getElementById('homeAway');
+    const matchDateInput  = document.getElementById('teamMatchDate');
+    const matchTimeInput  = document.getElementById('teamMatchTime');
+    const matchFieldInput = document.getElementById('teamMatchField');
+    const matchDivInput   = document.getElementById('teamMatchDivision');
+    let currentTeamName   = '';
 
     const params       = new URLSearchParams(window.location.search);
     const tournamentId = params.get('tournamentid');
@@ -150,6 +191,7 @@
         }
       });
       fetchTeamDetails();
+      fetchTeamsList();
     });
 
     async function fetchTeamDetails() {
@@ -161,7 +203,11 @@
           return;
         }
         const teamData = teamDoc.data();
-        teamInfo.innerHTML = `<h2>${teamData.lagNavn || 'Ukjent Lag'}</h2>`;
+        currentTeamName = teamData.lagNavn || '';
+        teamInfo.innerHTML = `<h2>${currentTeamName || 'Ukjent Lag'}</h2>`;
+        if (teamData.divisjon) {
+          matchDivInput.value = teamData.divisjon;
+        }
 
         const playersSnap = await db.collection('turneringer').doc(tournamentId)
           .collection('lag').doc(teamId).collection('spillere').get();
@@ -245,6 +291,59 @@
           </div>
         </a>
       `;
+    }
+
+    async function fetchTeamsList() {
+      try {
+        const snap = await db.collection('turneringer').doc(tournamentId)
+          .collection('lag').get();
+        opponentSelect.innerHTML = '<option value="">Velg lag</option>';
+        snap.forEach(doc => {
+          if (doc.id === teamId) return;
+          const name = doc.data().lagNavn || doc.id;
+          const opt = document.createElement('option');
+          opt.value = name;
+          opt.textContent = name;
+          opponentSelect.appendChild(opt);
+        });
+      } catch (err) {
+        console.error('Kunne ikke hente lagliste', err);
+      }
+    }
+
+    async function addMatchForTeam() {
+      const position = homeAwaySelect.value;
+      const opponent = opponentSelect.value.trim();
+      const date = matchDateInput.value;
+      const time = matchTimeInput.value;
+      const field = matchFieldInput.value.trim();
+      const div   = matchDivInput.value.trim();
+      if (!opponent || !date || !time) {
+        alert('Fyll inn alle p\xE5krevde felter');
+        return;
+      }
+      const home = position === 'home' ? currentTeamName : opponent;
+      const away = position === 'home' ? opponent : currentTeamName;
+      const start = firebase.firestore.Timestamp.fromDate(new Date(`${date}T${time}`));
+      try {
+        await db.collection('turneringer').doc(tournamentId)
+          .collection('kamper').add({
+            hjemmelag: home,
+            bortelag: away,
+            starttid: start,
+            bane: field,
+            divisjon: div,
+            status: 'planlagt'
+          });
+        matchFieldInput.value = '';
+        matchTimeInput.value = '';
+        matchDateInput.value = '';
+        alert('Kamp lagt til');
+        fetchTeamDetails();
+      } catch (err) {
+        console.error(err);
+        alert('Kunne ikke lagre kamp');
+      }
     }
   </script>
 </body>
