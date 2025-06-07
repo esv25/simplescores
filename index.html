@@ -23,6 +23,79 @@
     "description": "Din tjeneste for live resultater."
   }
   </script>
+
+  <style>
+    /* Landing page specific styles */
+    .logo-title img {
+
+      height: 200px;
+    }
+
+
+    .landing-hero {
+      background: linear-gradient(135deg, #3b3f73, #2f8656);
+      color: #f0f2f5;
+      padding: 80px 20px;
+      text-align: center;
+    }
+
+    .landing-hero img {
+      height: 150px;
+      margin-bottom: 20px;
+    }
+
+    .landing-hero h1 {
+      font-size: 3rem;
+      margin-bottom: 10px;
+      color: #68d391;
+    }
+
+    .hero-buttons {
+      margin-top: 30px;
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .hero-buttons button {
+      padding: 12px 24px;
+      font-size: 18px;
+    }
+
+    .features, .info-section {
+      padding: 60px 20px;
+      text-align: center;
+    }
+
+    .features {
+      background-color: #ffffff;
+    }
+
+    .feature-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      justify-content: center;
+      margin-top: 30px;
+    }
+
+    .feature-item {
+      background-color: #e2e8f0;
+      padding: 20px;
+      border-radius: 10px;
+      flex: 1 1 250px;
+      max-width: 300px;
+    }
+
+    .info-section {
+      background-color: #e2e8f0;
+    }
+
+    .info-section a, .info-section button {
+      margin-top: 10px;
+    }
+  </style>
 </head>
 <body class="font-[Poppins,sans-serif] bg-gray-100 text-gray-800">
   <header class="bg-gray-900 py-8 text-center">
@@ -38,6 +111,29 @@
         <button class="px-6 py-3 bg-blue-500 hover:bg-blue-600 rounded-lg" onclick="window.location.href='login.html'">Admin</button>
         <button class="px-6 py-3 bg-purple-500 hover:bg-purple-600 rounded-lg" onclick="window.location.href='basicscore.html'">Basic Scoreboard</button>
       </div>
+    </section>
+    <section class="features">
+      <h2>Nøkkelfunksjoner</h2>
+      <div class="feature-grid">
+        <div class="feature-item">
+          <h3>Enkel administrasjon</h3>
+          <p>Opprett turneringer og oppdater resultater på et blunk.</p>
+        </div>
+        <div class="feature-item">
+          <h3>Live oppdateringer</h3>
+          <p>Følg kamper i sanntid på alle enheter.</p>
+        </div>
+        <div class="feature-item">
+          <h3>Publikumsmodus</h3>
+          <p>Del resultater og tabeller enkelt med publikum.</p>
+        </div>
+      </div>
+    </section>
+    <section class="info-section">
+      <h2>Lær mer</h2>
+      <p>Har du spørsmål? Se vår <a href="faq.html">FAQ</a> eller <a href="qanda.html">Q&amp;A</a>.</p>
+      <p>Vi setter pris på din tilbakemelding.</p>
+      <button onclick="window.location.href='feedback.html'">Gi tilbakemelding</button>
     </section>
   </main>
   <footer class="text-center py-4 text-gray-500">

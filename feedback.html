@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gi tilbakemelding</title>
+  <link rel="stylesheet" href="admin.css">
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      background-color: #f0f2f5;
+      color: #2d3e50;
+      margin: 0;
+      padding: 20px;
+      line-height: 1.6;
+    }
+    header {
+      text-align: center;
+      padding: 20px;
+      background-color: #1a202c;
+      color: white;
+      margin-bottom: 20px;
+    }
+    main {
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 20px;
+      background: #ffffff;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    label {
+      display: block;
+      margin-top: 15px;
+      font-weight: 600;
+    }
+    input, textarea {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      margin-top: 5px;
+    }
+    button {
+      margin-top: 15px;
+      padding: 10px 20px;
+      background-color: #4c51bf;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+  </style>
+  <script>
+    function sendFeedback() {
+      alert('Takk for din tilbakemelding!');
+    }
+  </script>
+</head>
+<body>
+  <header>
+    <h1>Gi tilbakemelding</h1>
+  </header>
+  <main>
+    <form onsubmit="sendFeedback(); return false;">
+      <label for="name">Navn</label>
+      <input id="name" type="text" required>
+      <label for="email">E-post</label>
+      <input id="email" type="email" required>
+      <label for="message">Melding</label>
+      <textarea id="message" rows="6" required></textarea>
+      <button type="submit">Send inn</button>
+    </form>
+  </main>
+</body>
+</html>
