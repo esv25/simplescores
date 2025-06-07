@@ -741,23 +741,26 @@ async function lagreKampoppsett() {
     return;
   }
 
-  // 1) Map original rundenumre til nye (reset per fase)
+  // 1) Beregn nye rundenumre og kampnumre, men reset hvis segment endres
   const phaseRoundMap = {};
+  const roundCounters = {};
+  let currentSegment  = null;
   window.scheduledMatches.forEach(item => {
+    const segment   = item.match.segmentIndex ?? 0;
+    if (segment !== currentSegment) {
+      // Nytt segment ⇒ nullstill mappinger og tellere
+      for (const key in phaseRoundMap) delete phaseRoundMap[key];
+      for (const key in roundCounters)  delete roundCounters[key];
+      currentSegment = segment;
+    }
+
     const phase     = item.match.fasenummer ?? 0;
     const origRound = item.match.rundeNummer ?? 0;
     phaseRoundMap[phase] ??= {};
     if (!(origRound in phaseRoundMap[phase])) {
       phaseRoundMap[phase][origRound] = Object.keys(phaseRoundMap[phase]).length;
     }
-  });
-
-  // 2) Tell kamper per (fase, runde) for lokal kampnummer
-  const roundCounters = {};
-  window.scheduledMatches.forEach(item => {
-    const phase    = item.match.fasenummer ?? 0;
-    const origRnd  = item.match.rundeNummer ?? 0;
-    const newRound = phaseRoundMap[phase][origRnd];
+    const newRound = phaseRoundMap[phase][origRound];
 
     roundCounters[phase] ??= {};
     roundCounters[phase][newRound] ??= 0;
@@ -787,6 +790,7 @@ async function lagreKampoppsett() {
     const fasenr     = m.fasenummer  ?? 0;
     // Riktig uttrekk av fasetype:
     const fasetype   = m.faseType    || m.phaseType              || "Ukjent fasetype";
+    const segIdx     = m.segmentIndex ?? 0;
 
     const rundenr    = item._newRound;        // 0-basert pr. fase
     const kampnummer = item._localMatchIdx;   // 0-basert pr. runde
@@ -807,6 +811,7 @@ async function lagreKampoppsett() {
       divisjon,
       fasenummer:  fasenr,
       fasetype,                          // nå riktig lagret
+      segmentIndex: segIdx,
       rundenummer:  rundenr,
       kampNummer:  kampnummer,
       kampIndeks:  kampIndeks,
@@ -1102,39 +1107,49 @@ function distributeMatchesEvenly(scheduledMatches, tidPerKamp, tidMellomKamper, 
 
     // Behandle hver fase i rekkefølge
     sortedPhases.forEach(phaseNum => {
-      // 2.a) Planlegg alle kamper i denne fasen, bane for bane
+      // Hent alle segmenter i denne fasen
+      const segKeys = new Set();
       Object.values(fields).forEach(matches => {
-        // Filtrer ut kamper som tilhører aktuell fase
-        const phaseMatches = matches
-          .filter(m => (m.fasenummer || 0) === phaseNum)
-          .sort((a, b) => a.id.localeCompare(b.id)); // eller annen stabil sortering
-
-        // Internt offset per bane
-        let offsetFieldMs = 0;
-
-        phaseMatches.forEach((kamp, i) => {
-          const start = new Date(
-            lastPhaseEnd.getTime()
-            + offsetFieldMs
-            + i * (tidPerKamp * 60000 + tidMellomKamper * 60000)
-          );
-          kamp.starttid = start;
-          kamp.sluttid = new Date(start.getTime() + tidPerKamp * 60000);
+        matches.forEach(m => {
+          if ((m.fasenummer || 0) === phaseNum)
+            segKeys.add(m.segmentIndex ?? 0);
         });
       });
+      const sortedSegs = [...segKeys].sort((a,b) => a - b);
 
-      // 2.b) Oppdater lastPhaseEnd til seneste sluttid i denne fasen på alle baner
-      let phaseMaxEnd = lastPhaseEnd;
-      Object.values(fields).forEach(matches => {
-        matches
-          .filter(m => (m.fasenummer || 0) === phaseNum)
-          .forEach(m => {
-            if (m.sluttid > phaseMaxEnd) {
-              phaseMaxEnd = m.sluttid;
-            }
+      // Planlegg segment for segment
+      sortedSegs.forEach(seg => {
+        Object.values(fields).forEach(matches => {
+          const segMatches = matches
+            .filter(m => (m.fasenummer || 0) === phaseNum && (m.segmentIndex ?? 0) === seg)
+            .sort((a, b) => a.id.localeCompare(b.id));
+
+          let offsetFieldMs = 0;
+
+          segMatches.forEach((kamp, i) => {
+            const start = new Date(
+              lastPhaseEnd.getTime()
+              + offsetFieldMs
+              + i * (tidPerKamp * 60000 + tidMellomKamper * 60000)
+            );
+            kamp.starttid = start;
+            kamp.sluttid = new Date(start.getTime() + tidPerKamp * 60000);
           });
+        });
+
+        // Etter hvert segment, flytt lastPhaseEnd
+        let segMaxEnd = lastPhaseEnd;
+        Object.values(fields).forEach(matches => {
+          matches
+            .filter(m => (m.fasenummer || 0) === phaseNum && (m.segmentIndex ?? 0) === seg)
+            .forEach(m => {
+              if (m.sluttid > segMaxEnd) {
+                segMaxEnd = m.sluttid;
+              }
+            });
+        });
+        lastPhaseEnd = segMaxEnd;
       });
-      lastPhaseEnd = phaseMaxEnd;
     });
   });
 
@@ -2789,6 +2804,7 @@ async function loadSavedSchedule() {
         bortelag:  data.bortelag,
         divisjon:  data.divisjon,
         faseType:  data.faseType,
+        segmentIndex: data.segmentIndex ?? 0,
         starttid:  startDate,
         sluttid:   endDate,
         bane:      data.bane
