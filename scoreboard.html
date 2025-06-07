@@ -204,6 +204,7 @@ let pauseDuration;   // Pauselengde, satt fra innstillingene
         let timeBegin;
         let storedTimeLeft; // For å lagre tiden før timeout
         let originalTimeLeft; // For å lagre tiden før timeout start
+        let logGoalScorersEnabled = true; // Kan deaktiveres via innstillinger
         // Global variabel for kampens fase – "utslag" for utslagskamper
 let matchPhase;
 
@@ -279,6 +280,9 @@ async function hentInnstillinger(division) {
             timeBegin      = timeLeft;  // vi bruker samme verdi til restart
             timeoutDuration = parseInt(settings.timeoutDuration, 10) || 30;
             pauseDuration   = parseInt(settings.pauseDuration, 10)   || 60;
+            logGoalScorersEnabled =
+                settings.logGoalScorers === undefined ? true
+                                                     : Boolean(settings.logGoalScorers);
             console.log("pauseDuration satt til:", pauseDuration);
 
         } else {
@@ -1395,6 +1399,11 @@ async function updateTeamStatsAfterReset(hjemmelag, bortelag, hjemmeScore, borte
 
         // Funksjon for å åpne spiller-popup
         async function openPlayerModal(team) {
+            if (!logGoalScorersEnabled) {
+                await logGoalAndUpdateScore('ikke-definert', team);
+                return;
+            }
+
             const playerListElement = document.getElementById('playerList');
             playerListElement.innerHTML = ''; // Tøm listen først
 
