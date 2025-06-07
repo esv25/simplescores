@@ -3,6 +3,8 @@
 <head>
   <script src="https://cdn.tailwindcss.com"></script>
   <meta charset="utf8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Legg til lag</title>
   <link rel="stylesheet" type="text/css" href="./admin.css">
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
   <style>
@@ -86,7 +88,7 @@
       margin: 20px 0;
     }
     .page-header h1 {
-      font-size: 1.8rem;
+      font-size: 2rem;
       margin-bottom: 0.25rem;
     }
     .page-header p {
@@ -137,6 +139,7 @@
     max-width: 90%;
     height: calc(100% - var(--offset-top, 0));
     background: #fff;
+    border-radius: 8px;
     padding: 20px;
     box-shadow: -2px 0 5px rgba(0,0,0,0.1);
     overflow-y: auto;
@@ -255,6 +258,8 @@
     }
     .team-card button:hover, .ref-card button:hover { background-color: #4a5ddd; }
 
+      .checkbox-group label { display: block; margin-bottom: 4px; }
+      .checkbox-group input { margin-right: 6px; }
     .team-card ul { list-style: disc; padding-left: 1.2rem; margin: 0; width: 100%; }
 
     @media (min-width: 768px) {
@@ -316,12 +321,12 @@
   <main>
 <div id="teamSidebar" class="team-form-sidebar">
   <span class="close-sidebar" onclick="closeTeamForm()">&times;</span>
-  <form id="addTeamForm">
+  <form id="addTeamForm" class="space-y-4">
     <label for="teamName">Team name:</label>
-    <input type="text" id="teamName" name="teamName" placeholder="Skriv lagnavn"><br>
+    <input type="text" id="teamName" name="teamName" placeholder="Skriv lagnavn" class="border rounded w-full p-2">
     <label for="spillerliste">Playerlist:</label>
-    <textarea id="spillerliste" rows="5" placeholder="Type in playernames, one per line" name="spillerliste"></textarea>
-    <button id="saveTeamBtn" onclick="saveTeam()" type="button">Add team</button>
+    <textarea id="spillerliste" name="spillerliste" rows="5" placeholder="Type in playernames, one per line" class="border rounded w-full p-2"></textarea>
+    <button id="saveTeamBtn" type="button" onclick="saveTeam()" class="btn w-full">Add team</button>
   </form>
 </div>
 
@@ -330,22 +335,22 @@
 <div id="refereeForm" class="modal">
   <div class="modal-content">
     <span class="close" onclick="document.getElementById('refereeForm').style.display='none'">&times;</span>
-    <form id="addRefForm">
+    <form id="addRefForm" class="space-y-4">
       <label for="refereeName">Name</label>
-      <input type="text" id="refereeName" name="refereeName" placeholder="Referee Name">
+        <input type="text" id="refereeName" name="refereeName" placeholder="Referee Name" class="border rounded w-full p-2">
 
       <label for="refereeTeam">Team</label>
-      <select id="refereeTeam" name="refereeTeam">
+        <select id="refereeTeam" name="refereeTeam" class="border rounded w-full p-2">
         <option value="">—</option>
         <!-- Teams legges til dynamisk via JS -->
       </select>
 
       <label>Divisions</label>
-      <div id="refereeDivisionsContainer" class="checkbox-group">
+      <div id="refereeDivisionsContainer" class="checkbox-group space-y-2">
         <!-- JS fyller ut én checkbox per divisjon -->
       </div>
 
-      <button id="saveRefBtn" type="button" onclick="saveReferee()">Add Referee</button>
+        <button id="saveRefBtn" type="button" onclick="saveReferee()" class="btn w-full">Add Referee</button>
     </form>
   </div>
 </div>
@@ -362,14 +367,14 @@
         <select id="divisionDropdown" onchange="hentOgVisLag()">
           <!-- Divisjoner vil bli populert her av JavaScript -->
         </select>
-        <button id="addTeamBtn" onclick="openTeamForm()">Add team</button>
+        <button id="addTeamBtn" onclick="openTeamForm()" class="btn">Add team</button>
       </div>
       <div id="lagContainer" class="card-list"></div>
     </section>
 
     <section id="refs" class="tab-section">
       <div class="actions">
-        <button id="addref" onclick="openRefereeForm()">Add referee</button>
+        <button id="addref" onclick="openRefereeForm()" class="btn">Add referee</button>
       </div>
       <div id="dommerListe" class="card-list"></div>
     </section>
