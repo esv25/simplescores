@@ -92,14 +92,14 @@
     }
 
     /* Timer og omgangen */
-    #timer { font-size: 6vw; margin-bottom: .5rem; letter-spacing: 4px; }
-    #period { font-size: 3vw; margin-bottom: 1rem; text-transform: uppercase; }
+    #timer { font-size: min(6vw, 10vh); margin-bottom: .5rem; letter-spacing: 4px; }
+    #period { font-size: min(3vw, 4vh); margin-bottom: 1rem; text-transform: uppercase; }
 
     /* Score-seksjon */
     .scores { display: flex; justify-content: space-between; width: 100%; }
     .score-section { flex: 1; display: flex; flex-direction: column; align-items: center; margin: 0 .5rem; }
-    .score { font-size: 9vw; color: #007bff; margin-bottom: .5rem; }
-    .team-name { font-size: 3vw; margin-bottom: 1rem; text-transform: uppercase; }
+    .score { font-size: min(9vw, 10vh); color: #007bff; margin-bottom: .5rem; }
+    .team-name { font-size: min(3vw, 4vh); margin-bottom: 1rem; text-transform: uppercase; }
 
     /* Knapp-styling */
     .score-button, .controls button { font-size: 1.25rem; padding: .75rem 1rem; border: none; border-radius: 10px; background: #007bff; color: #fff; cursor: pointer; transition: background .3s, transform .2s; }
@@ -112,8 +112,8 @@
     .modal-content { background: #fff; padding: 1.5rem; border-radius: 10px; text-align: center; }
 
     @media(max-width:768px) {
-        #timer, .score { font-size: 12vw; }
-        #period, .team-name { font-size: 5vw; }
+        #timer, .score { font-size: min(12vw, 15vh); }
+        #period, .team-name { font-size: min(5vw, 6vh); }
         .score-button, .controls button, .side-panel button { width: 120px; height: 50px; font-size: 1.5rem; padding: .5rem .75rem; }
         .scoreboard { max-width: 90%; }
     }

@@ -187,7 +187,7 @@
     
       /* Øk font-størrelsen på tidtakeren */
       .timer {
-          font-size: 12vw;    /* var 6vw */
+          font-size: min(12vw, 10vh);    /* Begrens høyden for laptopskjermer */
           margin-bottom: 0.5rem;
           letter-spacing: 4px;
           color: #2d3e50;
@@ -196,14 +196,14 @@
     
       /* Øk font-størrelsen på poengsummen */
       .score {
-          font-size: 12vw;   /* var 9vw */
+          font-size: min(12vw, 10vh);   /* Tilpass for mindre skjermer */
           text-align: center;
           margin-bottom: 0.5rem;
           color: #007bff;
       }
     
       .timeout-timer {
-          font-size: 3vw;
+          font-size: min(3vw, 4vh);
           margin-bottom: 1rem;
           color: #ff5722;
           text-align: center;
@@ -212,7 +212,7 @@
     
       /* Period */
       .period {
-          font-size: 3vw;
+          font-size: min(3vw, 4vh);
           margin-bottom: 1rem;
           text-transform: uppercase;
           color: #2d3e50;
@@ -237,7 +237,7 @@
     
       /* Team Name */
       .team-name {
-          font-size: 3vw;
+          font-size: min(3vw, 4vh);
           margin-bottom: 1rem;
           text-transform: uppercase;
           color: #2d3e50;
