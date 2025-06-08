@@ -2551,7 +2551,6 @@ async function finishWizard() {
       alert('Ingen baner funnet for turneringen. Legg til baner før du genererer kampoppsett.');
       return;
     }
-
     // --- Rask sanity-check på om det finnes nok tid totalt ---
     const minutesDiff = (s, e) => {
       const sMs = new Date(`1970-01-01T${s}:00`).getTime();
