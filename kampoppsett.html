@@ -2652,9 +2652,7 @@ function planMatchOnCourt(match, settings, baner) {
 
   // Initialiser intern tilstand første gang
   if (!window.schedulingState) {
-    const dateQueue = Object
-      .entries(dateTimes)
-      .filter(([d, t]) => t && t.startTime && t.endTime)
+    const dateQueue = Object.entries(dateTimes)
       .sort(([a], [b]) => a.localeCompare(b));
 
     if (dateQueue.length === 0) {
@@ -2682,16 +2680,8 @@ function planMatchOnCourt(match, settings, baner) {
       const [d, slot] = state.dateQueue[i];
       const start = avail[d]?.startTime || slot.startTime;
       const end   = avail[d]?.endTime   || slot.endTime;
-
-      // Hopp hvis start eller slutt mangler
-      if (!start || !end) continue;
-
       const startTs = toTimestamp(d, start);
       const endTs   = toTimestamp(d, end);
-
-      // Hopp ugyldige datoer
-      if (isNaN(startTs) || isNaN(endTs)) continue;
-
       const ts = Math.max(minTs, startTs);
       if (ts + durMin * 60 * 1000 <= endTs) {
         return { dateIndex: i, time: new Date(ts).toTimeString().slice(0,5) };
