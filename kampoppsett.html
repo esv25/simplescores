@@ -491,6 +491,11 @@
         if (user) {
                 const email = user.email;
                 document.getElementById('mail').innerHTML = email;
+                if (document.readyState === 'loading') {
+                    document.addEventListener('DOMContentLoaded', initKampoppsett);
+                } else {
+                    initKampoppsett();
+                }
         } else {
         // Ingen bruker er logget inn, redirect til innloggingssiden
         window.location.href = 'login.html';
@@ -2922,8 +2927,11 @@ async function loadSavedSchedule() {
 window.baner = [];
 
 // Når DOM er klar: hent turneringsdata, innstillinger, datoer, baner OG kamper
-document.addEventListener('DOMContentLoaded', async () => {
-  console.log('DOMContentLoaded: init kampoppsett');
+let pageInitialized = false;
+async function initKampoppsett() {
+  if (pageInitialized) return;
+  pageInitialized = true;
+  console.log('initKampoppsett: starter');
   window.savedWizardSettings = loadWizardSettings();
   await fetchTurneringData();      // → window.turneringData.dates
   await initializeSettings();      // → window.globalSchedulingSettings
@@ -2950,7 +2958,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Til slutt: hent og vis lagrede kamper
   await loadSavedSchedule();       // nå vil renderScheduleUI finne baner og kamper
-});
+}
 
 function buildPhaseQueue(matchRounds) {
   const phaseQueue = [];
