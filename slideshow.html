@@ -770,15 +770,10 @@ function showSlide(index) {
 
     // Åpne slide-konfigurasjons-popup
     function openSlideConfigPopup(slide = null) {
-      editingSlide = slide;
-      const slideConfigPopup = document.getElementById('slideConfigPopup');
-      const popupOverlay = document.getElementById('popupOverlay');
-      if (slideConfigPopup && popupOverlay) {
-        slideConfigPopup.classList.add('active');
-        popupOverlay.classList.add('active');
-        document.getElementById('popupTitle').textContent = editingSlide ? "Rediger Slide" : "Konfigurer Slide";
-        renderSlideConfigForm();
-      }
+      // Viderekoble til den dedikerte slideeditoren i stedet for
+      // å bruke det innebygde popup-vinduet.
+      const url = `slideshowEditor.html?id=${encodeURIComponent(turneringId)}`;
+      window.location.href = url;
     }
 
     // Render slide-konfigurasjonsformular
