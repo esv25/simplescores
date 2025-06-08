@@ -184,6 +184,7 @@ const rtdb = firebase.database();                                  // <-- Nytt
 
         const params = new URLSearchParams(window.location.search);
         const turneringId = params.get('id');
+        const isManual   = params.get('manual') === '1';
   // Hent turnerings-ID fra URL-querystring
   document.addEventListener('DOMContentLoaded', function() {
 
@@ -195,10 +196,13 @@ const rtdb = firebase.database();                                  // <-- Nytt
           let href = link.getAttribute('href');
           // Bare behandle relative lenker (ikke absolute, mailto: eller ankre)
           if (href && !href.startsWith('http') && !href.startsWith('mailto:') && !href.startsWith('#')) {
-              const separator = href.includes('?') ? '&' : '?';
               if (!href.includes('id=')) {
-                  link.setAttribute('href', href + separator + 'id=' + turneringId);
+                  href += (href.includes('?') ? '&' : '?') + 'id=' + turneringId;
               }
+              if (isManual && !href.includes('manual=')) {
+                  href += (href.includes('?') ? '&' : '?') + 'manual=1';
+              }
+              link.setAttribute('href', href);
           }
       });
   });
@@ -240,10 +244,11 @@ let matchPhase;
  * Navigerer til kampoversikt-siden og beholder ?id= i URL-en.
  */
 function openOverview() {
-  const params = new URLSearchParams(window.location.search);
-  const id     = params.get('id');                 // turnering-ID hvis den finnes
-  const target = id ? `kamper.html?id=${id}`
-                    : 'kamper.html';
+  const target = isManual
+    ? (turneringId ? `manualMatches.html?id=${turneringId}&manual=1`
+                   : 'manualMatches.html')
+    : (turneringId ? `kamper.html?id=${turneringId}`
+                   : 'kamper.html');
   window.location.href = target;
 }
 
@@ -755,7 +760,9 @@ function showNextMatchPopup(match) {
     info.textContent = `${match.hjemmelag} vs ${match.bortelag} kl. ${time}`;
     btn.style.display = 'inline-block';
     btn.onclick = () => {
-      window.location.href = `scoreboard.html?kampId=${encodeURIComponent(match.id)}&id=${turneringId}`;
+      let url = `scoreboard.html?kampId=${encodeURIComponent(match.id)}&id=${turneringId}`;
+      if (isManual) url += '&manual=1';
+      window.location.href = url;
     };
   } else {
     info.textContent = 'Ingen flere kamper på denne banen.';
