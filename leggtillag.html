@@ -75,8 +75,9 @@
     pointer-events: auto;
   }
 
-  /* Sidebar form for teams */
-  .team-form-sidebar {
+  /* Sidebar form styling */
+  .team-form-sidebar,
+  .ref-form-sidebar {
     display: none;
     position: fixed;
     top: var(--offset-top, 0);
@@ -91,7 +92,8 @@
     overflow-y: auto;
     z-index: 2600;
   }
-  .team-form-sidebar .close-sidebar {
+  .team-form-sidebar .close-sidebar,
+  .ref-form-sidebar .close-sidebar {
     position: absolute;
     top: 8px;
     right: 12px;
@@ -267,28 +269,26 @@
 </div>
 
 
-<!-- Referee Form Popup -->
-<div id="refereeForm" class="modal">
-  <div class="modal-content">
-    <span class="close" onclick="document.getElementById('refereeForm').style.display='none'">&times;</span>
-    <form id="addRefForm" class="space-y-4">
-      <label for="refereeName">Name</label>
-        <input type="text" id="refereeName" name="refereeName" placeholder="Referee Name" class="border rounded w-full p-2">
+<!-- Referee Form Sidebar -->
+<div id="refSidebar" class="ref-form-sidebar">
+  <span class="close-sidebar" onclick="closeRefForm()">&times;</span>
+  <form id="addRefForm" class="space-y-4">
+    <label for="refereeName">Name</label>
+      <input type="text" id="refereeName" name="refereeName" placeholder="Referee Name" class="border rounded w-full p-2">
 
-      <label for="refereeTeam">Team</label>
-        <select id="refereeTeam" name="refereeTeam" class="border rounded w-full p-2">
-        <option value="">—</option>
-        <!-- Teams legges til dynamisk via JS -->
-      </select>
+    <label for="refereeTeam">Team</label>
+      <select id="refereeTeam" name="refereeTeam" class="border rounded w-full p-2">
+      <option value="">—</option>
+      <!-- Teams legges til dynamisk via JS -->
+    </select>
 
-      <label>Divisions</label>
-      <div id="refereeDivisionsContainer" class="checkbox-group space-y-2">
-        <!-- JS fyller ut én checkbox per divisjon -->
-      </div>
+    <label>Divisions</label>
+    <div id="refereeDivisionsContainer" class="checkbox-group space-y-2">
+      <!-- JS fyller ut én checkbox per divisjon -->
+    </div>
 
-        <button id="saveRefBtn" type="button" onclick="saveReferee()" class="btn w-full">Add Referee</button>
-    </form>
-  </div>
+      <button id="saveRefBtn" type="button" onclick="saveReferee()" class="btn w-full">Add Referee</button>
+  </form>
 </div>
 
 
@@ -407,10 +407,15 @@
   sidebar.style.display = 'block';
 }
 
- function closeTeamForm(){
-   const sidebar = document.getElementById('teamSidebar');
-   if(sidebar) sidebar.style.display = 'none';
- }
+function closeTeamForm(){
+  const sidebar = document.getElementById('teamSidebar');
+  if(sidebar) sidebar.style.display = 'none';
+}
+
+function closeRefForm(){
+  const sidebar = document.getElementById('refSidebar');
+  if(sidebar) sidebar.style.display = 'none';
+}
     
     async function populateDivisionDropdown() {
       try {
@@ -525,15 +530,13 @@ document.addEventListener('DOMContentLoaded', () => {
           });
         }
       });
-      const modal = document.getElementById('refereeForm');
+      const sidebar = document.getElementById('refSidebar');
       if(window.innerWidth >= 768){
-        modal.classList.add('desktop');
-        applyModalOffset(modal);
+        applyModalOffset(sidebar);
       } else {
-        modal.classList.remove('desktop');
-        modal.style.removeProperty('--offset-top');
+        sidebar.style.removeProperty('--offset-top');
       }
-      modal.style.display= "block";
+      sidebar.style.display = 'block';
     }
 
     function saveReferee() {
@@ -547,7 +550,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const p = editingRefereeId ? refsRef.doc(editingRefereeId).set(refData) : refsRef.add(refData);
       p.then(() => {
-          document.getElementById('refereeForm').style.display = 'none';
+          closeRefForm();
           editingRefereeId = null;
           hentDommere();
         })
@@ -642,14 +645,13 @@ document.addEventListener('DOMContentLoaded', () => {
       if(btn) btn.classList.add('active');
 
       if(id === 'teams') {
-        document.getElementById('refereeForm').style.display = 'none';
+        closeRefForm();
         const sidebar = document.getElementById('teamSidebar');
         if(sidebar) sidebar.style.display = 'block';
       } else if(id === 'refs') {
         const sidebar = document.getElementById('teamSidebar');
         if(sidebar) sidebar.style.display = 'none';
-        const modal = document.getElementById('refereeForm');
-        if(modal) modal.style.display = 'block';
+        openRefereeForm();
       }
     }
 
