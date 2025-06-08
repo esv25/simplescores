@@ -157,7 +157,7 @@
     });
 
     const params = new URLSearchParams(window.location.search);
-    const turneringId = params.get('id');
+    const turneringId = params.get('id') || params.get('tournamentid');
 
     let availableDates = [];
 
@@ -231,10 +231,21 @@
     async function hentKamper() {
       const container = document.getElementById('matches');
       container.innerHTML = '';
-      const snapshot = await db.collection('turneringer').doc(turneringId)
-        .collection('kamper').orderBy('starttid','asc').get();
-      snapshot.forEach(doc => {
-        const k = doc.data();
+      try {
+        const snapshot = await db.collection('turneringer')
+          .doc(turneringId)
+          .collection('kamper')
+          .orderBy('starttid','asc')
+          .get();
+
+        if (snapshot.empty) {
+          console.debug('Ingen kamper funnet i Firestore');
+          container.innerHTML = '<p>Ingen kamper funnet.</p>';
+          return;
+        }
+
+        snapshot.forEach(doc => {
+          const k = doc.data();
 
         let startDate = null;
         if (k.starttid) {
@@ -271,10 +282,15 @@
         resBtn.classList.add('result-btn');
         resBtn.textContent = 'Legg inn resultat';
         resBtn.onclick = () => openResultModal(doc.id, k.hjemmelag, k.bortelag);
-        btnContainer.append(sbBtn, resBtn);
-        card.append(info, btnContainer);
-        container.appendChild(card);
-      });
+          btnContainer.append(sbBtn, resBtn);
+          card.append(info, btnContainer);
+          container.appendChild(card);
+        });
+        console.debug('Hentet', snapshot.size, 'kamper fra Firestore');
+      } catch (err) {
+        console.error('Feil ved henting av kamper:', err);
+        container.innerHTML = '<p>En feil oppstod ved henting av kamper.</p>';
+      }
     }
 
     function gåTilScoreboard(kampId) {

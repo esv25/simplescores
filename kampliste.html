@@ -241,7 +241,8 @@
     const toggleFilters = document.getElementById('toggleFilters');
 
     let allMatches = [];
-    const tournamentId = new URLSearchParams(window.location.search).get('tournamentid');
+    const params = new URLSearchParams(window.location.search);
+    const tournamentId = params.get('tournamentid') || params.get('id');
 
   // Dersom tournamentid mangler, omdiriger til opprettingssiden (nyTurnering.html)
   if (!tournamentId) {
@@ -277,37 +278,58 @@
     });
 
     async function fetchMatches() {
-      const snap = await firestore.collection('turneringer').doc(tournamentId).collection('kamper').get();
-      allMatches = snap.docs.map(doc => {
-        const d     = doc.data();
-        const start = d.starttid.toDate();
-        const end   = d.sluttid?.toDate();
-        return {
-          id: doc.id,
-          hjemmelag: d.hjemmelag,
-          bortelag: d.bortelag,
-          dateStr: start.toLocaleDateString('no-NO',{day:'numeric',month:'short'}),
-          timeStr: start.toLocaleTimeString('no-NO',{hour:'2-digit',minute:'2-digit'}),
-          endTimeStr: end ? end.toLocaleTimeString('no-NO',{hour:'2-digit',minute:'2-digit'}) : '',
-          ts: start.getTime(),
-          score1: d.hjemmelagScore,
-          score2: d.bortelagScore,
-          status: d.status || '',
-          referees: Array.isArray(d.dommere) ? d.dommere : []
-        };
-      }).sort((a,b) => a.ts - b.ts);
-      populateTeamFilter(); applyFilters();
+      try {
+        const snap = await firestore
+          .collection('turneringer')
+          .doc(tournamentId)
+          .collection('kamper')
+          .get();
+        if (snap.empty) {
+          console.debug('Ingen kamper funnet i Firestore');
+          container.innerHTML = '<p>Ingen kamper funnet.</p>';
+          return;
+        }
+        allMatches = snap.docs.map(doc => {
+          const d = doc.data();
+          const start = d.starttid ? (d.starttid.toDate ? d.starttid.toDate() : new Date(d.starttid)) : new Date(NaN);
+          const end = d.sluttid ? (d.sluttid.toDate ? d.sluttid.toDate() : new Date(d.sluttid)) : null;
+          return {
+            id: doc.id,
+            hjemmelag: d.hjemmelag,
+            bortelag: d.bortelag,
+            dateStr: !isNaN(start) ? start.toLocaleDateString('no-NO', {day:'numeric',month:'short'}) : 'Ukjent',
+            timeStr: !isNaN(start) ? start.toLocaleTimeString('no-NO', {hour:'2-digit',minute:'2-digit'}) : 'Ukjent',
+            endTimeStr: end && !isNaN(end) ? end.toLocaleTimeString('no-NO', {hour:'2-digit',minute:'2-digit'}) : '',
+            ts: start.getTime(),
+            score1: d.hjemmelagScore,
+            score2: d.bortelagScore,
+            status: d.status || '',
+            referees: Array.isArray(d.dommere) ? d.dommere : []
+          };
+        }).sort((a,b) => a.ts - b.ts);
+        console.debug('Hentet', allMatches.length, 'kamper fra Firestore');
+        populateTeamFilter();
+        applyFilters();
+      } catch (error) {
+        console.error('Feil ved henting av kamper:', error);
+        container.innerHTML = '<p>En feil oppstod ved henting av kamper.</p>';
+      }
     }
 
     function subscribeLiveUpdates() {
-      rtdb.ref(`games/${tournamentId}/kamper`).on('value', snap => {
-        const data = snap.val() || {};
-        allMatches.forEach(m => {
-          const live = data[m.id] || {};
-          m.currentPeriod = live.currentPeriod ?? null;
-          m.remainingTime = live.remainingTime ?? null;
-        }); renderMatches(filterMatches());
-      });
+      try {
+        rtdb.ref(`games/${tournamentId}/kamper`).on('value', snap => {
+          const data = snap.val() || {};
+          allMatches.forEach(m => {
+            const live = data[m.id] || {};
+            m.currentPeriod = live.currentPeriod ?? null;
+            m.remainingTime = live.remainingTime ?? null;
+          });
+          renderMatches(filterMatches());
+        });
+      } catch (error) {
+        console.error('Feil ved henting av live-data:', error);
+      }
     }
 
     function populateTeamFilter() {

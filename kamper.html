@@ -230,7 +230,7 @@
     });
 
     const params = new URLSearchParams(window.location.search);
-    const turneringId = params.get('id');
+    const turneringId = params.get('id') || params.get('tournamentid');
 
     document.addEventListener('DOMContentLoaded', () => {
       if (!turneringId) {
@@ -253,15 +253,24 @@
   upcoming.innerHTML = '';
   previous.innerHTML = '';
 
-  const snapshot = await db.collection('turneringer')
-    .doc(turneringId).collection('kamper')
-    .orderBy('starttid', 'asc').get();
+  try {
+    const snapshot = await db.collection('turneringer')
+      .doc(turneringId)
+      .collection('kamper')
+      .orderBy('starttid', 'asc')
+      .get();
 
-  snapshot.forEach(doc => {
-    const k = doc.data();
-    const startDate = k.starttid?.toDate
-      ? k.starttid.toDate()
-      : new Date(k.starttid);
+    if (snapshot.empty) {
+      console.debug('Ingen kamper funnet i Firestore');
+      upcoming.innerHTML = '<p>Ingen kamper funnet.</p>';
+      return;
+    }
+
+    snapshot.forEach(doc => {
+      const k = doc.data();
+      const startDate = k.starttid?.toDate
+        ? k.starttid.toDate()
+        : new Date(k.starttid);
     const formattedTime = startDate.toLocaleString('no-NO', {
       day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit'
     });
@@ -306,12 +315,17 @@
     card.append(info, btnContainer);
 
     // Plasser i riktig seksjon
-    if (k.status === 'startet' || k.status === 'ferdig') {
-      previous.appendChild(card);
-    } else {
-      upcoming.appendChild(card);
-    }
-  });
+      if (k.status === 'startet' || k.status === 'ferdig') {
+        previous.appendChild(card);
+      } else {
+        upcoming.appendChild(card);
+      }
+    });
+    console.debug('Hentet', snapshot.size, 'kamper fra Firestore');
+  } catch (err) {
+    console.error('Feil ved henting av kamper:', err);
+    upcoming.innerHTML = '<p>En feil oppstod ved henting av kamper.</p>';
+  }
 }
 
 
