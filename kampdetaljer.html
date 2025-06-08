@@ -248,7 +248,13 @@
                 <li>Laster...</li>
               </ul>
             </div>
-      
+            <div class="cards-section">
+              <h3>Hendelser:</h3>
+              <ul class="cards-list" id="cardsList">
+                <li>Laster...</li>
+              </ul>
+            </div>
+
             <a href="kampliste.html" class="details-button">Tilbake til Kamper</a>
           </div>
         </div>
@@ -316,6 +322,7 @@ const rtdb = firebase.database();
         // Elementer
         const kampDetails = document.getElementById('kampDetails');
         const scorersList = document.getElementById('scorersList');
+        const cardsList   = document.getElementById('cardsList');
         const scoreElement = document.getElementById('score');
         const team1Element = document.getElementById('team1');
         const team2Element = document.getElementById('team2');
@@ -428,6 +435,10 @@ async function initializePage() {
 
     // Hent og vis tabell for valgt divisjon/fase
     await fetchPhaseData(kampDivisjon, kampFase, kampSegment);
+
+    // Sett opp lyttere for scorere og hendelser
+    fetchScorers(kampDocRef, data.hjemmelag, data.bortelag);
+    setupCardListener(kampDocRef, data.hjemmelag, data.bortelag);
 
     // Hvis kampen er startet, koble sanntids-lytter
     if (data.status === 'startet') {
@@ -1211,6 +1222,30 @@ tabButtons.forEach(btn => {
             currentTimeoutTeam = null;
             }
         }, 1000);
+        }
+
+        function setupCardListener(kampRef, hjemmelag, bortelag) {
+            kampRef.collection('cards').orderBy('time').onSnapshot(snapshot => {
+                if (snapshot.empty) {
+                    cardsList.innerHTML = '<li>Ingen hendelser.</li>';
+                    return;
+                }
+                let html = '';
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    const spiller = data.spiller || 'Ukjent spiller';
+                    const time = data.time || '00:00';
+                    const teamSide = data.team || 'Ukjent Lag';
+                    const type = data.type || '';
+                    let teamName = teamSide.toLowerCase() === 'hjemme' ? hjemmelag : bortelag;
+                    let typeText = type;
+                    if (type === 'yellow') typeText = 'Gult kort';
+                    else if (type === 'red') typeText = 'Rødt kort';
+                    else if (type === 'penalty') typeText = `Utvisning ${data.duration || 120}s`;
+                    html += `<li><div class="player-info"><span class="player-name">${spiller}</span><span class="goal-details">${time}' - ${teamName} - ${typeText}</span></div></li>`;
+                });
+                cardsList.innerHTML = html;
+            });
         }
 
 

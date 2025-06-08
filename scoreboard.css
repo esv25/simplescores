@@ -414,7 +414,14 @@
           color: white;
           cursor: pointer;
       }
-      .penalty-btn:hover { background: #0056b3; }
+.penalty-btn:hover { background: #0056b3; }
+
+.yellow-button { background-color: #f6e05e; color: #2d3e50; }
+.red-button { background-color: #e53e3e; color: white; }
+.penalty-button { background-color: #ed8936; color: white; }
+.yellow-button:hover { background-color: #ecc94b; }
+.red-button:hover { background-color: #c53030; }
+.penalty-button:hover { background-color: #dd6b20; }
     
 @media (max-width: 480px) {
     .timer, .score {

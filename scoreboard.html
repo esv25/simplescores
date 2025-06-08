@@ -36,10 +36,13 @@
                         <div class="team-name" id="hjemmelagNavn">Lag 1</div>
                         <div class="score-controls">
                             <div class="adjust-buttons">
-                                <button class="score-button" onclick="openPlayerModal('hjemme')">+</button>
+                                <button class="score-button" onclick="openPlayerModal('hjemme','goal')">+</button>
                                 <button class="score-button" onclick="adjustScore('hjemmeScore', -1, 'hjemme')">-</button>
                             </div>
                             <button class="time-button" onclick="startTimeout('hjemme')">Timeout</button>
+                            <button class="time-button yellow-button" style="display:none;" onclick="openPlayerModal('hjemme','yellow')">Gult kort</button>
+                            <button class="time-button red-button" style="display:none;" onclick="openPlayerModal('hjemme','red')">Rødt kort</button>
+                            <button class="time-button penalty-button" style="display:none;" onclick="openPlayerModal('hjemme','penalty')">2&nbsp;min</button>
                         </div>
                     </div>
                     <div class="score-section" id="borteSection">
@@ -47,10 +50,13 @@
                         <div class="team-name" id="bortelagNavn">Lag 2</div>
                         <div class="score-controls">
                             <div class="adjust-buttons">
-                                <button class="score-button" onclick="openPlayerModal('borte')">+</button>
+                                <button class="score-button" onclick="openPlayerModal('borte','goal')">+</button>
                                 <button class="score-button" onclick="adjustScore('borteScore', -1, 'borte')">-</button>
                             </div>
                             <button class="time-button" onclick="startTimeout('borte')">Timeout</button>
+                            <button class="time-button yellow-button" style="display:none;" onclick="openPlayerModal('borte','yellow')">Gult kort</button>
+                            <button class="time-button red-button" style="display:none;" onclick="openPlayerModal('borte','red')">Rødt kort</button>
+                            <button class="time-button penalty-button" style="display:none;" onclick="openPlayerModal('borte','penalty')">2&nbsp;min</button>
                         </div>
                     </div>
                 </div>
@@ -83,7 +89,7 @@
     <div id="playerModal" class="modal">
         <div class="modal-content">
             <span class="close" onclick="closeModal()">&times;</span>
-            <h2>Velg spiller som scoret</h2>
+            <h2 id="modalTitle">Velg spiller</h2>
             <ul id="playerList" class="player-list"></ul>
         </div>
     </div>
@@ -216,6 +222,9 @@ let pauseDuration;   // Pauselengde, satt fra innstillingene
         let storedTimeLeft; // For å lagre tiden før timeout
         let originalTimeLeft; // For å lagre tiden før timeout start
         let logGoalScorersEnabled = true; // Kan deaktiveres via innstillinger
+        let logYellowCardsEnabled = false;
+        let logRedCardsEnabled    = false;
+        let logPenaltiesEnabled   = false;
         // Global variabel for kampens fase – "utslag" for utslagskamper
 let matchPhase;
 
@@ -294,6 +303,9 @@ async function hentInnstillinger(division) {
             logGoalScorersEnabled =
                 settings.logGoalScorers === undefined ? true
                                                      : Boolean(settings.logGoalScorers);
+            logYellowCardsEnabled = Boolean(settings.logYellowCards);
+            logRedCardsEnabled    = Boolean(settings.logRedCards);
+            logPenaltiesEnabled   = Boolean(settings.logPenalties);
             console.log("pauseDuration satt til:", pauseDuration);
 
         } else {
@@ -304,6 +316,9 @@ async function hentInnstillinger(division) {
             timeBegin       = 900;
             timeoutDuration = 30;
             pauseDuration   = 60;
+            logYellowCardsEnabled = false;
+            logRedCardsEnabled    = false;
+            logPenaltiesEnabled   = false;
         }
     } catch (error) {
         console.error('Feil ved henting av innstillinger:', error);
@@ -313,6 +328,9 @@ async function hentInnstillinger(division) {
         timeBegin       = 900;
         timeoutDuration = 30;
         pauseDuration   = 60;
+        logYellowCardsEnabled = false;
+        logRedCardsEnabled    = false;
+        logPenaltiesEnabled   = false;
     }
 
     // --- OPPDATER UI HER ---
@@ -324,6 +342,16 @@ async function hentInnstillinger(division) {
 
     // Periodetekst
     document.getElementById('period').textContent = `${currentPeriod}. omgang`;
+
+    document.querySelectorAll('.yellow-button').forEach(btn => {
+        btn.style.display = logYellowCardsEnabled ? 'block' : 'none';
+    });
+    document.querySelectorAll('.red-button').forEach(btn => {
+        btn.style.display = logRedCardsEnabled ? 'block' : 'none';
+    });
+    document.querySelectorAll('.penalty-button').forEach(btn => {
+        btn.style.display = logPenaltiesEnabled ? 'block' : 'none';
+    });
 }
 
 
@@ -1416,7 +1444,7 @@ async function updateTeamStatsAfterReset(hjemmelag, bortelag, hjemmeScore, borte
 
 
 
-        async function logGoalAndUpdateScore(spiller, team) {
+async function logGoalAndUpdateScore(spiller, team) {
     const minutes = Math.floor(timeLeft / 60);
     const seconds = timeLeft % 60;
     const formattedTime = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
@@ -1499,38 +1527,82 @@ async function updateTeamStatsAfterReset(hjemmelag, bortelag, hjemmeScore, borte
     }
 }
 
+async function logCard(spiller, team, type) {
+    const minutes = Math.floor(timeLeft / 60);
+    const seconds = timeLeft % 60;
+    const formattedTime = `${minutes.toString().padStart(2,'0')}:${seconds.toString().padStart(2,'0')}`;
+
+    const cardData = {
+        spiller: spiller,
+        team: team,
+        type: type,
+        time: formattedTime,
+        period: currentPeriod
+    };
+    if (type === 'penalty') {
+        cardData.duration = 120;
+    }
+
+    try {
+        const kampRef = db.collection('turneringer').doc(turneringId)
+                           .collection('kamper').doc(kampId);
+        await kampRef.collection('cards').add(cardData);
+        console.log('Kort registrert');
+    } catch (error) {
+        console.error('Feil ved registrering av kort:', error);
+    }
+}
+
 
 
 
         // Funksjon for å åpne spiller-popup
-        async function openPlayerModal(team) {
-            if (!logGoalScorersEnabled) {
+        let currentEventType = 'goal';
+        async function openPlayerModal(team, type = 'goal') {
+            currentEventType = type;
+            if (type === 'goal' && !logGoalScorersEnabled) {
                 await logGoalAndUpdateScore('ikke-definert', team);
                 return;
             }
 
+            const titleEl = document.getElementById('modalTitle');
             const playerListElement = document.getElementById('playerList');
-            playerListElement.innerHTML = ''; // Tøm listen først
+            playerListElement.innerHTML = '';
 
+            let teamName = team === 'hjemme'
+                ? document.getElementById('hjemmelagNavn').textContent
+                : document.getElementById('bortelagNavn').textContent;
 
-            let teamName = team === 'hjemme' ? document.getElementById('hjemmelagNavn').textContent : document.getElementById('bortelagNavn').textContent;
+            switch (type) {
+                case 'yellow':
+                    titleEl.textContent = 'Velg spiller med gult kort';
+                    break;
+                case 'red':
+                    titleEl.textContent = 'Velg spiller med rødt kort';
+                    break;
+                case 'penalty':
+                    titleEl.textContent = 'Velg spiller for 2 minutters utvisning';
+                    break;
+                default:
+                    titleEl.textContent = 'Velg spiller som scoret';
+            }
 
-            // Legg til forhåndsdefinerte valg: "Ikke definert" og "Selvmål"
-            const predefinedOptions = [
-                { label: 'Ikke definert', value: 'ikke-definert' },
-                { label: 'Selvmål', value: 'selvmål' }
-            ];
+            if (type === 'goal') {
+                const predefinedOptions = [
+                    { label: 'Ikke definert', value: 'ikke-definert' },
+                    { label: 'Selvmål', value: 'selvmål' }
+                ];
 
-            predefinedOptions.forEach(option => {
-                const listItem = document.createElement('li');
-                listItem.textContent = option.label;
-                listItem.onclick = function() {
-                    // Logg målet som en spesialhendelse (ikke definert eller selvmål)
-                    logGoalAndUpdateScore(option.value, team);
-                    closeModal();
-                };
-                playerListElement.appendChild(listItem);
-            });
+                predefinedOptions.forEach(option => {
+                    const listItem = document.createElement('li');
+                    listItem.textContent = option.label;
+                    listItem.onclick = function() {
+                        logGoalAndUpdateScore(option.value, team);
+                        closeModal();
+                    };
+                    playerListElement.appendChild(listItem);
+                });
+            }
 
             // Hent spillere for laget fra Firebase
             db.collection('turneringer').doc(turneringId)
@@ -1538,14 +1610,17 @@ async function updateTeamStatsAfterReset(hjemmelag, bortelag, hjemmeScore, borte
                 .then(snapshot => {
                     if (!snapshot.empty) {
                         snapshot.forEach(doc => {
-                            const spillerData = doc.data().spillere || []; // Anta at spillere er et array i lag-dokumentet
+                            const spillerData = doc.data().spillere || [];
                             spillerData.forEach(spiller => {
                                 const listItem = document.createElement('li');
                                 listItem.textContent = spiller;
                                 listItem.onclick = function() {
-                                    // Logg mål til Firebase
-                                    logGoalAndUpdateScore(spiller, team);
-                                    alert(spiller + ' scoret!');
+                                    if (currentEventType === 'goal') {
+                                        logGoalAndUpdateScore(spiller, team);
+                                        alert(spiller + ' scoret!');
+                                    } else {
+                                        logCard(spiller, team, currentEventType);
+                                    }
                                     closeModal();
                                 };
                                 playerListElement.appendChild(listItem);
