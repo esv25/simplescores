@@ -806,8 +806,9 @@ async function lagreKampoppsett() {
     const kampnummer = item._localMatchIdx;   // 0-basert pr. runde
     const kampIndeks = globalMatchIdx++;      // 0-basert globalt
 
-    const startDate = new Date(`${date}T${startTime}`);
-    const endDate   = new Date(`${date}T${endTime}`);
+    const normDate  = normalizeDate(date);
+    const startDate = new Date(`${normDate}T${startTime}`);
+    const endDate   = new Date(`${normDate}T${endTime}`);
     if (isNaN(startDate) || isNaN(endDate)) {
       console.warn(`Ugyldig dato/tid for kamp ${m.id}`, { date, startTime, endTime });
       return;
@@ -3883,7 +3884,7 @@ async function scheduleMatchesAllPhasesParallel(
  * initBaneOpptattTil - 
  *   baneOpptattTil[bane][dato] = Date (når banen er ledig).
  */
- function initBaneOpptattTil(baner, dateTimes) {
+function initBaneOpptattTil(baner, dateTimes) {
     const baneOpptattTil = {};
 
     baner.forEach(bane => {
@@ -5387,6 +5388,21 @@ function getDateFromLaneId(id) {
   }
 
   console.log('[updateBaneTimes] ferdig for', laneDiv.id);
+}
+
+// Normaliserer datoer slik at feil formattering som f.eks. '20022-05-10'
+// (ekstra null i året) rettes til '2022-05-10'.
+function normalizeDate(dateStr) {
+  if (typeof dateStr !== 'string') return dateStr;
+  const m = dateStr.trim().match(/^(\d{4,})-(\d{2})-(\d{2})$/);
+  if (!m) return dateStr;
+  let year = m[1];
+  if (year.length === 5 && year.startsWith('20')) {
+    year = year.slice(0, 2) + year.slice(-2); // 20022 -> 2022
+  } else if (year.length > 4) {
+    year = year.slice(-4);
+  }
+  return `${year}-${m[2]}-${m[3]}`;
 }
 
 // Husk å fjerne/kommentere ut all logikk som kaller getFieldStartTime eller
