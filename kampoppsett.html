@@ -1453,7 +1453,7 @@ async function generateRefereeSchedule(matches, numRefsPerMatch) {
       load: 0,
       busySlots: new Set()
     };
-  });  // :contentReference[oaicite:0]{index=0}:contentReference[oaicite:1]{index=1}
+  });
 
   // 4.2) Hjelpefunksjon: returner kvalifiserte dommere for en kamp
   function qualifiedRefs(match) {
@@ -2622,6 +2622,8 @@ function planMatchOnCourt(match, settings, baner) {
 
   let chosen, startTs, endTs;
   // Finn første ledige court/time som også passer lagene
+  let attempts = 0;
+  const maxAttempts = (baner.length || 1) * (state.dateQueue?.length || 1) * 5;
   outer: while (true) {
     // 1) Finn court med tidligst tilgjengelig slot
     chosen = null;
@@ -2652,6 +2654,11 @@ function planMatchOnCourt(match, settings, baner) {
     const timeStr = conflictDate.toTimeString().slice(0,5);
     state.courtNext[chosen.court] = { dateIndex: chosen.dateIndex, time: timeStr };
     // Så loop og finn ny court
+    attempts++;
+    if (attempts > maxAttempts) {
+      console.error('Maksimalt antall forsøk for å finne ledig bane overskredet');
+      break outer;
+    }
   }
 
   // Fra chosen har vi court, dateIndex og time
@@ -2764,7 +2771,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   loadDateTimesWizard();           // → fyller dato‐/tid‐felter
 
   // Hent baner FRA Firestore (true kilde) før vi tegner skjemaet
-  window.baner = await hentOgOpprettBaner();  // ← her settes window.baner :contentReference[oaicite:2]{index=2}:contentReference[oaicite:3]{index=3}
+  window.baner = await hentOgOpprettBaner();
 
   // Til slutt: hent og vis lagrede kamper
   await loadSavedSchedule();       // nå vil renderScheduleUI finne baner og kamper
