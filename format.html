@@ -814,9 +814,13 @@ async function visFaseData(faseNummer) {
             if (isLoadingPhases) return;
             isLoadingPhases = true;
             loadedPhaseKeys.clear();
+
+            const promises = [];
             for (let faseNummer = 1; faseNummer <= 3; faseNummer++) {
-                await visFaseData(faseNummer);
+                promises.push(visFaseData(faseNummer));
             }
+            await Promise.all(promises);
+
             isLoadingPhases = false;
         }
 
