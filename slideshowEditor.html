@@ -4,7 +4,7 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Turneringspresentasjon</title>
+  <title>Slide Editor</title>
   <link rel="stylesheet" type="text/css" href="./admin.css">
   <style>
 /* Wrapper rundt hele braketten */
@@ -536,9 +536,13 @@ function previewSlideConfig() {
       <p><strong>Divisjon:</strong> ${division} | <strong>Fase:</strong> ${fase}</p>
       <p><strong>Varighet:</strong> ${duration} sekunder | <strong>Overgang:</strong> ${transition}</p>
   `;
-  previewHTML += currentSlideElements.map((e,i) =>
-    `<div class="canvas-element" style="left:${e.x||0}px;top:${e.y||0}px;">${e.type}</div>`
-  ).join('');
+  previewHTML += currentSlideElements.map((e,i) => {
+    if(e.type === 'text') {
+      const size = e.size || 24;
+      return `<div class="canvas-element" style="left:${e.x||0}px;top:${e.y||0}px;font-size:${size}px;">${e.text || 'Tekst'}</div>`;
+    }
+    return `<div class="canvas-element" style="left:${e.x||0}px;top:${e.y||0}px;">${e.type}</div>`;
+  }).join('');
   previewHTML += `</div>`;
 
   // Sett inn i DOM
@@ -601,6 +605,11 @@ function showSlide(index) {
       const div = document.createElement('div');
       div.textContent = 'Kommende kamper';
       container.appendChild(div);
+    } else if (type === 'text') {
+      const p = document.createElement('div');
+      p.textContent = el.text || 'Tekst';
+      if(el.size) p.style.fontSize = el.size + 'px';
+      container.appendChild(p);
     }
     slideDiv.appendChild(container);
   });
@@ -762,7 +771,13 @@ function showSlide(index) {
           let elems = [];
           if (Array.isArray(d.elements)) {
             if (typeof d.elements[0] === 'object') {
-              elems = d.elements.map(e => ({ type: e.type, x: e.x || 0, y: e.y || 0 }));
+              elems = d.elements.map(e => ({
+                type: e.type,
+                x: e.x || 0,
+                y: e.y || 0,
+                text: e.text,
+                size: e.size
+              }));
             } else {
               elems = d.elements.map(t => ({ type: t, x: 0, y: 0 }));
             }
@@ -831,13 +846,14 @@ function showSlide(index) {
             <label><input type="checkbox" value="kamper" id="kamperCheckbox"> Kamper</label>
             <label><input type="checkbox" value="tabeller" id="tabellerCheckbox"> Tabeller</label>
             <label><input type="checkbox" value="kommendeKamper" id="kommendeKamperCheckbox"> Kommende Kamper</label>
+            <label><input type="checkbox" value="text" id="textCheckbox"> Tekst</label>
           </div>
           <div id="elementLibrary"></div>
           <div id="layoutCanvas" class="layout-canvas"></div>
         `;
         loadDivisionsForPopup();
         addDivisionChangeListener();
-        ['kamperCheckbox','tabellerCheckbox','kommendeKamperCheckbox'].forEach(id=>{
+        ['kamperCheckbox','tabellerCheckbox','kommendeKamperCheckbox','textCheckbox'].forEach(id=>{
           const el = document.getElementById(id);
           if(el) el.addEventListener('change', updateElementLibrary);
         });
@@ -852,7 +868,13 @@ function showSlide(index) {
           currentSlideElements = [];
           if(Array.isArray(editingSlide.elements)) {
             if(typeof editingSlide.elements[0] === 'object') {
-              currentSlideElements = editingSlide.elements.map(e=>({type:e.type, x:e.x||0, y:e.y||0}));
+              currentSlideElements = editingSlide.elements.map(e=>({
+                type:e.type,
+                x:e.x||0,
+                y:e.y||0,
+                text:e.text,
+                size:e.size
+              }));
             } else {
               currentSlideElements = editingSlide.elements.map(t=>({type:t, x:0, y:0}));
             }
@@ -861,6 +883,7 @@ function showSlide(index) {
             document.getElementById('kamperCheckbox').checked = types.includes('kamper');
             document.getElementById('tabellerCheckbox').checked = types.includes('tabeller');
             document.getElementById('kommendeKamperCheckbox').checked = types.includes('kommendeKamper');
+            document.getElementById('textCheckbox').checked = types.includes('text');
           }
         }
         setupLayoutCanvas();
@@ -1002,7 +1025,7 @@ function updateElementLibrary() {
   const library = document.getElementById('elementLibrary');
   if(!library) return;
   library.innerHTML = '';
-  ['kamper','tabeller','kommendeKamper'].forEach(type => {
+  ['kamper','tabeller','kommendeKamper','text'].forEach(type => {
     const checkbox = document.getElementById(type + 'Checkbox');
     if(checkbox && checkbox.checked) {
       const item = document.createElement('div');
@@ -1051,14 +1074,24 @@ function handleCanvasDrop(e) {
     const idx = currentSlideElements.length;
     const div = document.createElement('div');
     div.className = 'canvas-element';
-    div.textContent = type;
+    let elementData = {type, x, y};
+    if(type === 'text') {
+      const text = prompt('Tekstinnhold:','Tekst') || 'Tekst';
+      const size = parseInt(prompt('Tekststørrelse (px):','24'),10) || 24;
+      div.textContent = text;
+      div.style.fontSize = size + 'px';
+      elementData.text = text;
+      elementData.size = size;
+    } else {
+      div.textContent = type;
+    }
     div.draggable = true;
     div.dataset.index = idx;
     div.style.left = `${x}px`;
     div.style.top = `${y}px`;
     div.addEventListener('dragstart', handleElementDragStart);
     canvas.appendChild(div);
-    currentSlideElements.push({type, x, y});
+    currentSlideElements.push(elementData);
   }
 }
 
@@ -1073,12 +1106,26 @@ function renderCanvasElements() {
   currentSlideElements.forEach((el, idx) => {
     const div = document.createElement('div');
     div.className = 'canvas-element';
-    div.textContent = el.type;
+    if(el.type === 'text') {
+      div.textContent = el.text || 'Tekst';
+      if(el.size) div.style.fontSize = el.size + 'px';
+    } else {
+      div.textContent = el.type;
+    }
     div.draggable = true;
     div.dataset.index = idx;
     div.style.left = `${el.x || 0}px`;
     div.style.top = `${el.y || 0}px`;
     div.addEventListener('dragstart', handleElementDragStart);
+    if(el.type === 'text') {
+      div.addEventListener('dblclick', () => {
+        const newText = prompt('Tekstinnhold:', el.text || '');
+        if(newText !== null) el.text = newText;
+        const newSize = parseInt(prompt('Tekststørrelse (px):', el.size || 24),10);
+        if(!isNaN(newSize)) el.size = newSize;
+        renderCanvasElements();
+      });
+    }
     canvas.appendChild(div);
   });
 }
