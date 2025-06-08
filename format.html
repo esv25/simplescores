@@ -1018,27 +1018,29 @@ async function populateKnockoutDropdowns(faseNummer, segmentIndex, totalRounds, 
       });
 
       if (round === 0) {
-        // Første runde: enten fra gruppespill-plassering eller alle lag
+        // Første runde henter plassholdere fra forrige fase om mulig
         if (forrigeFaseData?.type === 'gruppespill') {
-          // Hvis forrige fase var gruppespill: legg til "1. plass", "2. plass" osv.
           Object.entries(forrigeFaseData.grupper).forEach(([grpName, lagListe]) => {
             lagListe.forEach((_, idx) => {
               const tekst = `${idx + 1}. plass i ${grpName}`;
               teamSelects.forEach(sel => {
-                const opt = document.createElement('option');
-                opt.value = tekst;
-                opt.textContent = tekst;
+                const opt = new Option(tekst, tekst);
                 sel.appendChild(opt);
               });
             });
           });
+        } else if (forrigeFaseData?.type === 'utslag') {
+          forrigeFaseData.utslagsrunder.forEach((r, ri) => {
+            r.kamper.forEach((_, mi) => {
+              const val = `vinner-runde-${ri}-kamp-${mi}`;
+              const tekst = `Vinner av kamp ${mi} runde ${ri}`;
+              teamSelects.forEach(sel => sel.appendChild(new Option(tekst, val)));
+            });
+          });
         } else {
-          // Ellers: legg til alle lag fra Firestore
           allTeams.forEach(team => {
             teamSelects.forEach(sel => {
-              const opt = document.createElement('option');
-              opt.value = team.id;
-              opt.textContent = team.name;
+              const opt = new Option(team.name, team.id);
               sel.appendChild(opt);
             });
           });
@@ -1116,13 +1118,21 @@ async function populateKnockoutDropdowns(faseNummer, segmentIndex, totalRounds, 
     
         async function hentForrigeFaseData(faseNummer) {
             try {
+                if (faseNummer <= 1) return null;
                 const selectedDivision = document.getElementById('divisionDropdown').value;
-                const forrigeFaseRef = db.collection('turneringer').doc(turneringId).collection(`${selectedDivision}_format`).doc(`fase${faseNummer-1}`);
-                const forrigeFaseDoc = await forrigeFaseRef.get();
-                if (!forrigeFaseDoc.exists) {
-                    return null;
+                const ref = db.collection('turneringer')
+                              .doc(turneringId)
+                              .collection(`${selectedDivision}_format`)
+                              .doc(`fase${faseNummer-1}`);
+                const docSnap = await ref.get();
+                if (!docSnap.exists) return null;
+                let data = docSnap.data();
+                // Dersom dataen er lagret som segmenter (ny struktur),
+                // bruk siste segment som grunnlag for videre plassholdere
+                if (!data.type && Array.isArray(data.segmenter) && data.segmenter.length) {
+                    data = data.segmenter[data.segmenter.length - 1];
                 }
-                return forrigeFaseDoc.data();
+                return data;
             } catch (error) {
                 console.error('Feil ved henting av forrige fase data:', error);
                 return null;
