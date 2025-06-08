@@ -119,16 +119,20 @@
         </div>
     </main>
 
-    <!-- Popup for valg av format -->
-    <!-- Popup for valg av format -->
-<div id="formatPopup" style="display:none;" class="popup">
+<!-- Skjema for valg av segmentformat -->
+<div id="formatPopup" style="display:none;" class="segment-form">
     <h2>Velg Format</h2>
-    <span class="close" onclick="document.getElementById('formatPopup').style.display ='none'">&times;</span>
     <select id="formatDropdown" onchange="toggleFormatOptions()">
         <option value="gruppespill">Gruppespill</option>
         <option value="utslag">Utslag</option>
         <option value="enkeltkamp">Enkeltkamp</option>
     </select>
+    <div>
+      <label for="segmentCount">Antall segmenter:</label>
+      <input type="number" id="segmentCount" min="1" value="1">
+    </div>
+
+    <button type="button" onclick="hideSegmentForm()">Avbryt</button>
   
     <div id="groupPlayOptions" style="display: none;">
         <div>
@@ -238,12 +242,17 @@ const turneringId = new URLSearchParams(window.location.search).get('id');
         const faseSegments = { 1: [], 2: [], 3: [] };
 
         function Endre(fase){
-            document.getElementById("formatPopup").style.display = "block";
             fasesjekk = fase;
-
+            const form = document.getElementById("formatPopup");
+            document.getElementById(`fase${fase}`).appendChild(form);
+            form.style.display = "block";
         }
 
-        function fase() {
+        function hideSegmentForm(){
+            document.getElementById('formatPopup').style.display = 'none';
+        }
+
+        function toggleFormatOptions() {
   // Legg merke til at vi skjuler alle alternativer før vi viser det valgte
   document.getElementById('groupPlayOptions').style.display = 'none';
   document.getElementById('knockoutOptions').style.display = 'none';
@@ -266,8 +275,11 @@ function kallGruppespill(){
     const numGroups       = parseInt(document.getElementById("numberOfGroups").value, 10);
     const teamsPerGroup   = parseInt(document.getElementById("teamsPerGroup").value, 10);
     gruppeMoterPerPar     = parseInt(document.getElementById("meetingsPerPair").value, 10) || 1;
-    const segIndex = faseSegments[fasesjekk].length;
-    createTables(numGroups, teamsPerGroup, fasesjekk, segIndex);
+    const count          = parseInt(document.getElementById("segmentCount").value, 10) || 1;
+    for(let i=0;i<count;i++){
+        const segIndex = faseSegments[fasesjekk].length;
+        createTables(numGroups, teamsPerGroup, fasesjekk, segIndex);
+    }
     // skjul popup
     document.getElementById('groupPlayOptions').style.display = 'none';
     document.getElementById('formatPopup').style.display     = 'none';
@@ -275,8 +287,11 @@ function kallGruppespill(){
 
         function kallEnkeltKamper() {
             const numMatches = parseInt(document.getElementById("numberOfSingleMatches").value, 10);
-            const segIndex = faseSegments[fasesjekk].length;
-            createSingleMatches(numMatches, fasesjekk, segIndex);
+            const count     = parseInt(document.getElementById("segmentCount").value, 10) || 1;
+            for(let i=0;i<count;i++){
+                const segIndex = faseSegments[fasesjekk].length;
+                createSingleMatches(numMatches, fasesjekk, segIndex);
+            }
             document.getElementById('singleMatchOptions').style.display = 'none';
             document.getElementById('formatPopup').style.display = 'none';
         }
@@ -285,8 +300,11 @@ function kallGruppespill(){
     const numKnockoutTeams = parseInt(document.getElementById("numberOfKnockoutTeams").value, 10);
     const includeBronze    = document.getElementById("bronzeFinal").checked;
     // Kall med riktig flagg!
-    const segIndex = faseSegments[fasesjekk].length;
-    generateKnockoutBracket(fasesjekk, numKnockoutTeams, includeBronze, segIndex);
+    const count = parseInt(document.getElementById("segmentCount").value, 10) || 1;
+    for(let i=0;i<count;i++){
+        const segIndex = faseSegments[fasesjekk].length;
+        generateKnockoutBracket(fasesjekk, numKnockoutTeams, includeBronze, segIndex);
+    }
     // Så kan vi lukke popup’en
     document.getElementById('knockoutOptions').style.display = 'none';
     document.getElementById('formatPopup').style.display = 'none';
