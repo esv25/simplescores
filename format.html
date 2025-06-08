@@ -1007,7 +1007,7 @@ async function generateKnockoutBracket(fasesjekk, numKnockoutTeams, includeBronz
 async function populateKnockoutDropdowns(faseNummer, segmentIndex, totalRounds, dropdownClass) {
   try {
     // Hent data fra forrige fase (gruppespill eller utslag)
-    const forrigeFaseData = await hentForrigeFaseData(faseNummer);
+    const forrigeFaseData = await hentForrigeFaseData(faseNummer, segmentIndex);
 
     // Hent alle lag i valgt divisjon fra Firestore
     const division = document.getElementById('divisionDropdown').value;
@@ -1135,7 +1135,7 @@ async function populateKnockoutDropdowns(faseNummer, segmentIndex, totalRounds, 
 
 
     
-        async function hentForrigeFaseData(faseNummer) {
+        async function hentForrigeFaseData(faseNummer, segmentIndex) {
             try {
                 if (faseNummer <= 1) return null;
                 const selectedDivision = document.getElementById('divisionDropdown').value;
@@ -1146,10 +1146,14 @@ async function populateKnockoutDropdowns(faseNummer, segmentIndex, totalRounds, 
                 const docSnap = await ref.get();
                 if (!docSnap.exists) return null;
                 let data = docSnap.data();
-                // Dersom dataen er lagret som segmenter (ny struktur),
-                // bruk siste segment som grunnlag for videre plassholdere
+                // Dersom dataen er lagret som segmenter (ny struktur)
                 if (!data.type && Array.isArray(data.segmenter) && data.segmenter.length) {
-                    data = data.segmenter[data.segmenter.length - 1];
+                    if (Number.isFinite(segmentIndex) && segmentIndex < data.segmenter.length) {
+                        data = data.segmenter[segmentIndex];
+                    } else {
+                        // Fallback til siste segment dersom index ikke er oppgitt
+                        data = data.segmenter[data.segmenter.length - 1];
+                    }
                 }
                 return data;
             } catch (error) {
@@ -1253,7 +1257,7 @@ async function createSingleMatches(numMatches, fasesjekk, segmentIndex) {
 async function populateGDropdowns(faseNummer, segmentIndex) {
   let forrige;
   try {
-    forrige = await hentForrigeFaseData(faseNummer);
+    forrige = await hentForrigeFaseData(faseNummer, segmentIndex);
   } catch (err) {
     console.error('Feil under henting av forrige fase:', err);
     return;
