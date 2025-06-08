@@ -2592,7 +2592,13 @@ function planMatchOnCourt(match, settings, baner) {
 
   // Initialiser intern tilstand første gang
   if (!window.schedulingState) {
-    const dateQueue = Object.entries(dateTimes).sort(([a], [b]) => a.localeCompare(b));
+    const dateQueue = Object.entries(dateTimes)
+      .sort(([a], [b]) => a.localeCompare(b));
+
+    if (dateQueue.length === 0) {
+      throw new Error('Ingen dato/tid er definert for kampoppsettet');
+    }
+
     const courtNext = {};
     const banerMap = {};
     baner.forEach(b => {
