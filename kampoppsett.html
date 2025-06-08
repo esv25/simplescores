@@ -496,13 +496,24 @@ if (turneringId) {
 
             // Funksjoner for å håndtere popups
             function openPopup(popupId) {
+                // Lukk eventuelle andre åpne popuper
+                document.querySelectorAll('.popup.active').forEach(p => {
+                    if (p.id !== popupId) {
+                        p.classList.remove('active');
+                    }
+                });
+
                 document.getElementById(popupId).classList.add('active');
                 document.getElementById('popupOverlay').classList.add('active');
             }
 
             function closePopup(popupId) {
                 document.getElementById(popupId).classList.remove('active');
-                document.getElementById('popupOverlay').classList.remove('active');
+
+                // Skjul bakgrunn dersom ingen andre popuper er aktive
+                if (document.querySelectorAll('.popup.active').length === 0) {
+                    document.getElementById('popupOverlay').classList.remove('active');
+                }
             }
 
 let currentWizardStep = 1;
