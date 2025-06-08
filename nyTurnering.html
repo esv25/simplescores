@@ -71,6 +71,28 @@
       });
     }
 
+    // Laster inn turneringene med styling som passer med resten av designet
+    function loadTurnering(email) {
+      const turneringListe = document.getElementById('turneringListe');
+      turneringListe.innerHTML = '';
+      db.collection('turneringer')
+        .where('organizer', '==', email)
+        .get()
+        .then(snapshot => {
+          snapshot.forEach(doc => {
+            const turnering = doc.data();
+            const turneringDiv = document.createElement('article');
+            turneringDiv.className = 'turnering';
+
+            // Bruk et h4-element for turneringsnavnet slik at stilen fra admin.css (turnering h4) gjelder
+            const title = document.createElement('h4');
+            title.textContent = turnering.tournamentName;
+            turneringDiv.appendChild(title);
+
+            // Opprett knapp-container for rediger og slett
+            const actionsDiv = document.createElement('div');
+            actionsDiv.className = 'turnering-actions';
+
             // Rediger-knapp
             const editButton = document.createElement('button');
             editButton.textContent = 'Rediger';
