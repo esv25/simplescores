@@ -803,6 +803,46 @@ footer {
     padding: 40px;
 }
 
+/* Cards Section - samme stil som scorers */
+.cards-section {
+    background-color: white;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    margin-bottom: 20px;
+    max-width: 800px;
+    margin-left: auto;
+    margin-right: auto;
+    text-align: left;
+}
+
+.cards-section h3 {
+    margin-top: 0;
+    color: #2d3e50;
+    font-size: 2rem;
+}
+
+.cards-list {
+    list-style-type: none;
+    padding-left: 0;
+}
+
+.cards-list li {
+    background-color: #f9f9f9;
+    margin-bottom: 10px;
+    padding: 15px;
+    border-radius: 5px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: background-color 0.3s;
+}
+
+.cards-list li:hover {
+    background-color: #e9ecef;
+}
+
 /* Individuell tournament card */
 .turnering {
     width: 100%;

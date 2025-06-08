@@ -127,6 +127,18 @@
             <label for="logGoalScorers">Logg målscorere</label>
             <input type="checkbox" id="logGoalScorers" checked>
         </div>
+        <div class="form-group">
+            <label for="logYellowCards">Logg gule kort</label>
+            <input type="checkbox" id="logYellowCards">
+        </div>
+        <div class="form-group">
+            <label for="logRedCards">Logg røde kort</label>
+            <input type="checkbox" id="logRedCards">
+        </div>
+        <div class="form-group">
+            <label for="logPenalties">Logg tidsutvisning (sekund)</label>
+            <input type="checkbox" id="logPenalties">
+        </div>
         
 
         <button onclick="saveSettings()">Lagre innstillinger</button>
@@ -204,6 +216,9 @@
     const timeoutDuration = document.getElementById('timeoutDuration').value;
     const pauseDuration = document.getElementById('pauseDuration').value;  // Ny variabel
     const logGoalScorers = document.getElementById('logGoalScorers').checked;
+    const logYellowCards = document.getElementById('logYellowCards').checked;
+    const logRedCards    = document.getElementById('logRedCards').checked;
+    const logPenalties   = document.getElementById('logPenalties').checked;
 
     // Lagre innstillingene i Firestore under turneringen
     db.collection('turneringer').doc(turneringId)
@@ -213,7 +228,10 @@
             numPeriods: parseInt(numPeriods),
             timeoutDuration: parseInt(timeoutDuration),
             pauseDuration: parseInt(pauseDuration),  // Lagre den nye innstillingen
-            logGoalScorers: logGoalScorers
+            logGoalScorers: logGoalScorers,
+            logYellowCards: logYellowCards,
+            logRedCards:    logRedCards,
+            logPenalties:   logPenalties
       })
       .then(() => {
           document.getElementById('settingsSaved').style.display = 'block';
