@@ -278,6 +278,14 @@
       max-width: 1000px;
       border-radius: 10px;
     }
+    #slideListContainer {
+      padding: 20px;
+      background: #fff;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      margin: 20px auto;
+      max-width: 1000px;
+      border-radius: 10px;
+    }
     .slide-overview-item {
       border: 1px solid #48bb78;
       padding: 10px;
@@ -381,6 +389,11 @@
         <li><a href="kamper.html">Kamper</a></li>
     </ul>
 </nav>
+  <main>
+    <div id="slideListContainer">
+      <h2>Oversikt over Slides</h2>
+      <div id="slideList"></div>
+    </div>
   <!-- Slide-innholdet vises øverst -->
   <div id="slides">
     <button id="fullscreenBtn" onclick="toggleFullScreen()">Fullskjerm</button>
@@ -388,8 +401,6 @@
   
   <!-- Oversikt og kontrollpanel -->
   <div id="slidesOverview">
-    <h2>Oversikt over Slides</h2>
-    <div id="slideList"></div>
     <button class="add-slide-button" onclick="openSlideConfigPopup()">Legg til ny Slide</button>
     <button class="start-slideshow-button" onclick="startPresentation()">Start Slideshow</button>
   </div>
@@ -413,6 +424,7 @@
     <button onclick="closePreviewPopup()">Lukk Forhåndsvisning</button>
   </div>
   <div id="previewOverlay"></div>
+  </main>
 
   <!-- Q&A Seksjon -->
 

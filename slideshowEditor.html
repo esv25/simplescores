@@ -269,8 +269,17 @@
       0% { transform: rotate(0deg); }
       100% { transform: rotate(360deg); }
     }
+
     /* Oversikt over slides og kontrollpanel */
     #slidesOverview {
+      padding: 20px;
+      background: #fff;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      margin: 20px auto;
+      max-width: 1000px;
+      border-radius: 10px;
+    }
+    #slideListContainer {
       padding: 20px;
       background: #fff;
       box-shadow: 0 4px 12px rgba(0,0,0,0.1);
@@ -381,18 +390,31 @@
         <li><a href="kamper.html">Kamper</a></li>
     </ul>
 </nav>
+  <main>
+    <div id="slideListContainer">
+      <h2>Oversikt over Slides</h2>
+      <div id="slideList"></div>
+    </div>
   <!-- Slide-innholdet vises øverst -->
   <div id="slides">
+
     <button id="fullscreenBtn" onclick="toggleFullScreen()">Fullskjerm</button>
   </div>
   
   <!-- Oversikt og kontrollpanel -->
+
+  <div id="slidesOverview">
+    <button class="add-slide-button" onclick="openSlideConfigPopup()">Legg til ny Slide</button>
+    <button class="start-slideshow-button" onclick="startPresentation()">Start Slideshow</button>
+  </div>
+
   <div id="slidesOverview">
     <h2>Oversikt over Slides</h2>
     <div id="slideList"></div>
     <button class="add-slide-button" onclick="openSlideConfigPopup()">Legg til ny Slide</button>
     <button class="start-slideshow-button" onclick="startPresentation()">Start Slideshow</button>
   </div>
+
 
   <!-- Slide konfigurasjons-popup -->
   <div id="slideConfigPopup" class="popup">
@@ -412,9 +434,12 @@
     <div id="previewContent"></div>
     <button onclick="closePreviewPopup()">Lukk Forhåndsvisning</button>
   </div>
+
   <div id="previewOverlay"></div>
+  </main>
 
   <!-- Q&A Seksjon -->
+
 
   <!-- Firebase SDKs -->
   <script src="https://www.gstatic.com/firebasejs/8.2.0/firebase-app.js"></script>
