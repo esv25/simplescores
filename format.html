@@ -87,7 +87,7 @@
     <main>
         <div class="format-selection">
             <label for="divisionDropdown">Choose division:
-                <select id="divisionDropdown" onchange="visAlleFaserData()">
+                <select id="divisionDropdown" >
                     <!-- Divisjoner vil bli populert her av JavaScript -->
                 </select>
             </label>
@@ -240,6 +240,8 @@ const turneringId = new URLSearchParams(window.location.search).get('id');
 
         let fasesjekk;
         const faseSegments = { 1: [], 2: [], 3: [] };
+        let loadedPhaseKeys = new Set();
+        let isLoadingPhases = false;
 
         function Endre(fase){
             fasesjekk = fase;
@@ -358,9 +360,11 @@ async function populateDivisionDropdown() {
 }
 
 document.addEventListener('DOMContentLoaded', populateDivisionDropdown);
-// Sørg også for at dropdownen lytter på endringer:
 document.getElementById('divisionDropdown')
-        .addEventListener('change', visAlleFaserData);
+        .addEventListener('change', () => {
+            loadedPhaseKeys.clear();
+            visAlleFaserData();
+        });
 
         function hentOgTelleLag() {
             return new Promise((resolve, reject) => {
@@ -640,6 +644,7 @@ async function visFaseData(faseNummer) {
   if (faseContainer) {
     if (form && faseContainer.contains(form)) {
       document.body.appendChild(form);
+
     }
     faseContainer.innerHTML = '';
   }
@@ -647,6 +652,8 @@ async function visFaseData(faseNummer) {
 
   try {
     const selectedDivision = document.getElementById('divisionDropdown').value;
+  const key = `${selectedDivision}-fase${faseNummer}`;
+  if (loadedPhaseKeys.has(key)) return;
     const formatRef = db
       .collection('turneringer').doc(turneringId)
       .collection(`${selectedDivision}_format`)
@@ -755,6 +762,7 @@ async function visFaseData(faseNummer) {
         }
       }
     }
+    loadedPhaseKeys.add(key);
 
   } catch (error) {
     console.error("Feil ved visning av fase-data:", error);
@@ -801,13 +809,15 @@ async function visFaseData(faseNummer) {
             }
             return 0;
         }
-
         async function visAlleFaserData() {
+            if (isLoadingPhases) return;
+            isLoadingPhases = true;
+            loadedPhaseKeys.clear();
             for (let faseNummer = 1; faseNummer <= 3; faseNummer++) {
                 await visFaseData(faseNummer);
             }
+            isLoadingPhases = false;
         }
-
 
         async function hentAlleLag() {
             let lagListe = [];
