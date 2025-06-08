@@ -2546,6 +2546,12 @@ async function finishWizard() {
     const matchTiming    = document.querySelector('input[name="wizard_matchTiming"]:checked').value;
     const baner          = await hentOgOpprettBaner();
 
+    if (!baner || baner.length === 0) {
+      console.error('[finishWizard] Ingen baner funnet');
+      alert('Ingen baner funnet for turneringen. Legg til baner før du genererer kampoppsett.');
+      return;
+    }
+
     // 4) Sett globalSchedulingSettings for generateSchedule
     window.globalSchedulingSettings = {
       divisions:        Object.keys(divisionTimes),
@@ -2723,7 +2729,14 @@ function planMatchOnCourt(match, settings, baner) {
         chosen = { court, ...next, ts };
       }
     }
-    if (!chosen) throw new Error('Ingen ledige slots igjen for planlegging');
+    if (!chosen) {
+      console.error('[planMatchOnCourt] Ingen ledige slots', {
+        match,
+        courtNext: state.courtNext,
+        dateQueue: state.dateQueue
+      });
+      throw new Error('Ingen ledige slots igjen for planlegging');
+    }
 
     // 2) Sjekk lagenes tilgjengelighet
     startTs = chosen.ts;
