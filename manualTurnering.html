@@ -196,7 +196,7 @@
         return;
       }
       try{
-        const docRef = await db.collection('turneringer').add({tournamentName:name, location:place, dates, organizer, published:false});
+        const docRef = await db.collection('turneringer').add({tournamentName:name, location:place, dates, organizer, published:false, manual:true});
         for(const match of matches){
           await db.collection('turneringer').doc(docRef.id).collection('kamper').add(match);
         }
