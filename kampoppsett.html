@@ -2814,12 +2814,15 @@ async function loadSavedSchedule() {
     const savedMatches = snapshot.docs.map(doc => {
       const data = doc.data();
       // Sørg for at vi alltid har JS Date-objekter
-      const startDate = data.starttid.toDate
+      const startDate = data.starttid?.toDate
         ? data.starttid.toDate()
         : new Date(data.starttid);
-      const endDate = data.sluttid.toDate
-        ? data.sluttid.toDate()
-        : new Date(data.sluttid);
+      const endDate = data.sluttid
+        ? (data.sluttid.toDate
+            ? data.sluttid.toDate()
+            : new Date(data.sluttid))
+        : new Date(startDate.getTime() +
+            (window.globalSchedulingSettings?.tidPerKamp || 30) * 60000);
 
       return {
         id:        doc.id,
@@ -2839,6 +2842,7 @@ async function loadSavedSchedule() {
 
     // 4) Gjør tilgjengelig globalt og render i UI
     window.scheduledMatches = savedMatches;
+    window.kamper = savedMatches;
     await renderScheduleUI(savedMatches);
     showStep(6);
 
