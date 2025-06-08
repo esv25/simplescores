@@ -733,7 +733,7 @@ table td button:hover {
 }
 
 
-.logo-title, img{
+.logo-title img {
     height: 200px;
 }
 /* Adjust button and other elements for mobile */
