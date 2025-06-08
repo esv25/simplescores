@@ -496,13 +496,17 @@
                 }
             }
 
-            document.addEventListener('DOMContentLoaded', () => {
+            if (document.readyState === 'complete' || document.readyState === 'interactive') {
                 domReady = true;
                 startIfReady();
-            });
+            } else {
+                document.addEventListener('DOMContentLoaded', () => {
+                    domReady = true;
+                    startIfReady();
+                });
+            }
 
             auth.onAuthStateChanged((user) => {
-
                 if (user) {
                     const email = user.email;
                     document.getElementById('mail').innerHTML = email;
@@ -511,7 +515,6 @@
                 } else {
                     window.location.href = 'login.html';
                 }
-
             });
         function loggut() {
     auth.signOut().then(() => {
@@ -2939,6 +2942,7 @@ async function loadSavedSchedule() {
 window.baner = [];
 
 // Når DOM er klar: hent turneringsdata, innstillinger, datoer, baner OG kamper
+
 let pageInitialized = false;
 async function initKampoppsett() {
   if (pageInitialized) return;
