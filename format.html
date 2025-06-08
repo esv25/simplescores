@@ -349,10 +349,11 @@ async function populateDivisionDropdown() {
     });
 
     if (divisions.length > 0) {
-      // Sett første divisjon som valgt...
+      // Sett første divisjon som valgt
       dropdown.value = divisions[0].name;
-      // ...og utløs onchange umiddelbart så vi henter lagrede formater med en gang
-      dropdown.dispatchEvent(new Event('change'));
+      // Hent alle lagrede faser direkte slik at alt innhold vises umiddelbart
+      loadedPhaseKeys.clear();
+      await visAlleFaserData();
     }
   } catch (error) {
     console.error('Feil ved henting av divisjoner:', error);
@@ -541,7 +542,7 @@ document.getElementById('divisionDropdown')
         table.appendChild(tbody);
         segmentDiv.appendChild(table);
     }
-    populateGDropdowns(fasesjekk, segmentIndex);
+    await populateGDropdowns(fasesjekk, segmentIndex);
 }
 
 
