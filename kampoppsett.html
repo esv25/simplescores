@@ -487,19 +487,31 @@
 
             const auth = firebase.auth();
 
-            auth.onAuthStateChanged((user) => {
-        if (user) {
-                const email = user.email;
-                document.getElementById('mail').innerHTML = email;
-                if (document.readyState === 'loading') {
-                    document.addEventListener('DOMContentLoaded', initKampoppsett);
-                } else {
+            let domReady = false;
+            let loggedIn = false;
+
+            function startIfReady() {
+                if (domReady && loggedIn) {
                     initKampoppsett();
                 }
-        } else {
-        // Ingen bruker er logget inn, redirect til innloggingssiden
-        window.location.href = 'login.html';
-        }
+            }
+
+            document.addEventListener('DOMContentLoaded', () => {
+                domReady = true;
+                startIfReady();
+            });
+
+            auth.onAuthStateChanged((user) => {
+
+                if (user) {
+                    const email = user.email;
+                    document.getElementById('mail').innerHTML = email;
+                    loggedIn = true;
+                    startIfReady();
+                } else {
+                    window.location.href = 'login.html';
+                }
+
             });
         function loggut() {
     auth.signOut().then(() => {
