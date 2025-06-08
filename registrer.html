@@ -202,10 +202,6 @@
             <h2>Register</h2>
             <input type="email" id="email" placeholder="Email">
             <input type="password" id="password" placeholder="Password">
-            <select id="role">
-                <option value="arrangor">Arrangør (admin)</option>
-                <option value="publikum">Publikum</option>
-            </select>
             <button id="register">Register</button>
             <button onclick="LoggInn()">Already an account? Sign in</button>
             <p id="error-message"></p>
@@ -222,7 +218,7 @@
         document.getElementById('register').addEventListener('click', function() {
             var email = document.getElementById('email').value;
             var password = document.getElementById('password').value;
-            var role = document.getElementById('role').value;
+            var role = 'publikum';
             
             firebase.auth().createUserWithEmailAndPassword(email, password)
             .then((userCredential) => {
