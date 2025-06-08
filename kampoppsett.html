@@ -805,9 +805,8 @@ async function lagreKampoppsett() {
     const kampnummer = item._localMatchIdx;   // 0-basert pr. runde
     const kampIndeks = globalMatchIdx++;      // 0-basert globalt
 
-    const normDate  = normalizeDate(date);
-    const startDate = new Date(`${normDate}T${startTime}`);
-    const endDate   = new Date(`${normDate}T${endTime}`);
+    const startDate = parseDateTime(date, startTime);
+    const endDate   = parseDateTime(date, endTime);
     if (isNaN(startDate) || isNaN(endDate)) {
       console.warn(`Ugyldig dato/tid for kamp ${m.id}`, { date, startTime, endTime });
       return;
@@ -1110,7 +1109,7 @@ function distributeMatchesEvenly(scheduledMatches, tidPerKamp, tidMellomKamper, 
   // 2) For hver dato planlegg globalt per fase
   Object.entries(byDateField).forEach(([date, fields]) => {
     const { startTime, endTime } = dateTimes[date];
-    const windowStart = new Date(`${date}T${startTime}`);
+    const windowStart = parseDateTime(date, startTime);
     // Samle alle unike fasenummer for denne datoen
     const phaseKeys = new Set();
     Object.values(fields).forEach(matches =>
@@ -1299,7 +1298,7 @@ function overlapsPause(startDate, breaks) {
   Object.entries(byDateField).forEach(([date, fields]) => {
     const endTimeStr = dateTimes[date].endTime;
     const [hEnd, mEnd] = endTimeStr.split(':').map(Number);
-    const dayEnd = new Date(`${date}T${endTimeStr}`);
+    const dayEnd = parseDateTime(date, endTimeStr);
 
     Object.values(fields).forEach(matches => {
       matches.sort((a,b) => a.starttid - b.starttid);
@@ -2394,8 +2393,8 @@ function exportScheduleIcs() {
     if (!dt) return item;
 
     // tidsvindu per dag
-    const startDay = new Date(`${date}T${dt.startTime}`);
-    const endDay   = new Date(`${date}T${dt.endTime}`);
+    const startDay = parseDateTime(date, dt.startTime);
+    const endDay   = parseDateTime(date, dt.endTime);
     const windowMs = endDay - startDay;
 
     // slot‐antall = sharedLast
@@ -3293,7 +3292,7 @@ function openAdvancedSettings() {
     // Juster opp til dagens start hvis før
     const currentHHMM = cursor.toTimeString().slice(0,5);
     if (currentHHMM < dt.startTime) {
-      cursor = new Date(`${dayStr}T${dt.startTime}`);
+      cursor = parseDateTime(dayStr, dt.startTime);
     }
 
     // Hvis etter dagens slutt → neste dag
@@ -3304,7 +3303,7 @@ function openAdvancedSettings() {
       }
       const nextDay = dateKeys[dayIndex];
       const nextStart = window.dateTimes[nextDay]?.startTime || '08:00';
-      cursor = new Date(`${nextDay}T${nextStart}`);
+      cursor = parseDateTime(nextDay, nextStart);
       continue;
     }
 
@@ -3317,7 +3316,7 @@ function openAdvancedSettings() {
     });
     if (overlap) {
       const newTime = addMinutesToTime(overlap.startTime, overlap.duration);
-      cursor = new Date(`${dayStr}T${newTime}`);
+      cursor = parseDateTime(dayStr, newTime);
       continue;
     }
 
@@ -3698,10 +3697,10 @@ async function scheduleMatchesAllPhasesInterleaved(phaseQueue, dateTimes, baner,
       const firstDateKey = Object.keys(dateTimes)[0];
       for (const match of candidateMatches) {
         if (!lagOpptattTil[match.hjemmelag]) {
-          lagOpptattTil[match.hjemmelag] = new Date(`${firstDateKey}T${dateTimes[firstDateKey].startTime}`);
+          lagOpptattTil[match.hjemmelag] = parseDateTime(firstDateKey, dateTimes[firstDateKey].startTime);
         }
         if (!lagOpptattTil[match.bortelag]) {
-          lagOpptattTil[match.bortelag] = new Date(`${firstDateKey}T${dateTimes[firstDateKey].startTime}`);
+          lagOpptattTil[match.bortelag] = parseDateTime(firstDateKey, dateTimes[firstDateKey].startTime);
         }
         let matchEarliest = new Date(Math.max(lagOpptattTil[match.hjemmelag], lagOpptattTil[match.bortelag]));
         // Juster for minimum hviletid
@@ -3890,7 +3889,7 @@ function initBaneOpptattTil(baner, dateTimes) {
         baneOpptattTil[bane] = {};
         for (const day in dateTimes) {
             const startTimeStr = dateTimes[day].startTime || "08:00";
-            baneOpptattTil[bane][day] = new Date(`${day}T${startTimeStr}`);
+            baneOpptattTil[bane][day] = parseDateTime(day, startTimeStr);
         }
     });
 
@@ -4296,8 +4295,8 @@ async function oppdaterTider(container) {
     console.log("Oppdaterer tider for container:", container.id);
 
     // Hent starttid for banen
-    let currentTime = dateTimes[baneId]?.startTime 
-        ? new Date(`${dateTimes[baneId].date}T${dateTimes[baneId].startTime}`)
+    let currentTime = dateTimes[baneId]?.startTime
+        ? parseDateTime(dateTimes[baneId].date, dateTimes[baneId].startTime)
         : new Date(); // Standard starttid hvis ingen er definert
 
     const kampKortListe = Array.from(container.querySelectorAll('.kamp-kort'));
@@ -4375,7 +4374,7 @@ function getFieldStartTime(baneId) {
     // Hent den første (eller den spesifikke) datoen som er definert
     const dato = Object.keys(window.dateTimes)[0];
     const startTimeStr = window.dateTimes[dato].startTime;  // f.eks. "08:00"
-    return new Date(`${dato}T${startTimeStr}`);
+    return parseDateTime(dato, startTimeStr);
   }
   // Ingen tidspunkter definert – gi beskjed til brukeren
   alert('Vennligst angi start- og sluttider for dagene før du genererer oppsettet.');
@@ -5286,15 +5285,15 @@ function getDateFromLaneId(id) {
   /* ── 1. Finn tidligste hh:mm på datoen ────────────── */
   function earliestHHMM(dateStr) {
     const list = (window.scheduledMatches || window.kamper || [])
-      .filter(k => k.starttid && new Date(k.starttid).toISOString().slice(0,10) === dateStr)
-      .map(k => new Date(k.starttid));
+      .filter(k => k.starttid && new Date(k.starttid.toDate ? k.starttid.toDate() : k.starttid).toISOString().slice(0,10) === dateStr)
+      .map(k => new Date(k.starttid.toDate ? k.starttid.toDate() : k.starttid));
 
     if (list.length === 0) return '08:00';
 
     const min = new Date(Math.min(...list.map(d => d.getTime())));
     return min.toTimeString().slice(0,5);            // «HH:MM»
   }
-  let cursor = new Date(`${dateStr}T${earliestHHMM(dateStr)}`);
+  let cursor = parseDateTime(dateStr, earliestHHMM(dateStr));
 
   /* ── 2. Kortene i VISUELT oppsett ─────────────────── */
   const cards = Array.from(
@@ -5402,6 +5401,16 @@ function normalizeDate(dateStr) {
     year = year.slice(-4);
   }
   return `${year}-${m[2]}-${m[3]}`;
+}
+
+// Kombinerer dato- og tids-strenger til en Date-instans.
+// Legger til ":00" hvis tiden bare er "HH:MM" for bedre nettleserstøtte.
+function parseDateTime(dateStr, timeStr) {
+  const normDate = normalizeDate(dateStr);
+  if (typeof timeStr === 'string' && /^\d{2}:\d{2}$/.test(timeStr)) {
+    timeStr += ':00';
+  }
+  return new Date(`${normDate}T${timeStr}`);
 }
 
 // Husk å fjerne/kommentere ut all logikk som kaller getFieldStartTime eller
