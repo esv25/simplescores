@@ -2552,6 +2552,30 @@ async function finishWizard() {
       return;
     }
 
+    // --- Rask sanity-check på om det finnes nok tid totalt ---
+    const minutesDiff = (s, e) => {
+      const sMs = new Date(`1970-01-01T${s}:00`).getTime();
+      const eMs = new Date(`1970-01-01T${e}:00`).getTime();
+      return (eMs - sMs) / 60000;
+    };
+    const totalCourtMinutes = baner.length * Object.values(wizardDateTimes)
+      .reduce((sum, dt) => sum + minutesDiff(dt.startTime, dt.endTime), 0);
+    const totalMatchMinutes = Object.entries(alleMatches)
+      .reduce((sum, [div, fases]) => {
+        const dur = divisionTimes[div] || 0;
+        const count = Object.values(fases).flat().length;
+        return sum + count * (dur + tidMellomKamper);
+      }, 0);
+    if (totalMatchMinutes > totalCourtMinutes) {
+      console.error('[finishWizard] For lite tid for kampene', {
+        totalMatchMinutes,
+        totalCourtMinutes
+      });
+      alert('Ikke nok tilgjengelig tid på banene for alle kampene. ' +
+            'Kontroller antall baner, varighet og tidspunkter.');
+      return;
+    }
+
     // 4) Sett globalSchedulingSettings for generateSchedule
     window.globalSchedulingSettings = {
       divisions:        Object.keys(divisionTimes),
