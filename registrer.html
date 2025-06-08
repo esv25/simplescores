@@ -21,16 +21,17 @@
 
         .container {
             display: flex;
-            width: 80%;
+            flex-wrap: wrap;
+            width: 90%;
             max-width: 1200px;
-            background-color: #2d3748; /* Litt lysere mørk farge */
+            background: linear-gradient(135deg, #3b3f73, #2f8656);
             border-radius: 12px;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
             overflow: hidden;
         }
 
         .logo-section {
-            flex: 1;
+            flex: 1 1 300px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -78,11 +79,12 @@
         }
 
         .register-section {
-            flex: 1;
+            flex: 1 1 300px;
             padding: 40px;
             display: flex;
             flex-direction: column;
             justify-content: center;
+            background: linear-gradient(135deg, #2d3748, #4a5568);
         }
 
         .register-section h2 {
@@ -91,33 +93,34 @@
             color: #f0f2f5; /* Lys tekst */
         }
 
-        .register-section input {
+        .register-section input,
+        .register-section select {
             display: block;
             width: 100%;
             margin: 10px 0;
             padding: 12px;
             font-size: 16px;
-            border: none;
+            border: 1px solid #cbd5e0;
             border-radius: 6px;
-            background-color: #f7fafc; /* Lys bakgrunn */
-            color: #2d3e50; /* Mørk tekst */
+            background-color: rgba(255, 255, 255, 0.9);
+            color: #2d3748;
         }
 
         .register-section button {
             width: 100%;
             padding: 12px;
             margin-top: 20px;
-            background-color: #68d391; /* Grønn */
+            background: linear-gradient(45deg, #68d391, #4c51bf);
             color: white;
             font-size: 16px;
             border: none;
             border-radius: 6px;
             cursor: pointer;
-            transition: background-color 0.3s ease;
+            transition: background 0.3s ease;
         }
 
         .register-section button:hover {
-            background-color: #48bb78; /* Mørkere grønn */
+            background: linear-gradient(45deg, #48bb78, #434190);
         }
 
         #error-message, #success-message {
@@ -154,21 +157,22 @@
         object-fit: contain; /* Sørg for at logoen beholder proporsjonene */
     }
 
-    .login-section {
+    .register-section {
         padding: 20px;
     }
 
-    .login-section h2 {
+    .register-section h2 {
         font-size: 24px;
         margin-bottom: 16px;
     }
 
-    .login-section input {
+    .register-section input,
+    .register-section select {
         padding: 10px;
         font-size: 14px;
     }
 
-    .login-section button {
+    .register-section button {
         padding: 10px;
         font-size: 14px;
     }
