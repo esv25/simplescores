@@ -2,6 +2,7 @@
 <html lang="no">
 <head>
   <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" type="text/css" href="./admin.css">
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
   <meta charset="utf-8">
   <title>Login</title>
@@ -25,7 +26,7 @@
             flex-wrap: wrap;
             width: 90%;
             max-width: 1200px;
-            background: linear-gradient(135deg, #1e293b, #2d3748);
+            background: linear-gradient(135deg, #3b3f73, #2f8656);
             border-radius: 12px;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
             overflow: hidden;
@@ -137,6 +138,18 @@
             color: #2d3748;
         }
 
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
+
         #login-error {
             text-align: center;
             margin-top: 10px;
@@ -168,9 +181,11 @@
         </div>
         <div class="login-section">
             <h2>Sign in</h2>
-            <input type="email" id="email" placeholder="Email">
+            <label for="email" class="sr-only">Email</label>
+            <input type="email" id="email" placeholder="Email" autocomplete="username">
             <div class="password-wrapper">
-                <input type="password" id="password" placeholder="Passord">
+                <label for="password" class="sr-only">Passord</label>
+                <input type="password" id="password" placeholder="Passord" autocomplete="current-password">
                 <button type="button" class="toggle-btn" onclick="togglePassword()"><i id="pass-icon" class="fa-solid fa-eye"></i></button>
             </div>
             <button onclick="login()">Log in</button>
