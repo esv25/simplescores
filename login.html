@@ -22,16 +22,17 @@
 
         .container {
             display: flex;
-            width: 80%;
+            flex-wrap: wrap;
+            width: 90%;
             max-width: 1200px;
-            background-color: #2d3748;
+            background: linear-gradient(135deg, #1e293b, #2d3748);
             border-radius: 12px;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
             overflow: hidden;
         }
 
         .logo-section {
-            flex: 1;
+            flex: 1 1 300px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -70,11 +71,12 @@
         }
 
         .login-section {
-            flex: 1;
+            flex: 1 1 300px;
             padding: 40px;
             display: flex;
             flex-direction: column;
             justify-content: center;
+            background: linear-gradient(135deg, #2d3748, #4a5568);
         }
 
         .login-section h2 {
@@ -88,27 +90,27 @@
             margin: 10px 0;
             padding: 12px;
             font-size: 16px;
-            border: none;
+            border: 1px solid #cbd5e0;
             border-radius: 6px;
-            background-color: #f7fafc;
-            color: #2d3e50;
+            background-color: rgba(255, 255, 255, 0.9);
+            color: #2d3748;
         }
 
         .login-section button {
             width: 100%;
             padding: 12px;
             margin-top: 20px;
-            background-color: #68d391;
+            background: linear-gradient(45deg, #68d391, #4c51bf);
             color: white;
             font-size: 16px;
             border: none;
             border-radius: 6px;
             cursor: pointer;
-            transition: background-color 0.3s ease;
+            transition: background 0.3s ease;
         }
 
         .login-section button:hover {
-            background-color: #48bb78;
+            background: linear-gradient(45deg, #48bb78, #434190);
         }
 
         .forgot {
@@ -117,7 +119,7 @@
         }
 
         .forgot a {
-            color: #63b3ed;
+            color: #90cdf4;
         }
 
         .password-wrapper {
@@ -132,7 +134,7 @@
             background: none;
             border: none;
             cursor: pointer;
-            color: #4a5568;
+            color: #2d3748;
         }
 
         #login-error {
