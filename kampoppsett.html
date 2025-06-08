@@ -2668,7 +2668,7 @@ function planMatchOnCourt(match, settings, baner) {
   const state = window.schedulingState;
   const banerMap = state.banerMap;
 
-  function findNextSlot(court, dateIdx, minTs) {
+  function findNextSlot(court, dateIdx, minTs, durMin = 0) {
     const avail = banerMap[court].availability || {};
     for (let i = dateIdx; i < state.dateQueue.length; i++) {
       const [d, slot] = state.dateQueue[i];
@@ -2677,7 +2677,7 @@ function planMatchOnCourt(match, settings, baner) {
       const startTs = toTimestamp(d, start);
       const endTs   = toTimestamp(d, end);
       const ts = Math.max(minTs, startTs);
-      if (ts <= endTs) {
+      if (ts + durMin * 60 * 1000 <= endTs) {
         return { dateIndex: i, time: new Date(ts).toTimeString().slice(0,5) };
       }
     }
@@ -2686,7 +2686,7 @@ function planMatchOnCourt(match, settings, baner) {
 
   if (Object.keys(state.courtNext).length === 0) {
     Object.keys(banerMap).forEach(court => {
-      state.courtNext[court] = findNextSlot(court, 0, -Infinity);
+      state.courtNext[court] = findNextSlot(court, 0, -Infinity, duration);
     });
   }
   const home = match.hjemmelag;
@@ -2701,9 +2701,24 @@ function planMatchOnCourt(match, settings, baner) {
     chosen = null;
     for (const b of baner) {
       const court = b.baneNavn;
-      const next = state.courtNext[court];
+      let next = state.courtNext[court];
       if (!next.time) continue;
-      const ts = toTimestamp(state.dateQueue[next.dateIndex][0], next.time);
+      let ts = toTimestamp(state.dateQueue[next.dateIndex][0], next.time);
+
+      const dateKey   = state.dateQueue[next.dateIndex][0];
+      const slotInfo  = state.dateQueue[next.dateIndex][1];
+      const avail     = banerMap[court].availability || {};
+      const endLimit  = avail[dateKey]?.endTime || slotInfo.endTime;
+      const endLimitTs = toTimestamp(dateKey, endLimit);
+
+      if (ts + duration * 60 * 1000 > endLimitTs) {
+        // Slot for this court is too short; jump to next available
+        state.courtNext[court] = findNextSlot(court, next.dateIndex + 1, -Infinity, duration);
+        next = state.courtNext[court];
+        if (!next.time) continue;
+        ts = toTimestamp(state.dateQueue[next.dateIndex][0], next.time);
+      }
+
       if (!chosen || ts < chosen.ts) {
         chosen = { court, ...next, ts };
       }
@@ -2721,7 +2736,7 @@ function planMatchOnCourt(match, settings, baner) {
     }
     // Hvis ikke ledig for ett av lagene, flytt denne banens next.time frem til max(minHome,minAway), behold dagen
       const conflictTs = Math.max(minHome, minAway);
-      state.courtNext[chosen.court] = findNextSlot(chosen.court, chosen.dateIndex, conflictTs);
+      state.courtNext[chosen.court] = findNextSlot(chosen.court, chosen.dateIndex, conflictTs, duration);
     // Så loop og finn ny court
     attempts++;
     if (attempts > maxAttempts) {
@@ -2738,7 +2753,7 @@ function planMatchOnCourt(match, settings, baner) {
   // Beregn neste ledige slot på denne banen
   let nextDateIdx  = chosen.dateIndex;
   let nextTimeMin  = endTs + buffer * 60 * 1000;
-  state.courtNext[chosen.court] = findNextSlot(chosen.court, nextDateIdx, nextTimeMin);
+  state.courtNext[chosen.court] = findNextSlot(chosen.court, nextDateIdx, nextTimeMin, duration);
 
   // Oppdater lagenes neste ledige tid med hviletid
   state.teamNext[home] = endTs + minRest * 60 * 1000;
