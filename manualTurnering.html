@@ -36,6 +36,16 @@
       <label for="tPlace">Sted</label>
       <input id="tPlace" type="text" class="border p-2 mb-4 w-full">
 
+      <label for="tOrganizer">Arrangør (e-post)</label>
+      <input id="tOrganizer" type="email" class="border p-2 mb-4 w-full">
+
+      <label for="coOrganizerEmail">Co-arrangør e-post</label>
+      <div class="flex mb-2">
+        <input id="coOrganizerEmail" type="email" class="border p-2 flex-grow">
+        <button type="button" onclick="addCoOrganizer()" class="ml-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-4 rounded">Legg til</button>
+      </div>
+      <ul id="coOrganizerList" class="mb-4"></ul>
+
       <button onclick="nextStep(1)" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-4 rounded">Neste</button>
     </section>
 
@@ -77,6 +87,10 @@
     auth.onAuthStateChanged(user => {
       if (user) {
         document.getElementById('mail').textContent = user.email;
+        const orgInput = document.getElementById('tOrganizer');
+        if(orgInput && !orgInput.value){
+          orgInput.value = user.email;
+        }
       } else {
         window.location.href = 'login.html';
       }
@@ -88,6 +102,7 @@
 
     let dates = [];
     let matches = [];
+    let coOrganizers = [];
 
     function nextStep(current){
       document.getElementById('infoSection').classList.add('hidden');
@@ -149,17 +164,44 @@
       });
     }
 
+    function addCoOrganizer(){
+      const email = document.getElementById('coOrganizerEmail').value.trim().toLowerCase();
+      if(!email) return alert('Oppgi e-post for co-arrangør');
+      if(coOrganizers.includes(email)) return;
+      coOrganizers.push(email);
+      updateCoOrganizers();
+      document.getElementById('coOrganizerEmail').value='';
+    }
+
+    function updateCoOrganizers(){
+      const list = document.getElementById('coOrganizerList');
+      list.innerHTML='';
+      coOrganizers.forEach((email,i)=>{
+        const li=document.createElement('li');
+        li.textContent=email;
+        const btn=document.createElement('button');
+        btn.textContent='Fjern';
+        btn.onclick=()=>{coOrganizers.splice(i,1);updateCoOrganizers();};
+        li.appendChild(btn);
+        list.appendChild(li);
+      });
+    }
+
     async function submitTournament(){
       const name = document.getElementById('tName').value.trim();
       const place = document.getElementById('tPlace').value.trim();
-      if(!name || dates.length===0){
-        alert('Fyll inn navn og minst en dato');
+      const organizer = document.getElementById('tOrganizer').value.trim().toLowerCase();
+      if(!name || dates.length===0 || !organizer){
+        alert('Fyll inn navn, arrangør og minst en dato');
         return;
       }
       try{
-        const docRef = await db.collection('turneringer').add({tournamentName:name, location:place, dates, published:false});
+        const docRef = await db.collection('turneringer').add({tournamentName:name, location:place, dates, organizer, published:false});
         for(const match of matches){
           await db.collection('turneringer').doc(docRef.id).collection('kamper').add(match);
+        }
+        for(const email of coOrganizers){
+          await db.collection('turneringer').doc(docRef.id).collection('coOrganizers').doc(email).set({email});
         }
         alert('Turnering lagret');
         window.location.href='manualMatches.html?id='+docRef.id;
