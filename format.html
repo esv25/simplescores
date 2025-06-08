@@ -244,7 +244,12 @@ const turneringId = new URLSearchParams(window.location.search).get('id');
         function Endre(fase){
             fasesjekk = fase;
             const form = document.getElementById("formatPopup");
-            document.getElementById(`fase${fase}`).appendChild(form);
+            const container = document.getElementById(`fase${fase}`);
+            if (!form || !container) {
+                console.error("Mangler form eller fase container", form, container);
+                return;
+            }
+            container.appendChild(form);
             form.style.display = "block";
         }
 
@@ -428,7 +433,11 @@ document.getElementById('divisionDropdown')
 
         function slettFase(faseNummer) {
             const faseContainer = document.getElementById(`fase${faseNummer}`);
+            const form = document.getElementById('formatPopup');
             if (faseContainer) {
+                if (form && faseContainer.contains(form)) {
+                    document.body.appendChild(form);
+                }
                 faseContainer.innerHTML = '';
             }
 
@@ -452,6 +461,10 @@ document.getElementById('divisionDropdown')
             for (let faseNummer = 1; faseNummer <= 3; faseNummer++) {
                 const faseContainer = document.getElementById(`fase${faseNummer}`);
                 if (faseContainer) {
+                    const form = document.getElementById('formatPopup');
+                    if (form && faseContainer.contains(form)) {
+                        document.body.appendChild(form);
+                    }
                     faseContainer.innerHTML = '';
                 }
 
@@ -623,7 +636,13 @@ function setDropdownValue(dropdown, value) {
 }
 async function visFaseData(faseNummer) {
   const faseContainer = document.getElementById(`fase${faseNummer}`);
-  faseContainer.innerHTML = '';
+  const form = document.getElementById('formatPopup');
+  if (faseContainer) {
+    if (form && faseContainer.contains(form)) {
+      document.body.appendChild(form);
+    }
+    faseContainer.innerHTML = '';
+  }
   faseSegments[faseNummer] = [];
 
   try {
