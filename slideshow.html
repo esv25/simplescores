@@ -191,24 +191,7 @@
       opacity: 1;
     }
 
-    /* Layout-klasser */
-    .slide.layout-1 {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-    .slide.layout-2 {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 20px;
-      text-align: left;
-    }
-    .slide.layout-3 {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 20px;
-      text-align: left;
-    }
+    /* Layout-klasser (beholdt for eldre slides) */
     /* Loader styling */
     .loader {
       border: 8px solid #f3f3f3;
@@ -357,33 +340,17 @@
     }
     .layout-canvas {
       margin-top: 10px;
-      display: grid;
-      gap: 10px;
       border: 1px dashed #a0aec0;
-      padding: 10px;
+      position: relative;
+      height: 400px;
     }
-    .layout-canvas.one {
-      grid-template-columns: 1fr;
-    }
-    .layout-canvas.two {
-      grid-template-columns: 1fr 1fr;
-    }
-    .layout-canvas.three {
-      grid-template-columns: repeat(3, 1fr);
-    }
-    .drop-cell {
-      min-height: 60px;
-      border: 1px dashed #cbd5e0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    .layout-cell { padding: 5px; }
-    .cell-element {
+    .canvas-element {
+      position: absolute;
       padding: 4px 6px;
       background: #48bb78;
       color: #fff;
       border-radius: 4px;
+      cursor: move;
     }
   </style>
 </head>
@@ -523,7 +490,6 @@ function renderSlidesOverview() {
       <div>
         <strong>Slide ${index + 1}</strong>: ${slide.title || "Uten tittel"} –
         Divisjon: ${slide.division}, Fase: ${slide.fase},
-        Layout: ${slide.layout || 1},
         Innhold: ${Array.isArray(slide.elements) ? slide.elements.map(e => e.type || e).join(', ') : ''}
       </div>
     `;
@@ -547,21 +513,20 @@ function previewSlideConfig() {
   const fase       = document.getElementById('faseSelection')?.value      || '-';
   const title      = document.getElementById('slideTitle')?.value         || 'Slide Tittel';
   const duration   = document.getElementById('durationSelection')?.value  || 'n/a';
-  const layout     = document.getElementById('layoutSelection')?.value   || '1';
   const transition = document.getElementById('transitionSelection')?.value|| 'fade';
 
   const elements = currentSlideElements.map(e => e.type);
 
   // Bygg HTML
   let previewHTML = `
-    <div class="slide active layout-${layout}">
+    <div class="slide active" style="position:relative;height:400px;">
       <h2>${title}</h2>
       <p><strong>Divisjon:</strong> ${division} | <strong>Fase:</strong> ${fase}</p>
       <p><strong>Varighet:</strong> ${duration} sekunder | <strong>Overgang:</strong> ${transition}</p>
   `;
-  if (elements.length) {
-    previewHTML += `<p><strong>Elementer:</strong> ${elements.join(', ')}</p>`;
-  }
+  previewHTML += currentSlideElements.map((e,i) =>
+    `<div class="canvas-element" style="left:${e.x||0}px;top:${e.y||0}px;">${e.type}</div>`
+  ).join('');
   previewHTML += `</div>`;
 
   // Sett inn i DOM
@@ -585,29 +550,24 @@ function showSlide(index) {
 
   slidesContainer.innerHTML = '';
   const slide = slides[index];
-  const layout = slide.layout || 1;
 
   const slideDiv = document.createElement('div');
-  slideDiv.className = `slide active layout-${layout}`;
+  slideDiv.className = 'slide active';
+  slideDiv.style.position = 'relative';
   slideDiv.innerHTML = `<h2>${slide.title || 'Slide'}</h2>
     <p><strong>Divisjon:</strong> ${slide.division} | <strong>Fase:</strong> ${slide.fase}</p>`;
-
-  const cells = [];
-  for(let i=0;i<layout;i++) {
-    const c = document.createElement('div');
-    c.className = 'layout-cell';
-    c.dataset.index = i;
-    slideDiv.appendChild(c);
-    cells.push(c);
-  }
 
   slidesContainer.appendChild(slideDiv);
 
   const elements = Array.isArray(slide.elements) ? slide.elements : [];
   elements.forEach((el, idx) => {
     const type = el.type || el;
-    const cellIndex = (el.cell != null) ? el.cell : idx % layout;
-    const container = cells[cellIndex] || slideDiv;
+    const x = el.x || 0;
+    const y = el.y || 0;
+    const container = document.createElement('div');
+    container.style.position = 'absolute';
+    container.style.left = `${x}px`;
+    container.style.top = `${y}px`;
     if (type === 'tabeller') {
       const wrap = document.createElement('div');
       wrap.className = 'divisjonstabell-container';
@@ -616,13 +576,13 @@ function showSlide(index) {
       if (slide.fase === 'utslag') {
         loadBracket(slide.division, slide.fase, wrap);
       } else {
-        const tableId = `divisjonTabell_${index}_${cellIndex}`;
+        const tableId = `divisjonTabell_${index}_${idx}`;
         wrap.innerHTML = `<table id="${tableId}"><thead></thead><tbody><tr><td colspan='9'><div class='loader'></div></td></tr></tbody></table>`;
         loadTabeller(slide.division, slide.fase, tableId);
       }
     } else if (type === 'kamper') {
       const ul = document.createElement('ul');
-      ul.id = `kampListe_${index}_${cellIndex}`;
+      ul.id = `kampListe_${index}_${idx}`;
       container.appendChild(ul);
       loadKamper(slide.division, slide.fase, html => { ul.innerHTML = html; });
     } else if (type === 'kommendeKamper') {
@@ -630,6 +590,7 @@ function showSlide(index) {
       div.textContent = 'Kommende kamper';
       container.appendChild(div);
     }
+    slideDiv.appendChild(container);
   });
 }
 
@@ -788,8 +749,11 @@ function showSlide(index) {
           const d = doc.data();
           let elems = [];
           if (Array.isArray(d.elements)) {
-            if (typeof d.elements[0] === 'object') elems = d.elements;
-            else elems = d.elements.map((t,i)=>({type:t, cell:i}));
+            if (typeof d.elements[0] === 'object') {
+              elems = d.elements.map(e => ({ type: e.type, x: e.x || 0, y: e.y || 0 }));
+            } else {
+              elems = d.elements.map(t => ({ type: t, x: 0, y: 0 }));
+            }
           }
           return { id: doc.id, ...d, elements: elems };
         });
@@ -843,14 +807,6 @@ function showSlide(index) {
             <input type="number" id="durationSelection" value="10" min="5" max="60">
           </div>
           <div>
-            <label for="layoutSelection">Layout:</label>
-            <select id="layoutSelection">
-              <option value="1">1 kolonne</option>
-              <option value="2">2 kolonner</option>
-              <option value="3">3 kolonner</option>
-            </select>
-          </div>
-          <div>
             <label for="transitionSelection">Overgangseffekt:</label>
             <select id="transitionSelection">
               <option value="fade">Fade</option>
@@ -865,11 +821,10 @@ function showSlide(index) {
             <label><input type="checkbox" value="kommendeKamper" id="kommendeKamperCheckbox"> Kommende Kamper</label>
           </div>
           <div id="elementLibrary"></div>
-          <div id="layoutCanvas" class="layout-canvas one"></div>
+          <div id="layoutCanvas" class="layout-canvas"></div>
         `;
         loadDivisionsForPopup();
         addDivisionChangeListener();
-        document.getElementById('layoutSelection').addEventListener('change', setupLayoutCanvas);
         ['kamperCheckbox','tabellerCheckbox','kommendeKamperCheckbox'].forEach(id=>{
           const el = document.getElementById(id);
           if(el) el.addEventListener('change', updateElementLibrary);
@@ -881,14 +836,13 @@ function showSlide(index) {
           });
           document.getElementById('slideTitle').value = editingSlide.title || "";
           document.getElementById('durationSelection').value = editingSlide.duration || 10;
-          document.getElementById('layoutSelection').value = editingSlide.layout || "1";
           document.getElementById('transitionSelection').value = editingSlide.transition || "fade";
           currentSlideElements = [];
           if(Array.isArray(editingSlide.elements)) {
             if(typeof editingSlide.elements[0] === 'object') {
-              currentSlideElements = editingSlide.elements.map(e=>({type:e.type, cell:e.cell}));
+              currentSlideElements = editingSlide.elements.map(e=>({type:e.type, x:e.x||0, y:e.y||0}));
             } else {
-              currentSlideElements = editingSlide.elements.map((t,i)=>({type:t, cell:i}));
+              currentSlideElements = editingSlide.elements.map(t=>({type:t, x:0, y:0}));
             }
             // sett checkboxer basert på element-typer
             const types = editingSlide.elements.map(e=>e.type || e);
@@ -899,7 +853,7 @@ function showSlide(index) {
         }
         setupLayoutCanvas();
         updateElementLibrary();
-        renderLayoutCells();
+        renderCanvasElements();
       }
     }
 
@@ -950,7 +904,6 @@ function addDivisionChangeListener() {
       const faseSelection = document.getElementById('faseSelection').value;
       const slideTitle = document.getElementById('slideTitle').value;
       const duration = parseInt(document.getElementById('durationSelection').value) || 10;
-      const layout = parseInt(document.getElementById('layoutSelection').value) || 1;
       const transition = document.getElementById('transitionSelection').value;
 
       if (!divisionSelection) {
@@ -967,7 +920,7 @@ function addDivisionChangeListener() {
         fase: faseSelection,
         title: slideTitle,
         duration: duration,
-        layout: layout,
+        layout: 1,
         transition: transition,
         elements: currentSlideElements.slice()
       };
@@ -1055,41 +1008,66 @@ function updateElementLibrary() {
 
 function setupLayoutCanvas() {
   const canvas = document.getElementById('layoutCanvas');
-  const layout = parseInt(document.getElementById('layoutSelection').value) || 1;
   if(!canvas) return;
-  canvas.className = 'layout-canvas ' + (layout===1?'one':layout===2?'two':'three');
+  canvas.className = 'layout-canvas';
   canvas.innerHTML = '';
-  for(let i=0;i<layout;i++) {
-    const cell = document.createElement('div');
-    cell.className = 'drop-cell';
-    cell.dataset.index = i;
-    cell.addEventListener('dragover', e=>e.preventDefault());
-    cell.addEventListener('drop', handleDrop);
-    canvas.appendChild(cell);
+  canvas.addEventListener('dragover', e => e.preventDefault());
+  canvas.addEventListener('drop', handleCanvasDrop);
+  renderCanvasElements();
+}
+
+function handleCanvasDrop(e) {
+  e.preventDefault();
+  const data = e.dataTransfer.getData('text/plain');
+  const canvas = document.getElementById('layoutCanvas');
+  const rect = canvas.getBoundingClientRect();
+  const x = e.clientX - rect.left;
+  const y = e.clientY - rect.top;
+  if(data.startsWith('existing-')) {
+    const idx = parseInt(data.split('-')[1]);
+    const item = canvas.querySelector(`[data-index="${idx}"]`);
+    if(item) {
+      item.style.left = `${x}px`;
+      item.style.top = `${y}px`;
+    }
+    if(currentSlideElements[idx]) {
+      currentSlideElements[idx].x = x;
+      currentSlideElements[idx].y = y;
+    }
+  } else {
+    const type = data;
+    const idx = currentSlideElements.length;
+    const div = document.createElement('div');
+    div.className = 'canvas-element';
+    div.textContent = type;
+    div.draggable = true;
+    div.dataset.index = idx;
+    div.style.left = `${x}px`;
+    div.style.top = `${y}px`;
+    div.addEventListener('dragstart', handleElementDragStart);
+    canvas.appendChild(div);
+    currentSlideElements.push({type, x, y});
   }
 }
 
-function handleDrop(e) {
-  e.preventDefault();
-  const type = e.dataTransfer.getData('text/plain');
-  const idx = parseInt(this.dataset.index);
-  const existing = currentSlideElements.find(el => el.cell === idx);
-  if(existing) existing.type = type; else currentSlideElements.push({type, cell:idx});
-  renderLayoutCells();
+function handleElementDragStart(e) {
+  e.dataTransfer.setData('text/plain', 'existing-' + e.target.dataset.index);
 }
 
-function renderLayoutCells() {
-  const cells = document.querySelectorAll('#layoutCanvas .drop-cell');
-  cells.forEach(cell => {
-    cell.innerHTML = '';
-    const idx = parseInt(cell.dataset.index);
-    const el = currentSlideElements.find(e=>e.cell===idx);
-    if(el) {
-      const div = document.createElement('div');
-      div.className = 'cell-element';
-      div.textContent = el.type;
-      cell.appendChild(div);
-    }
+function renderCanvasElements() {
+  const canvas = document.getElementById('layoutCanvas');
+  if(!canvas) return;
+  canvas.innerHTML = '';
+  currentSlideElements.forEach((el, idx) => {
+    const div = document.createElement('div');
+    div.className = 'canvas-element';
+    div.textContent = el.type;
+    div.draggable = true;
+    div.dataset.index = idx;
+    div.style.left = `${el.x || 0}px`;
+    div.style.top = `${el.y || 0}px`;
+    div.addEventListener('dragstart', handleElementDragStart);
+    canvas.appendChild(div);
   });
 }
 
