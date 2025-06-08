@@ -2589,6 +2589,11 @@ async function finishWizard() {
 function planMatchOnCourt(match, settings, baner) {
   const { duration, buffer, minRest, timing } = settings;
   const dateTimes = window.globalSchedulingSettings.dateTimes;
+  
+  const toTimestamp = (dateStr, timeStr) => {
+    return new Date(`${dateStr}T${timeStr}:00`).getTime();
+  };
+
 
   // Initialiser intern tilstand første gang
   if (!window.schedulingState) {
@@ -2599,17 +2604,13 @@ function planMatchOnCourt(match, settings, baner) {
       throw new Error('Ingen dato/tid er definert for kampoppsettet');
     }
 
-    const courtNext = {};
     const banerMap = {};
     baner.forEach(b => {
       banerMap[b.baneNavn] = b;
-      const [firstDate, slot] = dateQueue[0];
-      const start = b.availability?.[firstDate]?.startTime || slot.startTime;
-      courtNext[b.baneNavn] = { dateIndex: 0, time: start };
     });
     window.schedulingState = {
       dateQueue,
-      courtNext,
+      courtNext: {},
       teamNext: {},
       banerMap
     };
@@ -2617,14 +2618,30 @@ function planMatchOnCourt(match, settings, baner) {
 
   const state = window.schedulingState;
   const banerMap = state.banerMap;
+
+  function findNextSlot(court, dateIdx, minTs) {
+    const avail = banerMap[court].availability || {};
+    for (let i = dateIdx; i < state.dateQueue.length; i++) {
+      const [d, slot] = state.dateQueue[i];
+      const start = avail[d]?.startTime || slot.startTime;
+      const end   = avail[d]?.endTime   || slot.endTime;
+      const startTs = toTimestamp(d, start);
+      const endTs   = toTimestamp(d, end);
+      const ts = Math.max(minTs, startTs);
+      if (ts <= endTs) {
+        return { dateIndex: i, time: new Date(ts).toTimeString().slice(0,5) };
+      }
+    }
+    return { dateIndex: state.dateQueue.length, time: null };
+  }
+
+  if (Object.keys(state.courtNext).length === 0) {
+    Object.keys(banerMap).forEach(court => {
+      state.courtNext[court] = findNextSlot(court, 0, -Infinity);
+    });
+  }
   const home = match.hjemmelag;
   const away = match.bortelag;
-
-  // Hjjelpefunksjon: kombiner dato + klokkeslett til ISO-minutt
-  const toTimestamp = (dateStr, timeStr) => {
-    // dateStr "YYYY-MM-DD", timeStr "HH:mm"
-    return new Date(`${dateStr}T${timeStr}:00`).getTime();
-  };
 
   let chosen, startTs, endTs;
   // Finn første ledige court/time som også passer lagene
@@ -2655,27 +2672,7 @@ function planMatchOnCourt(match, settings, baner) {
     }
     // Hvis ikke ledig for ett av lagene, flytt denne banens next.time frem til max(minHome,minAway), behold dagen
       const conflictTs = Math.max(minHome, minAway);
-      const conflictDate = new Date(conflictTs);
-      const dateStr = conflictDate.toISOString().slice(0,10);
-      const timeStr = conflictDate.toTimeString().slice(0,5);
-
-      // Flytt til neste dag dersom konflikten strekker seg forbi
-      // banens tilgjengelige tidspunkt for valgt dag.
-      const courtAvail = banerMap[chosen.court].availability || {};
-      const dayEnd = courtAvail[dateStr]?.endTime || state.dateQueue[chosen.dateIndex][1].endTime;
-      const dayEndTs = toTimestamp(dateStr, dayEnd);
-      if (conflictTs > dayEndTs) {
-        const nextIdx = chosen.dateIndex + 1;
-        if (nextIdx < state.dateQueue.length) {
-          const nextDate = state.dateQueue[nextIdx][0];
-          const nextStart = courtAvail[nextDate]?.startTime || state.dateQueue[nextIdx][1].startTime;
-          state.courtNext[chosen.court] = { dateIndex: nextIdx, time: nextStart };
-        } else {
-          state.courtNext[chosen.court] = { dateIndex: chosen.dateIndex, time: null };
-        }
-      } else {
-        state.courtNext[chosen.court] = { dateIndex: chosen.dateIndex, time: timeStr };
-      }
+      state.courtNext[chosen.court] = findNextSlot(chosen.court, chosen.dateIndex, conflictTs);
     // Så loop og finn ny court
     attempts++;
     if (attempts > maxAttempts) {
@@ -2692,24 +2689,7 @@ function planMatchOnCourt(match, settings, baner) {
   // Beregn neste ledige slot på denne banen
   let nextDateIdx  = chosen.dateIndex;
   let nextTimeMin  = endTs + buffer * 60 * 1000;
-  // Dersom passerer dagens slutt, hopp til neste dag
-  const courtAvail = banerMap[chosen.court].availability || {};
-  const dayEnd = courtAvail[dateStr]?.endTime || state.dateQueue[chosen.dateIndex][1].endTime;
-  const dayEndTs = toTimestamp(dateStr, dayEnd);
-  if (nextTimeMin > dayEndTs) {
-    nextDateIdx++;
-    if (nextDateIdx < state.dateQueue.length) {
-      const nextDate = state.dateQueue[nextDateIdx][0];
-      const nextStart = courtAvail[nextDate]?.startTime || state.dateQueue[nextDateIdx][1].startTime;
-      nextTimeMin = toTimestamp(nextDate, nextStart);
-    } else {
-      nextTimeMin = null;
-    }
-  }
-  const nextTime = nextTimeMin 
-    ? new Date(nextTimeMin).toTimeString().slice(0,5)
-    : null;
-  state.courtNext[chosen.court] = { dateIndex: nextDateIdx, time: nextTime };
+  state.courtNext[chosen.court] = findNextSlot(chosen.court, nextDateIdx, nextTimeMin);
 
   // Oppdater lagenes neste ledige tid med hviletid
   state.teamNext[home] = endTs + minRest * 60 * 1000;
