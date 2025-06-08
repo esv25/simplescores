@@ -2852,7 +2852,11 @@ let scheduledMatches = [];
 // Hent og parse alle kamper fra Firestore
 // Hent og vis lagrede kamper i UI-et
 async function loadSavedSchedule() {
-  if (!turneringId) return;
+  console.log('loadSavedSchedule: starter', { turneringId });
+  if (!turneringId) {
+    console.warn('Ingen turnerings-ID funnet.');
+    return;
+  }
 
   try {
     // 1) Les alle kamp-dokumenter fra Firestore
@@ -2861,7 +2865,11 @@ async function loadSavedSchedule() {
       .doc(turneringId)
       .collection('kamper')
       .get();
-    if (snapshot.empty) return;
+    console.log('loadSavedSchedule: funnet', snapshot.size, 'kamper');
+    if (snapshot.empty) {
+      console.log('Ingen lagrede kamper funnet.');
+      return;
+    }
 
     // 2) Kartlegg Firestore-data til det renderScheduleUI forventer
     const savedMatches = snapshot.docs.map(doc => {
@@ -2898,9 +2906,10 @@ async function loadSavedSchedule() {
     window.kamper = savedMatches;
     await renderScheduleUI(savedMatches);
     showStep(6);
+    console.log('loadSavedSchedule: ferdig og UI oppdatert');
 
   } catch (error) {
-    console.error('Kunne ikke laste kamper:', error);
+    console.error('Feil i loadSavedSchedule:', error);
     // Valgfritt: vis en feilmelding i UI-et
     const feilEl = document.getElementById('scheduleError');
     if (feilEl) feilEl.textContent = 'Feil ved lasting av kamper. Se konsollen for detaljer.';
@@ -2914,6 +2923,7 @@ window.baner = [];
 
 // Når DOM er klar: hent turneringsdata, innstillinger, datoer, baner OG kamper
 document.addEventListener('DOMContentLoaded', async () => {
+  console.log('DOMContentLoaded: init kampoppsett');
   window.savedWizardSettings = loadWizardSettings();
   await fetchTurneringData();      // → window.turneringData.dates
   await initializeSettings();      // → window.globalSchedulingSettings
@@ -2936,6 +2946,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Hent baner FRA Firestore (true kilde) før vi tegner skjemaet
   window.baner = await hentOgOpprettBaner();
+  console.log('Baner lastet', window.baner);
 
   // Til slutt: hent og vis lagrede kamper
   await loadSavedSchedule();       // nå vil renderScheduleUI finne baner og kamper
