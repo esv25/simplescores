@@ -131,9 +131,13 @@
 
             turneringDiv.appendChild(actionsDiv);
 
-            // Klikk på kortet åpner detaljsiden for turneringen ved å sende turnerings-ID-en i querystring
+            // Klikk på kortet åpner riktig redigeringsside basert på om turneringen er manuell eller ikke
             turneringDiv.addEventListener('click', function() {
-              window.location.href = "leggtillag.html?id=" + doc.id;
+              if (turnering.manual) {
+                window.location.href = 'manualMatches.html?id=' + doc.id;
+              } else {
+                window.location.href = 'leggtillag.html?id=' + doc.id;
+              }
             });
 
             turneringListe.appendChild(turneringDiv);
@@ -166,7 +170,11 @@
         turneringDiv.className = 'turnering';
         turneringDiv.textContent = turnering.tournamentName;
         turneringDiv.addEventListener('click', () => {
-          window.location.href = 'leggtillag.html?id=' + turneringRef.id;
+          if (turnering.manual) {
+            window.location.href = 'manualMatches.html?id=' + turneringRef.id;
+          } else {
+            window.location.href = 'leggtillag.html?id=' + turneringRef.id;
+          }
         });
         coArrangorListe.appendChild(turneringDiv);
       });
