@@ -2646,7 +2646,9 @@ function planMatchOnCourt(match, settings, baner) {
   const dateTimes = window.globalSchedulingSettings.dateTimes;
   
   const toTimestamp = (dateStr, timeStr) => {
-    return new Date(`${dateStr}T${timeStr}:00`).getTime();
+    const [y, m, d] = dateStr.split('-').map(Number);
+    const [hh, mm]  = timeStr.split(':').map(Number);
+    return new Date(y, m - 1, d, hh, mm).getTime();
   };
 
 
