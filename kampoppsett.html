@@ -489,8 +489,39 @@ if (turneringId) {
             let dateTimes = {}; // Objekt for å lagre start- og sluttider for hver dato
             let totalTimeNeeded = 0; // Total tid som trengs for turneringen
             let dommere = []; // Array for å lagre dommerne
-            let dommerIndex = 0; // Indeks for rund-robin tildeling
-            let turneringData = {};
+let dommerIndex = 0; // Indeks for rund-robin tildeling
+let turneringData = {};
+
+// ─── Lagre og laste wizard‑innstillinger lokalt ───────────────────────────
+function loadWizardSettings() {
+  try {
+    return JSON.parse(localStorage.getItem('wizardSettings') || '{}');
+  } catch (e) {
+    console.warn('Kunne ikke lese wizardSettings fra localStorage', e);
+    return {};
+  }
+}
+
+function collectWizardSettings() {
+  const tidPerKamp = {};
+  document
+    .querySelectorAll('#divisionTimeContainer input[data-division]')
+    .forEach(inp => (tidPerKamp[inp.dataset.division] = inp.value));
+
+  return {
+    tidPerKamp,
+    tidMellomKamper: document.getElementById('wizard_tidMellomKamper')?.value || '',
+    minimumHviletid: document.getElementById('wizard_minimumHviletid')?.value || '',
+    matchTiming:
+      document.querySelector('input[name="wizard_matchTiming"]:checked')?.value ||
+      'simultaneous',
+    dateTimes: readDateTimesFromWizard(),
+  };
+}
+
+function saveWizardSettings() {
+  localStorage.setItem('wizardSettings', JSON.stringify(collectWizardSettings()));
+}
 
 
             // Funksjoner for å håndtere popups
@@ -536,11 +567,14 @@ function showStep(stepNumber) {
   }
 }
 
+
 function nextStep() {
+  saveWizardSettings();
   showStep(currentWizardStep + 1);
 }
 
 function prevStep() {
+  saveWizardSettings();
   showStep(currentWizardStep - 1);
 }
 
@@ -594,6 +628,12 @@ async function loadDateTimesWizard() {
     endWrap.appendChild(endIn);
     entry.appendChild(endWrap);
 
+    const savedTimes = window.savedWizardSettings?.dateTimes?.[date];
+    if (savedTimes) {
+      if (savedTimes.startTime) startIn.value = savedTimes.startTime;
+      if (savedTimes.endTime) endIn.value = savedTimes.endTime;
+    }
+
     container.appendChild(entry);
   });
 }
@@ -611,10 +651,12 @@ function slugify(str) {
 
 
 function nextStep() {
+  saveWizardSettings();
   showStep(currentWizardStep + 1);
 }
 
 function prevStep() {
+  saveWizardSettings();
   showStep(currentWizardStep - 1);
 }
 
@@ -1001,6 +1043,12 @@ function readBreaksFromWizard() {
       >
     `;
     container.appendChild(entry);
+  });
+
+  const saved = window.savedWizardSettings?.tidPerKamp || {};
+  container.querySelectorAll('input[data-division]').forEach(inp => {
+    const val = saved[inp.dataset.division];
+    if (val) inp.value = val;
   });
 }
 
@@ -2479,6 +2527,7 @@ function alignFinishesAcrossDivisions(scheduledMatches) {
 
 async function finishWizard() {
   try {
+    saveWizardSettings();
     delete window.schedulingState;
 
     // 1) Hent matcher og wizard‑tider
@@ -2768,9 +2817,25 @@ window.baner = [];
 
 // Når DOM er klar: hent turneringsdata, innstillinger, datoer, baner OG kamper
 document.addEventListener('DOMContentLoaded', async () => {
+  window.savedWizardSettings = loadWizardSettings();
   await fetchTurneringData();      // → window.turneringData.dates
   await initializeSettings();      // → window.globalSchedulingSettings
-  loadDateTimesWizard();           // → fyller dato‐/tid‐felter
+  await loadDateTimesWizard();     // → fyller dato‑/tid‑felter
+
+  if (window.savedWizardSettings.tidMellomKamper) {
+    document.getElementById('wizard_tidMellomKamper').value =
+      window.savedWizardSettings.tidMellomKamper;
+  }
+  if (window.savedWizardSettings.minimumHviletid) {
+    document.getElementById('wizard_minimumHviletid').value =
+      window.savedWizardSettings.minimumHviletid;
+  }
+  if (window.savedWizardSettings.matchTiming) {
+    const r = document.querySelector(
+      `input[name="wizard_matchTiming"][value="${window.savedWizardSettings.matchTiming}"]`
+    );
+    if (r) r.checked = true;
+  }
 
   // Hent baner FRA Firestore (true kilde) før vi tegner skjemaet
   window.baner = await hentOgOpprettBaner();
