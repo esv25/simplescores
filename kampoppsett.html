@@ -2654,11 +2654,28 @@ function planMatchOnCourt(match, settings, baner) {
       break outer;
     }
     // Hvis ikke ledig for ett av lagene, flytt denne banens next.time frem til max(minHome,minAway), behold dagen
-    const conflictTs = Math.max(minHome, minAway);
-    const conflictDate = new Date(conflictTs);
-    const dateStr = conflictDate.toISOString().slice(0,10);
-    const timeStr = conflictDate.toTimeString().slice(0,5);
-    state.courtNext[chosen.court] = { dateIndex: chosen.dateIndex, time: timeStr };
+      const conflictTs = Math.max(minHome, minAway);
+      const conflictDate = new Date(conflictTs);
+      const dateStr = conflictDate.toISOString().slice(0,10);
+      const timeStr = conflictDate.toTimeString().slice(0,5);
+
+      // Flytt til neste dag dersom konflikten strekker seg forbi
+      // banens tilgjengelige tidspunkt for valgt dag.
+      const courtAvail = banerMap[chosen.court].availability || {};
+      const dayEnd = courtAvail[dateStr]?.endTime || state.dateQueue[chosen.dateIndex][1].endTime;
+      const dayEndTs = toTimestamp(dateStr, dayEnd);
+      if (conflictTs > dayEndTs) {
+        const nextIdx = chosen.dateIndex + 1;
+        if (nextIdx < state.dateQueue.length) {
+          const nextDate = state.dateQueue[nextIdx][0];
+          const nextStart = courtAvail[nextDate]?.startTime || state.dateQueue[nextIdx][1].startTime;
+          state.courtNext[chosen.court] = { dateIndex: nextIdx, time: nextStart };
+        } else {
+          state.courtNext[chosen.court] = { dateIndex: chosen.dateIndex, time: null };
+        }
+      } else {
+        state.courtNext[chosen.court] = { dateIndex: chosen.dateIndex, time: timeStr };
+      }
     // Så loop og finn ny court
     attempts++;
     if (attempts > maxAttempts) {
