@@ -1075,8 +1075,10 @@ function handleCanvasDrop(e) {
   const data = e.dataTransfer.getData('text/plain');
   const canvas = document.getElementById('layoutCanvas');
   const rect = canvas.getBoundingClientRect();
-  const x = e.clientX - rect.left;
-  const y = e.clientY - rect.top;
+  const scaleX = canvas.offsetWidth / rect.width;
+  const scaleY = canvas.offsetHeight / rect.height;
+  const x = (e.clientX - rect.left) * scaleX;
+  const y = (e.clientY - rect.top) * scaleY;
   if(data.startsWith('existing-')) {
     const idx = parseInt(data.split('-')[1]);
     const item = canvas.querySelector(`[data-index="${idx}"]`);
