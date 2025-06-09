@@ -2888,7 +2888,6 @@ async function loadSavedSchedule() {
       .collection('turneringer')
       .doc(turneringId)
       .collection('kamper')
-      .orderBy('starttid', 'asc')
       .get();
     console.log('loadSavedSchedule: funnet', snapshot.size, 'kamper');
     if (snapshot.empty) {
@@ -4899,11 +4898,14 @@ async function slettBane(baneNavn) {
       .collection('turneringer')
       .doc(turneringId)
       .collection('kamper')
-      .orderBy('starttid', 'asc')
       .get();
     console.log('Antall kamper funnet:', kamperSnap.size);
 
-    const matches = kamperSnap.docs.map(doc => {
+    const matches = kamperSnap.docs.slice().sort((a,b) => {
+      const aDate = a.data().starttid.toDate();
+      const bDate = b.data().starttid.toDate();
+      return aDate - bDate;
+    }).map(doc => {
       const d = doc.data();
       return {
         id:         doc.id,
@@ -4933,10 +4935,13 @@ async function hentKamperFraFirebase() {
             .collection("turneringer")
             .doc(turneringId)
             .collection("kamper")
-            .orderBy('starttid', 'asc')
             .get();
 
-        const kamper = kamperSnapshot.docs.map(doc => doc.data());
+        const kamper = kamperSnapshot.docs.slice().sort((a,b) => {
+            const aDate = a.data().starttid.toDate();
+            const bDate = b.data().starttid.toDate();
+            return aDate - bDate;
+        }).map(doc => ({ id: doc.id, ...doc.data() }));
 
         // Tøm eksisterende banecontainere
         const baneContainerElementer = document.querySelectorAll(".bane-container");

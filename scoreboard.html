@@ -726,13 +726,22 @@ async function hentNesteKampPaBane(bane, starttid) {
       .doc(turneringId)
       .collection('kamper')
       .where('bane', '==', bane)
-      .orderBy('starttid')
       .get();
+
+    const docs = snap.docs.slice().sort((a, b) => {
+      const aDate = a.data().starttid?.toDate
+        ? a.data().starttid.toDate()
+        : new Date(a.data().starttid);
+      const bDate = b.data().starttid?.toDate
+        ? b.data().starttid.toDate()
+        : new Date(b.data().starttid);
+      return aDate - bDate;
+    });
 
     const startMs = starttid?.toDate ? starttid.toDate().getTime()
                                    : new Date(starttid).getTime();
     let next = null;
-    snap.forEach(doc => {
+    docs.forEach(doc => {
       const d = doc.data();
       const ts = d.starttid?.toDate ? d.starttid.toDate().getTime()
                                     : new Date(d.starttid).getTime();

@@ -232,8 +232,19 @@
       const container = document.getElementById('matches');
       container.innerHTML = '';
       const snapshot = await db.collection('turneringer').doc(turneringId)
-        .collection('kamper').orderBy('starttid','asc').get();
-      snapshot.forEach(doc => {
+        .collection('kamper').get();
+
+      const docs = snapshot.docs.slice().sort((a,b) => {
+        const aDate = a.data().starttid?.toDate
+          ? a.data().starttid.toDate()
+          : new Date(a.data().starttid);
+        const bDate = b.data().starttid?.toDate
+          ? b.data().starttid.toDate()
+          : new Date(b.data().starttid);
+        return aDate - bDate;
+      });
+
+      docs.forEach(doc => {
         const k = doc.data();
 
         let startDate = null;
