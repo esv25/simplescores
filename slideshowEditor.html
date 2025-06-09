@@ -383,6 +383,7 @@
     <button class="meny-ikon" id="meny-knapp" aria-label="Åpne meny" aria-expanded="false" aria-controls="meny"></button>
     <ul id="meny">
         <li><a href="slideshow.html">Slideshow</a></li>
+        <li><a href="slideshowEditor.html">Slideshow Editor</a></li>
         <li><a href="instillinger.html">Instillinger</a></li>
         <li><a href="leggtillag.html">Legg til lag</a></li>
         <li><a href="format.html">Format</a></li>
@@ -455,6 +456,7 @@
         // Hent turnerings-ID fra URL-querystring
     const params = new URLSearchParams(window.location.search);
     const turneringId = params.get('id');
+    const slideIdParam = params.get('slide');
 
     document.addEventListener('DOMContentLoaded', function() {
 
@@ -797,9 +799,11 @@ function showSlide(index) {
           }
           return { id: doc.id, ...d, elements: elems };
         });
-        if (slides.length > 0) {
-          renderSlidesOverview();
-        } else {
+        renderSlidesOverview();
+        if (slideIdParam) {
+          const s = slides.find(sl => sl.id === slideIdParam);
+          openSlideConfigPopup(s || null);
+        } else if (slides.length === 0) {
           openSlideConfigPopup();
         }
       }).catch(error => {
