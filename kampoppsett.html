@@ -494,6 +494,9 @@
             function startIfReady() {
                 if (domReady && loggedIn) {
                     initKampoppsett();
+                    // Forsikre at lagrede kamper vises i UI selv om init
+                    // skulle feile eller returnere før visning
+                    hentOgVisKampoppsett().catch(console.error);
                 }
             }
 
