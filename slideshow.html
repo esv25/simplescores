@@ -935,6 +935,8 @@ function addDivisionChangeListener() {
         transition: transition,
         elements: currentSlideElements.slice()
       };
+      // Fjern eventuelle 'undefined' verdier før lagring
+      slideData = JSON.parse(JSON.stringify(slideData));
 
       if(editingSlide) {
         db.collection('turneringer').doc(turneringId).collection('slides').doc(editingSlide.id)
