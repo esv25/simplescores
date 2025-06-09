@@ -2130,7 +2130,8 @@ function filterMatchRounds(matchRounds) {
  * For hver kamp-kort legges en TOM <p class="referees"></p> slik at
  * renderRefereesOnCards() trygt kan fylle inn navn senere.
  */
- function renderScheduleUI(scheduledMatches) {
+function renderScheduleUI(scheduledMatches) {
+  console.log('[renderScheduleUI] called with', scheduledMatches.length, 'matches');
   const container = document.getElementById('baneContainer');
   container.innerHTML = '';
 
@@ -2176,6 +2177,7 @@ function filterMatchRounds(matchRounds) {
       } else {
         /* Alle kamper på denne banen + datoen */
         matchesForThis.forEach(m => {
+          console.log('[renderScheduleUI] create card', m.id, m);
           const card = document.createElement('div');
           card.className = m.faseType === 'pause' ? 'pause-kort' : 'kamp-kort';
           card.setAttribute('data-match-id', m.id);
@@ -4207,7 +4209,8 @@ function getOrCreateFaseContainer(bane, faseType, starttid) {
  * kampTabellRad
  *   - Oppretter og tegner et .kamp-kort i riktig "fase-container" under en bane.
  */
- function kampTabellRad(kamp) {
+function kampTabellRad(kamp) {
+  console.log('[kampTabellRad] create card for', kamp.id, kamp);
   const {
     id, hjemmelag, bortelag,
     starttid, bane, faseType, divisjon
@@ -4242,6 +4245,7 @@ function getOrCreateFaseContainer(bane, faseType, starttid) {
   });
 
   faseContainer.appendChild(kort);
+  console.log('[kampTabellRad] added card to', faseContainer.dataset.fase);
 }
 
 /**
