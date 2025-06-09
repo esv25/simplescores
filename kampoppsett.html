@@ -494,9 +494,6 @@
             function startIfReady() {
                 if (domReady && loggedIn) {
                     initKampoppsett();
-                    // Forsikre at lagrede kamper vises i UI selv om init
-                    // skulle feile eller returnere før visning
-                    hentOgVisKampoppsett().catch(console.error);
                 }
             }
 
@@ -2156,11 +2153,14 @@ function filterMatchRounds(matchRounds) {
       laneDiv.innerHTML = `<h3>${baneNavn}</h3>`;
 
       /* ---------- Match-filter ---------- */
-      const matchesForThis = scheduledMatches.filter(
-        m =>
-          m.bane === baneNavn &&
+      const matchesForThis = scheduledMatches.filter(m => {
+        const baneName = (m.bane || '').toString().trim().toLowerCase();
+        const laneName = (baneNavn || '').toString().trim().toLowerCase();
+        return (
+          baneName === laneName &&
           m.starttid.toISOString().slice(0, 10) === date
-      );
+        );
+      });
 
       if (matchesForThis.length === 0) {
         /* Placeholder-kort */
