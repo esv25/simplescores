@@ -3669,7 +3669,12 @@ function renderMatches(scheduledMatches) {
     const dateDiv = container.querySelector(
       `.date-container[data-date="${dateStr}"]`
     );
-    const laneDiv = dateDiv.querySelector(`.bane-tabell[id="${m.bane}"]`);
+    // m.bane kan inneholde mellomrom eller andre tegn som gir ugyldig
+    // CSS-selektor. Bruk CSS.escape for å sikre at querySelector får
+    // et gyldig uttrykk.
+    const laneDiv = dateDiv.querySelector(
+      `.bane-tabell[id="${CSS.escape(m.bane)}"]`
+    );
 
     const card = document.createElement('div');
     card.className = m.faseType === 'pause' ? 'pause-kort' : 'kamp-kort';
