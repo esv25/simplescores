@@ -4162,6 +4162,47 @@ function sortFaseContainers(bane) {
   // Legg containerne tilbake i sortert rekkefølge
   faseContainers.forEach(container => baneContainer.appendChild(container));
 }
+
+// Sørger for at riktig fase-container finnes i en bane.
+function getOrCreateFaseContainer(bane, faseType, starttid) {
+  let baneDiv = document.getElementById(bane);
+
+  // UI-et bruker ofte id-er på formen "lane-<dato>-<bane>". Forsøk å finne
+  // riktig bane også ved å bruke datoen fra starttid og data-attributtet.
+  if (!baneDiv) {
+    const dateStr = starttid
+      ? (new Date(starttid.toDate ? starttid.toDate() : starttid))
+          .toISOString()
+          .slice(0, 10)
+      : null;
+    if (dateStr) {
+      const laneId = `lane-${dateStr}-${slugify(bane)}`;
+      baneDiv = document.getElementById(laneId);
+    }
+  }
+
+  if (!baneDiv) {
+    baneDiv = document.querySelector(`.bane-tabell[data-bane="${bane}"]`);
+  }
+
+  if (!baneDiv) {
+    console.warn('Fant ikke bane', bane);
+    return null;
+  }
+
+  const faseId = `fase-${slugify(faseType)}`;
+  let container = baneDiv.querySelector(`.fase-container[data-fase="${faseId}"]`);
+  if (!container) {
+    container = document.createElement('div');
+    container.className = 'fase-container';
+    container.dataset.fase = faseId;
+    const header = document.createElement('h4');
+    header.textContent = `Fase: ${faseType}`;
+    container.appendChild(header);
+    baneDiv.appendChild(container);
+  }
+  return container;
+}
 /**
  * kampTabellRad
  *   - Oppretter og tegner et .kamp-kort i riktig "fase-container" under en bane.
@@ -4173,7 +4214,7 @@ function sortFaseContainers(bane) {
   } = kamp;
 
   const faseContainer =
-    getOrCreateFaseContainer(bane, faseType);       // ← din egen hjelp-funksjon
+    getOrCreateFaseContainer(bane, faseType, starttid);   // ← din egen hjelp-funksjon
 
   /* ---------- KORT ---------- */
   const kort = document.createElement("div");
@@ -5374,11 +5415,16 @@ function getDateFromLaneId(id) {
  *  ✦ Flytter kortene slik at visuell rekkefølge = tidligst først
  */
 /**
- * Re-sekvenserer kamp-/pausekort i laneDiv.
- * Banen starter på tidligste kamp-start for datoen.
- * Ulike varigheter per divisjon + globalt gapMin håndteres.
- */
- async function updateBaneTimes(laneDiv) {
+* Re-sekvenserer kamp-/pausekort i laneDiv.
+* Banen starter på tidligste kamp-start for datoen.
+* Ulike varigheter per divisjon + globalt gapMin håndteres.
+*/
+async function updateBane(baneDiv) {
+  if (!baneDiv) return;
+  await updateBaneTimes(baneDiv);
+}
+
+async function updateBaneTimes(laneDiv) {
   if (!laneDiv) return;
 
   /* ── 0. Konfig & dato ────────────────────────────── */
