@@ -204,19 +204,30 @@
       const time  = document.getElementById('matchTime').value;
       const field = document.getElementById('matchField').value.trim();
       const div   = document.getElementById('matchDivision').value.trim();
+      console.log('addMatch called', { home, away, date, time, field, div });
       if (!home || !away || !date || !time) {
+        console.log('addMatch missing required fields', { home, away, date, time });
         alert('Fyll inn alle påkrevde felter');
         return;
       }
       const start = firebase.firestore.Timestamp.fromDate(new Date(`${date}T${time}`));
-      await db.collection('turneringer').doc(turneringId).collection('kamper').add({
-        hjemmelag: home,
-        bortelag: away,
-        starttid: start,
-        bane: field,
-        divisjon: div,
-        status: 'planlagt'
-      });
+      try {
+        const docRef = await db
+          .collection('turneringer')
+          .doc(turneringId)
+          .collection('kamper')
+          .add({
+            hjemmelag: home,
+            bortelag: away,
+            starttid: start,
+            bane: field,
+            divisjon: div,
+            status: 'planlagt'
+          });
+        console.log('Match added with ID:', docRef.id);
+      } catch (e) {
+        console.error('Error adding match:', e);
+      }
       document.getElementById('homeTeam').value = '';
       document.getElementById('awayTeam').value = '';
 

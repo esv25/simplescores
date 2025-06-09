@@ -141,8 +141,13 @@
       const away = document.getElementById('awayTeam').value.trim();
       const date = document.getElementById('matchDate').value;
       const time = document.getElementById('matchTime').value;
-      if(!home || !away || !date || !time) return alert('Fyll inn alle felt');
+      console.log('addMatch called', { home, away, date, time });
+      if(!home || !away || !date || !time){
+        console.log('addMatch missing required fields', { home, away, date, time });
+        return alert('Fyll inn alle felt');
+      }
       matches.push({hjemmelag:home,bortelag:away,dato:date,tidskode:time});
+      console.log('Current matches array:', matches);
       updateMatches();
       document.getElementById('homeTeam').value='';
       document.getElementById('awayTeam').value='';
