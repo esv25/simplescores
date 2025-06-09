@@ -977,9 +977,11 @@ function openAvailabilityPopup(docId, fieldData) {
   const container = document.getElementById('availabilityDatesContainer');
   container.innerHTML = '';
   const dates = window.turneringData?.dates || [];
+
   const avail = fieldData.availability || {};
   dates.forEach(date => {
     const row = document.createElement('div');
+
     row.innerHTML = `
       <label>${date} start:</label>
       <input type="time" class="avail-start" data-date="${date}" value="${avail[date]?.startTime || ''}">
@@ -2130,24 +2132,29 @@ function filterMatchRounds(matchRounds) {
  * For hver kamp-kort legges en TOM <p class="referees"></p> slik at
  * renderRefereesOnCards() trygt kan fylle inn navn senere.
  */
+
 function renderScheduleUI(scheduledMatches) {
   console.log('[renderScheduleUI] called with', scheduledMatches.length, 'matches');
   const container = document.getElementById('baneContainer');
   container.innerHTML = '';
 
+
   // 1) Alle datoer turneringen bruker
   const dates = window.turneringData.dates || [];
+
 
   dates.forEach(date => {
     const normDate = normalizeDate(date);
     console.log('[renderScheduleUI] date', normDate);
     /* ---------- DATO-CONTAINER ---------- */
+
     const dateDiv = document.createElement('div');
     dateDiv.className = 'date-container';
     dateDiv.dataset.date = normDate;
     dateDiv.innerHTML = `<h2>${normDate}</h2>`;
 
     /* ---------- Én bane om gangen ---------- */
+
     window.baner.forEach(({baneNavn}) => {
       const laneDiv = document.createElement('div');
       laneDiv.className = 'bane-tabell';
@@ -2174,6 +2181,7 @@ function renderScheduleUI(scheduledMatches) {
         console.log('[renderScheduleUI] no matches for', laneDiv.id);
         /* Placeholder-kort */
         const placeholder = document.createElement('div');
+
         placeholder.className = 'kamp-kort placeholder';
         placeholder.innerHTML = `
           <div class="kamp-detaljer">
@@ -2182,12 +2190,14 @@ function renderScheduleUI(scheduledMatches) {
           <p class="referees"></p>
         `;
         laneDiv.appendChild(placeholder);
+
       } else {
         /* Alle kamper på denne banen + datoen */
         matchesForThis.forEach(m => {
           console.log('[renderScheduleUI] create card', m.id, m);
           const card = document.createElement('div');
           card.className = m.faseType === 'pause' ? 'pause-kort' : 'kamp-kort';
+
           card.setAttribute('data-match-id', m.id);
           card.draggable = true;
           card.innerHTML = `
@@ -4170,6 +4180,7 @@ function sortFaseContainers(bane) {
     return getFasenummer(aFase) - getFasenummer(bFase);
   });
   // Legg containerne tilbake i sortert rekkefølge
+
   faseContainers.forEach(container => baneContainer.appendChild(container));
 }
 
@@ -4224,6 +4235,7 @@ function getOrCreateFaseContainer(bane, faseType, starttid) {
  * kampTabellRad
  *   - Oppretter og tegner et .kamp-kort i riktig "fase-container" under en bane.
  */
+
 function kampTabellRad(kamp) {
   console.log('[kampTabellRad] create card for', kamp.id,
     'start', formatDateTime(new Date(kamp.starttid)), 'bane', kamp.bane);
@@ -4255,6 +4267,7 @@ function kampTabellRad(kamp) {
     </div>
     <div class="referees" style="margin-top:5px;font-style:italic;"></div>
   `;
+
   kort.querySelector('.edit-match-btn').addEventListener('click', (e) => {
     e.stopPropagation();
     openMatchPopup(id);
@@ -4264,7 +4277,6 @@ function kampTabellRad(kamp) {
   console.log('[kampTabellRad] added card to', faseContainer.dataset.fase, 'in lane',
     faseContainer.parentElement?.id);
 }
-
 /**
  * sortKampKortByStarttid
  *  - Sorterer alle .kamp-kort inne i en gitt faseContainer basert på kampenes starttid.
