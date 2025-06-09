@@ -2888,6 +2888,7 @@ async function loadSavedSchedule() {
       .collection('turneringer')
       .doc(turneringId)
       .collection('kamper')
+      .orderBy('starttid', 'asc')
       .get();
     console.log('loadSavedSchedule: funnet', snapshot.size, 'kamper');
     if (snapshot.empty) {
@@ -4898,6 +4899,7 @@ async function slettBane(baneNavn) {
       .collection('turneringer')
       .doc(turneringId)
       .collection('kamper')
+      .orderBy('starttid', 'asc')
       .get();
     console.log('Antall kamper funnet:', kamperSnap.size);
 
@@ -4931,6 +4933,7 @@ async function hentKamperFraFirebase() {
             .collection("turneringer")
             .doc(turneringId)
             .collection("kamper")
+            .orderBy('starttid', 'asc')
             .get();
 
         const kamper = kamperSnapshot.docs.map(doc => doc.data());
