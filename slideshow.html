@@ -382,6 +382,7 @@
     <button class="meny-ikon" id="meny-knapp" aria-label="Åpne meny" aria-expanded="false" aria-controls="meny"></button>
     <ul id="meny">
         <li><a href="slideshow.html">Slideshow</a></li>
+        <li><a href="slideshowEditor.html">Slideshow Editor</a></li>
         <li><a href="instillinger.html">Instillinger</a></li>
         <li><a href="leggtillag.html">Legg til lag</a></li>
         <li><a href="format.html">Format</a></li>
@@ -782,9 +783,12 @@ function showSlide(index) {
 
     // Åpne slide-konfigurasjons-popup
     function openSlideConfigPopup(slide = null) {
-      // Viderekoble til den dedikerte slideeditoren i stedet for
-      // å bruke det innebygde popup-vinduet.
-      const url = `slideshowEditor.html?id=${encodeURIComponent(turneringId)}`;
+      // Viderekoble til den dedikerte slideeditoren og send med eventuell
+      // slide-id slik at riktig slide kan redigeres der.
+      let url = `slideshowEditor.html?id=${encodeURIComponent(turneringId)}`;
+      if (slide && slide.id) {
+        url += `&slide=${encodeURIComponent(slide.id)}`;
+      }
       window.location.href = url;
     }
 
