@@ -2201,12 +2201,10 @@ function renderScheduleUI(scheduledMatches) {
         /* Alle kamper på denne banen + datoen */
         matchesForThis.forEach(m => {
           console.log('[renderScheduleUI] create card', m.id, m);
-
           const card = document.createElement('div');
           card.className = m.faseType === 'pause' ? 'pause-kort' : 'kamp-kort';
 
-          card.id = m.id;
-          card.dataset.matchId = m.id;
+          card.setAttribute('data-match-id', m.id);
           card.draggable = true;
           card.innerHTML = `
             <div class="kamp-detaljer">
@@ -2219,7 +2217,6 @@ function renderScheduleUI(scheduledMatches) {
             </div>
             <p class="referees"></p>
           `;
-
           laneDiv.appendChild(card);
         });
       }
@@ -3715,11 +3712,9 @@ function renderMatches(scheduledMatches) {
       `.bane-tabell[id="${CSS.escape(m.bane)}"]`
     );
 
-
     const card = document.createElement('div');
     card.className = m.faseType === 'pause' ? 'pause-kort' : 'kamp-kort';
     card.id = m.id;
-    card.dataset.matchId = m.id;
     card.draggable = true;
 
     card.innerHTML = `
@@ -3733,7 +3728,6 @@ function renderMatches(scheduledMatches) {
       </div>
       <p class="referees"></p>
     `;
-
 
     laneDiv.appendChild(card);
   });
