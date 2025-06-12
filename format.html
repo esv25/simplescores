@@ -772,17 +772,24 @@ async function visFaseData(faseNummer) {
 
         function waitForDropdownsToBeReady(faseNummer, segmentIndex, faseData, type) {
             return new Promise((resolve) => {
-                const observer = new MutationObserver((mutations, obs) => {
-                    let dropdowns;
-                    let expectedDropdownCount = calculateExpectedDropdownCount(faseData, type);
-
+                const expected = calculateExpectedDropdownCount(faseData, type);
+                const getDropdowns = () => {
                     if (type === 'gruppe') {
-                        dropdowns = document.querySelectorAll(`.teamDropdown.gruppe-${faseNummer}-dropdown[data-segment="${segmentIndex}"]`);
+                        return document.querySelectorAll(`.teamDropdown.gruppe-${faseNummer}-dropdown[data-segment="${segmentIndex}"]`);
                     } else if (type === 'utslag') {
-                        dropdowns = document.querySelectorAll(`.knockout-team-select[data-fase="${faseNummer}"][data-segment="${segmentIndex}"]`);
+                        return document.querySelectorAll(`.knockout-team-select[data-fase="${faseNummer}"][data-segment="${segmentIndex}"]`);
                     }
+                    return [];
+                };
 
-                    if (dropdowns.length === expectedDropdownCount) {
+                // Hvis dropdownene allerede er på plass, fortsett umiddelbart
+                if (getDropdowns().length === expected) {
+                    return resolve();
+                }
+
+                const observer = new MutationObserver((mutations, obs) => {
+                    const dropdowns = getDropdowns();
+                    if (dropdowns.length === expected) {
                         setTimeout(() => {
                             resolve();
                             obs.disconnect();
