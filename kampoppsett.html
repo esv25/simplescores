@@ -62,10 +62,14 @@
   padding: 12px;
   margin-bottom: 24px;
   border-radius: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
 }
 .date-container h2 {
   margin-top: 0;
   font-size: 20px;
+  flex-basis: 100%;
 }
 
 
@@ -201,12 +205,10 @@
   padding: 8px 0;
 }
 
-/* === Lanes: la dem auto-vokse med innholdet === */
+/* === Lanes: la dem vokse og plasseres side om side === */
 .bane-tabell {
-  /* fjern hardlåst basis og max-width */
-  flex: 0 1 auto !important;  
-  min-width: 260px;           /* behold minst 260px om du vil */
-  max-width: none !important; /* fjern begrensning */
+  flex: 1 1 300px;
+  max-width: 500px;
   
   /* slik at box-sizing også inkluderer padding/border */
   box-sizing: border-box;     
