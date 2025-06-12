@@ -2747,7 +2747,9 @@ async function finishWizard() {
  */
 function planMatchOnCourt(match, settings, baner) {
   const { duration, buffer, minRest, timing } = settings;
+
   const division = match.divisjon || match.division || settings.division;
+
   const dateTimes = window.globalSchedulingSettings.dateTimes;
   
   const toTimestamp = (dateStr, timeStr) => {
