@@ -2163,10 +2163,14 @@ function renderScheduleUI(scheduledMatches) {
       laneDiv.dataset.bane = baneNavn;
       laneDiv.id = `lane-${normDate}-${slugify(baneNavn)}`;
       laneDiv.innerHTML = `<h3>${baneNavn}</h3>`;
-      const matchCount = scheduledMatches.filter(m =>
-        m.bane.toLowerCase() === baneNavn.toLowerCase() &&
-        m.starttid.toISOString().slice(0, 10) === normDate
-      ).length;
+      const matchCount = scheduledMatches.filter(m => {
+        const matchBane = (m.bane || '').toString().trim().toLowerCase();
+        const laneName  = (baneNavn || '').toString().trim().toLowerCase();
+        return (
+          matchBane === laneName &&
+          m.starttid.toISOString().slice(0, 10) === normDate
+        );
+      }).length;
       console.log('[renderScheduleUI] lane', laneDiv.id, 'matches', matchCount);
 
       /* ---------- Match-filter ---------- */
