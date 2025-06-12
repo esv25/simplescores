@@ -627,18 +627,15 @@ async function lagreAlleFaser() {
 console.log(turneringId)
 // Hjelpefunksjon for å sette dropdown-verdi, med logging ved feil
 function setDropdownValue(dropdown, value) {
-  if (!dropdown) {
-    console.warn('Dropdown-element mangler for verdi', value);
-    return;
-  }
-  const optionExists = Array.from(dropdown.options).some(opt => opt.value === value);
-  if (!optionExists) {
-    console.warn(`Option med verdi "${value}" finnes ikke i dropdown:`, dropdown);
-    return;
+  if (!dropdown) return;
+
+  let option = Array.from(dropdown.options).find(opt => opt.value === value);
+  if (!option) {
+    option = new Option(value, value);
+    dropdown.appendChild(option);
   }
   dropdown.value = value;
   dropdown.dispatchEvent(new Event('change', { bubbles: true }));
-  console.log(`Dropdown satt til "${value}"`, dropdown);
 }
 async function visFaseData(faseNummer) {
   const faseContainer = document.getElementById(`fase${faseNummer}`);
@@ -1587,20 +1584,6 @@ function fillDropdownsFromMatches(dropdowns, matches) {
     }
 }
 
-// Funksjon for å sette dropdown-verdi og trigge 'change' hendelse
-function setDropdownValue(dropdown, value) {
-    if (dropdown) {
-        // Sjekk om dropdown inneholder en option med denne verdien
-        const optionExists = Array.from(dropdown.options).some(option => option.value === value);
-        if (optionExists) {
-            dropdown.value = value;
-            dropdown.dispatchEvent(new Event('change', { bubbles: true }));
-            console.log(`Dropdown satt til: ${value}`);
-        } else {
-            console.warn(`Option med verdi "${value}" finnes ikke i dropdown.`);
-        }
-    }
-}
 
 // Funksjon for å fylle knockout-dropdowns tilfeldig (brukes hvis det finnes forrige fase data av type 'utslag')
 async function fillKnockoutRandomly(dropdowns) {
