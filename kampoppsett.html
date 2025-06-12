@@ -2209,7 +2209,9 @@ function renderScheduleUI(scheduledMatches) {
           card.innerHTML = `
             <div class="kamp-detaljer">
               <h4>${m.hjemmelag} – ${m.bortelag}</h4>
-              <p>${m.starttid.toTimeString().slice(0, 5)}–${m.sluttid
+              <p class="kamp-tid">${m.starttid
+                .toTimeString()
+                .slice(0, 5)}–${m.sluttid
                 .toTimeString()
                 .slice(0, 5)}</p>
             </div>
@@ -3710,7 +3712,9 @@ function renderMatches(scheduledMatches) {
     card.innerHTML = `
       <div class="kamp-detaljer">
         <h4>${m.hjemmelag} – ${m.bortelag}</h4>
-        <p>${m.starttid.toTimeString().slice(0, 5)}–${m.sluttid
+        <p class="kamp-tid">${m.starttid
+          .toTimeString()
+          .slice(0, 5)}–${m.sluttid
           .toTimeString()
           .slice(0, 5)}</p>
       </div>
