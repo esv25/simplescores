@@ -783,20 +783,24 @@ async function visFaseData(faseNummer) {
                     return [];
                 };
 
+
                 const ready = () => {
                     const dropdowns = getDropdowns();
                     return dropdowns.length === expected && Array.from(dropdowns).every(dd => dd.options.length > 0);
                 };
 
                 if (ready()) {
+
                     return resolve();
                 }
 
                 const observer = new MutationObserver((mutations, obs) => {
+
                     if (ready()) {
                         setTimeout(() => {
                             obs.disconnect();
                             resolve();
+
                         }, 100);
                     }
                 });
