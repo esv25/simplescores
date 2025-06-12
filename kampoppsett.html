@@ -392,9 +392,9 @@
   <!-- Steg 5: Kamp-timing -->
   <div class="wizard-step" id="step5">
     <h2>Kamp-timing</h2>
-    <p>Velg om kun én kamp fra samme divisjon skal spilles om gangen:</p>
-    <label><input type="radio" name="wizard_matchTiming" value="simultaneous" checked> Samtidig</label>
-    <label><input type="radio" name="wizard_matchTiming" value="sequential"> Sekvensielt</label>
+    <p>Bestem om kamper i samme divisjon kan foregå parallelt eller må spilles én og én:</p>
+    <label><input type="radio" name="wizard_matchTiming" value="simultaneous" checked> Samtidig (flere kamper samtidig)</label>
+    <label><input type="radio" name="wizard_matchTiming" value="sequential"> Sekvensielt (én kamp om gangen)</label>
 
     <div class="wizard-footer">
       <button onclick="prevStep()">Forrige</button>
@@ -2747,6 +2747,7 @@ async function finishWizard() {
  */
 function planMatchOnCourt(match, settings, baner) {
   const { duration, buffer, minRest, timing } = settings;
+  const division = match.divisjon || match.division || settings.division;
   const dateTimes = window.globalSchedulingSettings.dateTimes;
   
   const toTimestamp = (dateStr, timeStr) => {
@@ -2775,6 +2776,7 @@ function planMatchOnCourt(match, settings, baner) {
       dateQueue,
       courtNext: {},
       teamNext: {},
+      divisionNext: {},
       banerMap
     };
   }
@@ -2859,12 +2861,13 @@ function planMatchOnCourt(match, settings, baner) {
     endTs   = startTs + duration * 60 * 1000;
     const minHome = state.teamNext[home]  || 0;
     const minAway = state.teamNext[away] || 0;
-    if (startTs >= minHome && startTs >= minAway) {
+    const minDiv  = timing === 'sequential' ? (state.divisionNext[division] || 0) : 0;
+    if (startTs >= minHome && startTs >= minAway && startTs >= minDiv) {
       // ok å spille her
       break outer;
     }
     // Hvis ikke ledig for ett av lagene, flytt denne banens next.time frem til max(minHome,minAway), behold dagen
-      const conflictTs = Math.max(minHome, minAway);
+      const conflictTs = Math.max(minHome, minAway, minDiv);
       state.courtNext[chosen.court] = findNextSlot(chosen.court, chosen.dateIndex, conflictTs, duration);
     // Så loop og finn ny court
     attempts++;
@@ -2887,6 +2890,9 @@ function planMatchOnCourt(match, settings, baner) {
   // Oppdater lagenes neste ledige tid med hviletid
   state.teamNext[home] = endTs + minRest * 60 * 1000;
   state.teamNext[away] = endTs + minRest * 60 * 1000;
+  if (timing === 'sequential') {
+    state.divisionNext[division] = endTs + buffer * 60 * 1000;
+  }
 
   return {
     match,
