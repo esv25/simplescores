@@ -2204,12 +2204,15 @@ function renderScheduleUI(scheduledMatches) {
           const card = document.createElement('div');
           card.className = m.faseType === 'pause' ? 'pause-kort' : 'kamp-kort';
 
-          card.setAttribute('data-match-id', m.id);
+          card.id = m.id;
+          card.dataset.matchId = m.id;
           card.draggable = true;
           card.innerHTML = `
             <div class="kamp-detaljer">
               <h4>${m.hjemmelag} – ${m.bortelag}</h4>
-              <p>${m.starttid.toTimeString().slice(0, 5)}–${m.sluttid
+              <p class="kamp-tid">${m.starttid
+                .toTimeString()
+                .slice(0, 5)}–${m.sluttid
                 .toTimeString()
                 .slice(0, 5)}</p>
             </div>
@@ -3705,12 +3708,15 @@ function renderMatches(scheduledMatches) {
     const card = document.createElement('div');
     card.className = m.faseType === 'pause' ? 'pause-kort' : 'kamp-kort';
     card.id = m.id;
+    card.dataset.matchId = m.id;
     card.draggable = true;
 
     card.innerHTML = `
       <div class="kamp-detaljer">
         <h4>${m.hjemmelag} – ${m.bortelag}</h4>
-        <p>${m.starttid.toTimeString().slice(0, 5)}–${m.sluttid
+        <p class="kamp-tid">${m.starttid
+          .toTimeString()
+          .slice(0, 5)}–${m.sluttid
           .toTimeString()
           .slice(0, 5)}</p>
       </div>
