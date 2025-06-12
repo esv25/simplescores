@@ -773,6 +773,7 @@ async function visFaseData(faseNummer) {
         function waitForDropdownsToBeReady(faseNummer, segmentIndex, faseData, type) {
             return new Promise((resolve) => {
                 const expected = calculateExpectedDropdownCount(faseData, type);
+
                 const getDropdowns = () => {
                     if (type === 'gruppe') {
                         return document.querySelectorAll(`.teamDropdown.gruppe-${faseNummer}-dropdown[data-segment="${segmentIndex}"]`);
@@ -782,17 +783,24 @@ async function visFaseData(faseNummer) {
                     return [];
                 };
 
-                // Hvis dropdownene allerede er på plass, fortsett umiddelbart
-                if (getDropdowns().length === expected) {
+
+                const ready = () => {
+                    const dropdowns = getDropdowns();
+                    return dropdowns.length === expected && Array.from(dropdowns).every(dd => dd.options.length > 0);
+                };
+
+                if (ready()) {
+
                     return resolve();
                 }
 
                 const observer = new MutationObserver((mutations, obs) => {
-                    const dropdowns = getDropdowns();
-                    if (dropdowns.length === expected) {
+
+                    if (ready()) {
                         setTimeout(() => {
-                            resolve();
                             obs.disconnect();
+                            resolve();
+
                         }, 100);
                     }
                 });
