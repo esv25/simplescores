@@ -772,20 +772,31 @@ async function visFaseData(faseNummer) {
 
         function waitForDropdownsToBeReady(faseNummer, segmentIndex, faseData, type) {
             return new Promise((resolve) => {
-                const observer = new MutationObserver((mutations, obs) => {
-                    let dropdowns;
-                    let expectedDropdownCount = calculateExpectedDropdownCount(faseData, type);
+                const expected = calculateExpectedDropdownCount(faseData, type);
 
+                const getDropdowns = () => {
                     if (type === 'gruppe') {
-                        dropdowns = document.querySelectorAll(`.teamDropdown.gruppe-${faseNummer}-dropdown[data-segment="${segmentIndex}"]`);
+                        return document.querySelectorAll(`.teamDropdown.gruppe-${faseNummer}-dropdown[data-segment="${segmentIndex}"]`);
                     } else if (type === 'utslag') {
-                        dropdowns = document.querySelectorAll(`.knockout-team-select[data-fase="${faseNummer}"][data-segment="${segmentIndex}"]`);
+                        return document.querySelectorAll(`.knockout-team-select[data-fase="${faseNummer}"][data-segment="${segmentIndex}"]`);
                     }
+                    return [];
+                };
 
-                    if (dropdowns.length === expectedDropdownCount) {
+                const ready = () => {
+                    const dropdowns = getDropdowns();
+                    return dropdowns.length === expected && Array.from(dropdowns).every(dd => dd.options.length > 0);
+                };
+
+                if (ready()) {
+                    return resolve();
+                }
+
+                const observer = new MutationObserver((mutations, obs) => {
+                    if (ready()) {
                         setTimeout(() => {
-                            resolve();
                             obs.disconnect();
+                            resolve();
                         }, 100);
                     }
                 });
