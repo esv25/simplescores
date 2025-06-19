@@ -94,6 +94,7 @@
     /* Timer og omgangen */
     #timer { font-size: min(6vw, 10vh); margin-bottom: .5rem; letter-spacing: 4px; }
     #period { font-size: min(3vw, 4vh); margin-bottom: 1rem; text-transform: uppercase; }
+    #breakTimer { font-size: min(3vw, 4vh); margin-bottom: 1rem; color: #ff5722; text-align: center; display: none; }
 
     /* Score-seksjon */
     .scores { display: flex; justify-content: space-between; width: 100%; }
@@ -129,6 +130,7 @@
             <div class="scoreboard" id="scoreboard">
                 <div id="timer">00:00</div>
                 <div id="period">1. omgang</div>
+                <div id="breakTimer"></div>
                 <div class="scores">
                     <div class="score-section">
                         <div id="scoreHome" class="score">0</div>
@@ -150,6 +152,7 @@
                 <div class="controls">
                     <button id="startCtrl">Start</button>
                     <button id="stopCtrl">Stopp</button>
+                    <button id="timeoutBtn">Timeout</button>
                     <button id="resetCtrl">Reset</button>
                 </div>
             </div>
@@ -163,6 +166,8 @@
             <h2>Sett tid og omganger</h2>
             <label>Tid (min): <input id="inputTime" type="number" min="1" value="15"></label><br><br>
             <label>Omganger: <input id="inputPeriods" type="number" min="1" value="2"></label><br><br>
+            <label>Timeout (sek): <input id="inputTimeout" type="number" min="1" value="30"></label><br><br>
+            <label>Pause (sek): <input id="inputPause" type="number" min="1" value="60"></label><br><br>
             <button id="setupBtn">Start kamp</button>
         </div>
     </div>
@@ -171,6 +176,8 @@
         const settingsModal = document.getElementById('settingsModal');
         const scoreboard = document.getElementById('scoreboard');
         let initialTime, totalPeriods, currentPeriod, timeLeft, timerInterval;
+        let timeoutDuration, pauseDuration;
+        let timeoutInterval = null, pauseInterval = null, breakTimeLeft = 0;
         document.addEventListener('DOMContentLoaded', ()=>{
             settingsModal.style.display = 'flex';
             scoreboard.style.display = 'none';
@@ -178,6 +185,8 @@
         document.getElementById('setupBtn').onclick = ()=>{
             const minutes = parseInt(document.getElementById('inputTime').value, 10);
             totalPeriods = parseInt(document.getElementById('inputPeriods').value, 10);
+            timeoutDuration = parseInt(document.getElementById('inputTimeout').value, 10);
+            pauseDuration   = parseInt(document.getElementById('inputPause').value, 10);
             if(minutes>0&&totalPeriods>0) {
                 initialTime = minutes * 60;
                 currentPeriod = 1;
@@ -196,13 +205,16 @@
         document.getElementById('startCtrl').onclick = startTimer;
         document.getElementById('stopCtrl').onclick = stopTimer;
         document.getElementById('resetCtrl').onclick = resetGame;
-        function startTimer(){ if(timerInterval)return; timerInterval = setInterval(()=>{ if(timeLeft>0){ timeLeft--; updateDisplay(); } else { clearInterval(timerInterval); if(currentPeriod<totalPeriods){ currentPeriod++; timeLeft = initialTime; updateDisplay(); startTimer(); } else alert('Kamp ferdig'); } }, 1000); }
+        function startTimer(){ if(timerInterval||timeoutInterval||pauseInterval)return; timerInterval = setInterval(()=>{ if(timeLeft>0){ timeLeft--; updateDisplay(); } else { clearInterval(timerInterval); timerInterval=null; if(currentPeriod<totalPeriods){ startPause(); } else alert('Kamp ferdig'); } }, 1000); }
         function stopTimer(){ clearInterval(timerInterval); timerInterval = null; }
-        function resetGame(){ stopTimer(); currentPeriod = 1; timeLeft = initialTime; updateDisplay(); document.getElementById('scoreHome').textContent='0'; document.getElementById('scoreAway').textContent='0'; }
+        function resetGame(){ stopTimer(); clearInterval(timeoutInterval); clearInterval(pauseInterval); timeoutInterval=null; pauseInterval=null; document.getElementById('breakTimer').style.display='none'; currentPeriod = 1; timeLeft = initialTime; updateDisplay(); document.getElementById('scoreHome').textContent='0'; document.getElementById('scoreAway').textContent='0'; }
+        function startTimeout(){ if(timerInterval){ stopTimer(); } if(timeoutInterval||pauseInterval)return; breakTimeLeft=timeoutDuration; document.getElementById('breakTimer').style.display='block'; document.getElementById('breakTimer').textContent=`Timeout: ${breakTimeLeft}s`; timeoutInterval=setInterval(()=>{ breakTimeLeft--; document.getElementById('breakTimer').textContent=`Timeout: ${breakTimeLeft}s`; if(breakTimeLeft<=0){ clearInterval(timeoutInterval); timeoutInterval=null; document.getElementById('breakTimer').style.display='none'; startTimer(); } },1000); }
+        function startPause(){ if(timeoutInterval||pauseInterval)return; breakTimeLeft=pauseDuration; document.getElementById('breakTimer').style.display='block'; document.getElementById('breakTimer').textContent=`Pause: ${breakTimeLeft}s`; pauseInterval=setInterval(()=>{ breakTimeLeft--; document.getElementById('breakTimer').textContent=`Pause: ${breakTimeLeft}s`; if(breakTimeLeft<=0){ clearInterval(pauseInterval); pauseInterval=null; document.getElementById('breakTimer').style.display='none'; currentPeriod++; timeLeft=initialTime; updateDisplay(); startTimer(); } },1000); }
         document.getElementById('incHome').onclick = ()=>{ document.getElementById('scoreHome').textContent = Number(document.getElementById('scoreHome').textContent)+1; };
         document.getElementById('decHome').onclick = ()=>{ let v=Number(document.getElementById('scoreHome').textContent)-1; document.getElementById('scoreHome').textContent = v>0?v:0; };
         document.getElementById('incAway').onclick = ()=>{ document.getElementById('scoreAway').textContent = Number(document.getElementById('scoreAway').textContent)+1; };
         document.getElementById('decAway').onclick = ()=>{ let v=Number(document.getElementById('scoreAway').textContent)-1; document.getElementById('scoreAway').textContent = v>0?v:0; };
+        document.getElementById('timeoutBtn').onclick = startTimeout;
     </script>
 </body>
 </html>
