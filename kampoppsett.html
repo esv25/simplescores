@@ -453,6 +453,7 @@
             <label for="matchDurationInput">Varighet (min):</label>
             <input type="number" id="matchDurationInput" />
             <button type="button" id="swapTeamsBtn" onclick="swapTeams()">Bytt hjemmelag/bortelag</button>
+            <div id="refereeSelectors" style="margin-top:10px;"></div>
             <div style="margin-top:10px;text-align:right;">
                 <button type="button" onclick="saveMatchChanges()">Lagre</button>
                 <button type="button" onclick="closePopup('matchPopup')">Avbryt</button>
@@ -567,6 +568,7 @@ if (turneringId) {
             let dommere = []; // Array for å lagre dommerne
 let dommerIndex = 0; // Indeks for rund-robin tildeling
 let turneringData = {};
+let antallDommerePerKamp = 1;
 
 // ─── Lagre og laste wizard‑innstillinger lokalt ───────────────────────────
 function loadWizardSettings() {
@@ -2206,17 +2208,25 @@ function renderScheduleUI(scheduledMatches) {
 
           card.setAttribute('data-match-id', m.id);
           card.draggable = true;
+          const rundeInfo = m.runde || m.rundenummer || m.rundeNummer || '';
           card.innerHTML = `
             <div class="kamp-detaljer">
               <h4>${m.hjemmelag} – ${m.bortelag}</h4>
+              <p class="kamp-divisjon">Divisjon: ${m.divisjon || ''}</p>
+              <p class="kamp-runde">Runde: ${rundeInfo}</p>
               <p class="kamp-tid">${m.starttid
                 .toTimeString()
                 .slice(0, 5)}–${m.sluttid
                 .toTimeString()
                 .slice(0, 5)}</p>
+              <button type="button" class="edit-match-btn">Rediger</button>
             </div>
-            <p class="referees"></p>
+            <div class="referees" style="margin-top:5px;font-style:italic;"></div>
           `;
+          card.querySelector('.edit-match-btn').addEventListener('click', (e) => {
+            e.stopPropagation();
+            openMatchPopup(m.id);
+          });
           laneDiv.appendChild(card);
         });
       }
@@ -2950,6 +2960,8 @@ async function loadSavedSchedule() {
         hjemmelag: data.hjemmelag,
         bortelag:  data.bortelag,
         divisjon:  data.divisjon,
+        runde:     data.runde || data.rundenummer || data.rundeNummer,
+        dommere:   Array.isArray(data.dommere) ? data.dommere : [],
         faseType:  data.faseType,
         segmentIndex: data.segmentIndex ?? 0,
         starttid:  startDate,
@@ -2965,6 +2977,9 @@ async function loadSavedSchedule() {
     window.scheduledMatches = savedMatches;
     window.kamper = savedMatches;
     await renderScheduleUI(savedMatches);
+    const refMap = {};
+    savedMatches.forEach(m => { if (Array.isArray(m.dommere)) refMap[m.id] = m.dommere; });
+    renderRefereesOnCards(refMap);
     showStep(6);
     console.log('loadSavedSchedule: ferdig og UI oppdatert');
 
@@ -3011,6 +3026,9 @@ async function initKampoppsett() {
   // Hent baner FRA Firestore (true kilde) før vi tegner skjemaet
   window.baner = await hentOgOpprettBaner();
   console.log('Baner lastet', window.baner);
+
+  // Hent tilgjengelige dommere
+  await hentDommere();
 
   // Til slutt: hent og vis lagrede kamper
   await loadSavedSchedule();       // nå vil renderScheduleUI finne baner og kamper
@@ -4282,10 +4300,12 @@ function kampTabellRad(kamp) {
   kort.addEventListener("dragend",   onDragEnd);
 
   /*  SIKKER: kortet får ALLTID .kamp-tid  */
+  const rundeInfo = kamp.runde || kamp.rundenummer || kamp.rundeNummer || '';
   kort.innerHTML = `
     <div class="kamp-detaljer">
       <h4>${hjemmelag} – ${bortelag}</h4>
       <p class="kamp-divisjon">Divisjon: ${divisjon}</p>
+      <p class="kamp-runde">Runde: ${rundeInfo}</p>
       <p class="kamp-tid">${formatDateTime(new Date(starttid))}</p>
       <button type="button" class="edit-match-btn">Rediger</button>
     </div>
@@ -5640,6 +5660,26 @@ function openMatchPopup(matchId) {
   const end   = match.sluttid ? new Date(match.sluttid) : new Date(start.getTime() + 15*60000);
   const durMin = Math.round((end - start) / 60000);
   document.getElementById('matchDurationInput').value = durMin;
+
+  const selContainer = document.getElementById('refereeSelectors');
+  selContainer.innerHTML = '';
+  const num = Math.max(match.dommere ? match.dommere.length : 0, antallDommerePerKamp || 1);
+  for (let i = 0; i < num; i++) {
+    const select = document.createElement('select');
+    select.className = 'referee-select';
+    const emptyOpt = document.createElement('option');
+    emptyOpt.value = '';
+    emptyOpt.textContent = 'Ingen';
+    select.appendChild(emptyOpt);
+    dommere.forEach(d => {
+      const opt = document.createElement('option');
+      opt.value = d.navn;
+      opt.textContent = d.navn;
+      if (match.dommere && match.dommere[i] === d.navn) opt.selected = true;
+      select.appendChild(opt);
+    });
+    selContainer.appendChild(select);
+  }
   openPopup('matchPopup');
 }
 
@@ -5653,7 +5693,12 @@ function saveMatchChanges() {
     db.collection('turneringer').doc(turneringId).collection('kamper').doc(match.id)
       .update({ sluttid: firebase.firestore.Timestamp.fromDate(match.sluttid) });
   }
+  const refSelects = document.querySelectorAll('#refereeSelectors select');
+  match.dommere = Array.from(refSelects).map(s => s.value).filter(v => v);
+  db.collection('turneringer').doc(turneringId).collection('kamper').doc(match.id)
+    .update({ dommere: match.dommere });
   updateMatchCard(match);
+  updateRefereesOnCard(match.id, match.dommere);
   closePopup('matchPopup');
 }
 
@@ -5674,6 +5719,21 @@ function updateMatchCard(match) {
   if (match.starttid) {
     const tidEl = card.querySelector('.kamp-tid');
     if (tidEl) tidEl.textContent = formatDateTime(new Date(match.starttid));
+  }
+}
+
+function updateRefereesOnCard(matchId, refs) {
+  const card = document.querySelector(`.kamp-kort[data-match-id="${matchId}"]`);
+  if (!card) return;
+  const container = card.querySelector('.referees');
+  container.textContent = '';
+  if (refs && refs.length) {
+    const label = document.createElement('strong');
+    label.textContent = 'Dommer(e): ';
+    container.appendChild(label);
+    container.appendChild(document.createTextNode(refs.join(', ')));
+  } else {
+    container.textContent = 'Ingen dommere tildelt';
   }
 }
 
