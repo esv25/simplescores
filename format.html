@@ -94,30 +94,16 @@
             </label>
             <button onclick="lagreAlleFaser()" style="width: 30%;">Lagre</button>
         </div>
-        <div class="fase-container-wrapper">
-            <div class="fase-container">
+        <div class="fase-container-wrapper" id="fase-wrapper">
+            <div class="fase-container" id="fase1-container">
                 <h5>Phase 1</h5>
                 <div class="button-container">
                     <button onclick="Endre(1)" id="fase1knapp" class="btn btn-primary">Legg til segment</button>
                 </div>
                 <div id="fase1"></div> <!-- Dynamic content for Fase 1 -->
             </div>
-            <div class="fase-container">
-                <h5>Phase 2</h5>
-                <div class="button-container">
-                    <button onclick="Endre(2)" id="fase2knapp" class="btn btn-primary" style="display: none;">Legg til segment</button>
-                </div>
-                <div id="fase2"></div> <!-- Dynamic content for Fase 2 -->
-            </div>
-            <div class="fase-container">
-                <h5>Phase 3</h5>
-                <div class="button-container">
-                    <button onclick="Endre(3)" id="fase3knapp" class="btn btn-primary" style="display: none;">Legg til segment</button>
-
-                </div>
-                <div id="fase3"></div> <!-- Dynamic content for Fase 3 -->
-            </div>
         </div>
+        <button id="addPhaseBtn" onclick="showNextPhase()" class="btn btn-primary" style="margin-top:10px;">Legg til fase</button>
     </main>
 
 <!-- Skjema for valg av segmentformat -->
@@ -240,9 +226,31 @@ const turneringId = new URLSearchParams(window.location.search).get('id');
 
 
         let fasesjekk;
-        const faseSegments = { 1: [], 2: [], 3: [] };
+        const faseSegments = { 1: [] };
+        let currentPhaseCount = 1;
         let loadedPhaseKeys = new Set();
         let isLoadingPhases = false;
+
+        function createPhaseContainer(num) {
+            const wrapper = document.getElementById('fase-wrapper');
+            const container = document.createElement('div');
+            container.className = 'fase-container';
+            container.id = `fase${num}-container`;
+            container.innerHTML = `
+                <h5>Phase ${num}</h5>
+                <div class="button-container">
+                    <button onclick="Endre(${num})" id="fase${num}knapp" class="btn btn-primary">Legg til segment</button>
+                </div>
+                <div id="fase${num}"></div>`;
+            wrapper.appendChild(container);
+            faseSegments[num] = [];
+        }
+
+        function showNextPhase() {
+            const next = currentPhaseCount + 1;
+            createPhaseContainer(next);
+            currentPhaseCount = next;
+        }
 
         function Endre(fase){
             fasesjekk = fase;
@@ -429,12 +437,6 @@ document.getElementById('divisionDropdown')
                 deleteButton.style.display = 'inline';
             }
 
-            if (faseNummer < 3) {
-                const nextPhaseButton = document.getElementById(`fase${faseNummer + 1}knapp`);
-                if (nextPhaseButton && nextPhaseButton.style.display === 'none') {
-                    nextPhaseButton.style.display = 'block';
-                }
-            }
         }
 
         function slettFase(faseNummer) {
@@ -461,50 +463,24 @@ document.getElementById('divisionDropdown')
         }
 
         function klarerFase() {
-            faseSegments[1] = [];
-            faseSegments[2] = [];
-            faseSegments[3] = [];
-            for (let faseNummer = 1; faseNummer <= 3; faseNummer++) {
-                const faseContainer = document.getElementById(`fase${faseNummer}`);
-                if (faseContainer) {
-                    const form = document.getElementById('formatPopup');
-                    if (form && faseContainer.contains(form)) {
-                        document.body.appendChild(form);
-                    }
-                    faseContainer.innerHTML = '';
-                }
-
-                const currentPhaseButton = document.getElementById(`fase${faseNummer}knapp`);
-                if (currentPhaseButton) {
-                    currentPhaseButton.textContent = 'Legg til segment';
-                }
-
-                const deleteButton = document.getElementById(`fase${faseNummer}slett`);
-                if (deleteButton) {
-                    deleteButton.style.display = 'none';
-                }
-            }
-            visAlleFaserData();
+            Object.keys(faseSegments).forEach(key => faseSegments[key] = []);
+            const wrapper = document.getElementById('fase-wrapper');
+            Array.from(wrapper.children).forEach((child, index) => {
+                if (index > 0) child.remove();
+            });
+            const fase1 = document.getElementById('fase1');
+            if (fase1) fase1.innerHTML = '';
+            currentPhaseCount = 1;
         }
 
         let numTables;
         async function createTables(numGroups, teamsPerGroup, fasesjekk, segmentIndex) {
-    // Hent container basert på hvilken fase vi jobber med
-    let container;
-    if (fasesjekk == 1) {
-        container = document.getElementById("fase1");
-        Endrer(1);
-    } else if (fasesjekk == 2) {
-        container = document.getElementById("fase2");
-        Endrer(2);
-    } else {
-        container = document.getElementById("fase3");
-        Endrer(3);
-    }
+    let container = document.getElementById(`fase${fasesjekk}`);
     if (!container) {
-        console.error("Fant ikke container-elementet.");
-        return;
+        createPhaseContainer(fasesjekk);
+        container = document.getElementById(`fase${fasesjekk}`);
     }
+    Endrer(fasesjekk);
 
     const segmentDiv = document.createElement('div');
     segmentDiv.classList.add('segment');
@@ -567,7 +543,7 @@ document.getElementById('divisionDropdown')
 async function lagreAlleFaser() {
   const selectedDivision = document.getElementById('divisionDropdown').value;
 
-  for (let faseNummer = 1; faseNummer <= 3; faseNummer++) {
+  for (let faseNummer = 1; faseNummer <= currentPhaseCount; faseNummer++) {
     const segments = faseSegments[faseNummer];
     if (!segments.length) continue;
 
@@ -638,6 +614,11 @@ function setDropdownValue(dropdown, value) {
   dropdown.dispatchEvent(new Event('change', { bubbles: true }));
 }
 async function visFaseData(faseNummer) {
+  let outerContainer = document.getElementById(`fase${faseNummer}-container`);
+  if (!outerContainer) {
+    createPhaseContainer(faseNummer);
+    outerContainer = document.getElementById(`fase${faseNummer}-container`);
+  }
   const faseContainer = document.getElementById(`fase${faseNummer}`);
   const form = document.getElementById('formatPopup');
   if (faseContainer) {
@@ -661,6 +642,9 @@ async function visFaseData(faseNummer) {
     if (!doc.exists) {
       console.log(`Ingen data funnet for fase ${faseNummer}!`);
       return;
+    }
+    if (faseNummer > currentPhaseCount) {
+      currentPhaseCount = faseNummer;
     }
     const faseData = doc.data();
     Endrer(faseNummer);
@@ -828,12 +812,22 @@ async function visFaseData(faseNummer) {
             isLoadingPhases = true;
             loadedPhaseKeys.clear();
 
+            const phaseCollection = db
+                .collection('turneringer').doc(turneringId)
+                .collection(`${document.getElementById('divisionDropdown').value}_format`);
+            const snapshot = await phaseCollection.get();
+            const phaseNumbers = snapshot.docs
+                .map(d => parseInt(d.id.replace('fase', '')))
+                .filter(n => !isNaN(n))
+                .sort((a, b) => a - b);
             const promises = [];
-            for (let faseNummer = 1; faseNummer <= 3; faseNummer++) {
-                promises.push(visFaseData(faseNummer));
-            }
+            phaseNumbers.forEach(num => {
+                if (num > currentPhaseCount) createPhaseContainer(num);
+                if (num > currentPhaseCount) currentPhaseCount = num;
+                promises.push(visFaseData(num));
+            });
             await Promise.all(promises);
-
+            
             isLoadingPhases = false;
         }
 
@@ -910,17 +904,12 @@ async function generateKnockoutBracket(fasesjekk, numKnockoutTeams, includeBronz
     const rounds = Math.ceil(Math.log2(numTeams));
 
     // 2) Velg riktig container og merk fasetype
-    let container;
-    if (fasesjekk === 1) {
-      container = document.getElementById("fase1");
-      Endrer(1);
-    } else if (fasesjekk === 2) {
-      container = document.getElementById("fase2");
-      Endrer(2);
-    } else {
-      container = document.getElementById("fase3");
-      Endrer(3);
+    let container = document.getElementById(`fase${fasesjekk}`);
+    if (!container) {
+      createPhaseContainer(fasesjekk);
+      container = document.getElementById(`fase${fasesjekk}`);
     }
+    Endrer(fasesjekk);
 
     const segmentDiv = document.createElement('div');
     segmentDiv.classList.add('segment');
@@ -1192,22 +1181,12 @@ async function populateKnockoutDropdowns(faseNummer, segmentIndex, totalRounds, 
 
 // Funksjon for å opprette flere enkeltkamper
 async function createSingleMatches(numMatches, fasesjekk, segmentIndex) {
-    let container;
-    if (fasesjekk == 1) {
-        container = document.getElementById("fase1");
-        Endrer(1);
-    } else if (fasesjekk == 2) {
-        container = document.getElementById("fase2");
-        Endrer(2);
-    } else {
-        container = document.getElementById("fase3");
-        Endrer(3);
-    }
-
+    let container = document.getElementById(`fase${fasesjekk}`);
     if (!container) {
-        console.error("Fant ikke container-elementet.");
-        return;
+        createPhaseContainer(fasesjekk);
+        container = document.getElementById(`fase${fasesjekk}`);
     }
+    Endrer(fasesjekk);
 
     const segmentDiv = document.createElement('div');
     segmentDiv.classList.add('segment');

@@ -4188,7 +4188,10 @@ function sortFaseContainers(bane) {
   // Hent alle elementer med klassen "fase-container" i baneContainer
   const faseContainers = Array.from(baneContainer.getElementsByClassName('fase-container'));
   faseContainers.sort((a, b) => {
-    // Forutsetter at overskriften i hver container har formatet "Fase: <fasetype>"
+    const aNum = parseInt(a.dataset.fasenummer || '0');
+    const bNum = parseInt(b.dataset.fasenummer || '0');
+    if (aNum && bNum) return aNum - bNum;
+    // Fallback to faseType based sort
     const aFaseText = a.querySelector('h4') ? a.querySelector('h4').textContent : '';
     const bFaseText = b.querySelector('h4') ? b.querySelector('h4').textContent : '';
     const aFase = aFaseText.replace('Fase: ', '').trim();
@@ -4201,8 +4204,8 @@ function sortFaseContainers(bane) {
 }
 
 // Sørger for at riktig fase-container finnes i en bane.
-function getOrCreateFaseContainer(bane, faseType, starttid) {
-  console.log('[getOrCreateFaseContainer] for', bane, faseType);
+function getOrCreateFaseContainer(bane, faseType, fasenummer, starttid) {
+  console.log('[getOrCreateFaseContainer] for', bane, faseType, 'fase', fasenummer);
   let baneDiv = document.getElementById(bane);
 
   // UI-et bruker ofte id-er på formen "lane-<dato>-<bane>". Forsøk å finne
@@ -4232,14 +4235,17 @@ function getOrCreateFaseContainer(bane, faseType, starttid) {
 
   console.log('[getOrCreateFaseContainer] using lane', baneDiv.id || baneDiv.dataset.bane);
 
-  const faseId = `fase-${slugify(faseType)}`;
+  const faseId = `fase${fasenummer}-${slugify(faseType)}`;
   let container = baneDiv.querySelector(`.fase-container[data-fase="${faseId}"]`);
   if (!container) {
     container = document.createElement('div');
     container.className = 'fase-container';
+    container.id = faseId;
     container.dataset.fase = faseId;
+    container.dataset.fasenummer = String(fasenummer);
+    container.dataset.fasetype = faseType;
     const header = document.createElement('h4');
-    header.textContent = `Fase: ${faseType}`;
+    header.textContent = `Fase ${fasenummer}: ${faseType}`;
     container.appendChild(header);
     baneDiv.appendChild(container);
     console.log('[getOrCreateFaseContainer] created container', faseId, 'under', baneDiv.id || baneDiv.dataset.bane);
@@ -4261,7 +4267,7 @@ function kampTabellRad(kamp) {
   } = kamp;
 
   const faseContainer =
-    getOrCreateFaseContainer(bane, faseType, starttid);   // ← din egen hjelp-funksjon
+    getOrCreateFaseContainer(bane, faseType, kamp.fasenummer || 1, starttid);
 
   /* ---------- KORT ---------- */
   const kort = document.createElement("div");
@@ -4481,7 +4487,7 @@ async function oppdaterTider(container) {
     }
 
     const baneId = baneElement.id;
-    const faseId = container.id;
+    const faseId = container.dataset.fasetype || container.id;
 
     console.log("Oppdaterer tider for container:", container.id);
 
@@ -4627,8 +4633,7 @@ async function reSlotContainer(container) {
             // Oppdater Firestore
             const baneDiv = container.closest('.bane-tabell');
             const baneId = baneDiv ? baneDiv.id : "";
-            const faseId = container.id.split('-').pop(); 
-            // (hvis du bruker `bane-faseType` i ID)
+            const faseId = container.dataset.fasetype || container.id;
 
             await db
                 .collection('turneringer')
