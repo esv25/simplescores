@@ -321,7 +321,7 @@
       transform: translate(-50%, -50%) scale(1);
       opacity: 1;
     }
-    #popupOverlay, #previewOverlay {
+    #popupOverlay, #previewOverlay, #sectionOverlay {
       position: fixed;
       top: 0;
       left: 0;
@@ -331,7 +331,7 @@
       z-index: 1000;
       display: none;
     }
-    #popupOverlay.active, #previewOverlay.active {
+    #popupOverlay.active, #previewOverlay.active, #sectionOverlay.active {
       display: block;
     }
     /* --- Drag and drop layout editor --- */
@@ -360,6 +360,38 @@
       color: #fff;
       border-radius: 4px;
       cursor: move;
+    }
+    /* --- Ny layout grid --- */
+    #layoutContainer {
+      display: grid;
+      gap: 10px;
+      margin-top: 20px;
+    }
+    #layoutContainer.layout-1 {
+      grid-template-columns: 1fr;
+    }
+    #layoutContainer.layout-2 {
+      grid-template-columns: 1fr 1fr;
+    }
+    #layoutContainer.layout-4 {
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: 1fr 1fr;
+    }
+    .grid-item {
+      position: relative;
+      border: 1px dashed #a0aec0;
+      min-height: 200px;
+    }
+    .grid-item button.add-element {
+      position: absolute;
+      top: 5px;
+      right: 5px;
+      background: #48bb78;
+      color: #fff;
+      border: none;
+      padding: 4px 8px;
+      border-radius: 4px;
+      cursor: pointer;
     }
   </style>
 </head>
@@ -392,51 +424,40 @@
     </ul>
 </nav>
   <main>
-    <div id="slideListContainer">
-      <h2>Oversikt over Slides</h2>
-      <div id="slideList"></div>
+    <div id="layoutControls">
+      <label for="layoutSelect">Layout:</label>
+      <select id="layoutSelect" onchange="changeLayout(this.value)">
+        <option value="1">1</option>
+        <option value="2">2</option>
+        <option value="4">4</option>
+      </select>
+      <button id="fullscreenBtn" onclick="toggleFullScreen()">Fullskjerm</button>
     </div>
-  <!-- Slide-innholdet vises øverst -->
-  <div id="slides">
+    <div id="layoutContainer" class="layout-1"></div>
 
-    <button id="fullscreenBtn" onclick="toggleFullScreen()">Fullskjerm</button>
-  </div>
-  
-  <!-- Oversikt og kontrollpanel -->
-
-  <div id="slidesOverview">
-    <button class="add-slide-button" onclick="openSlideConfigPopup()">Legg til ny Slide</button>
-    <button class="start-slideshow-button" onclick="startPresentation()">Start Slideshow</button>
-  </div>
-
-  <div id="slidesOverview">
-    <h2>Oversikt over Slides</h2>
-    <div id="slideList"></div>
-    <button class="add-slide-button" onclick="openSlideConfigPopup()">Legg til ny Slide</button>
-    <button class="start-slideshow-button" onclick="startPresentation()">Start Slideshow</button>
-  </div>
-
-
-  <!-- Slide konfigurasjons-popup -->
-  <div id="slideConfigPopup" class="popup">
-    <h2 id="popupTitle">Konfigurer Slide</h2>
-    <div id="slideConfig"></div>
-    <div style="margin-top:10px;">
-      <button onclick="previewSlideConfig()">Forhåndsvis</button>
-      <button onclick="saveSlideConfig()">Lagre</button>
-      <button onclick="closePopup()">Avbryt</button>
+    <div id="sectionPopup" class="popup">
+      <h3>Velg innhold</h3>
+      <label>Type:
+        <select id="sectionType">
+          <option value="kamper">Kamper</option>
+          <option value="tabeller">Tabeller</option>
+          <option value="kommendeKamper">Kommende Kamper</option>
+          <option value="liveScore">Live Score</option>
+        </select>
+      </label>
+      <div id="divisionPhaseFields">
+        <select id="sectionDivision"></select>
+        <select id="sectionPhase" disabled></select>
+      </div>
+      <div id="kampIdField" style="display:none;">
+        <input id="sectionKampId" placeholder="Kamp-ID">
+      </div>
+      <div style="margin-top:10px;">
+        <button onclick="saveSection()">OK</button>
+        <button onclick="closeSectionPopup()">Avbryt</button>
+      </div>
     </div>
-  </div>
-  <div id="popupOverlay"></div>
-
-  <!-- Forhåndsvisnings-popup -->
-  <div id="previewPopup" class="popup">
-    <h2>Forhåndsvisning av Slide</h2>
-    <div id="previewContent"></div>
-    <button onclick="closePreviewPopup()">Lukk Forhåndsvisning</button>
-  </div>
-
-  <div id="previewOverlay"></div>
+    <div id="sectionOverlay"></div>
   </main>
 
   <!-- Q&A Seksjon -->
@@ -497,8 +518,7 @@ document.addEventListener('DOMContentLoaded', () => {
   slideList       = document.getElementById('slideList');
   slidesOverview  = document.getElementById('slidesOverview');
   slidesContainer = document.getElementById('slides');
-
-  loadSlides();  // først når alle elementer finnes
+  // loadSlides();  // deaktivert i ny layout-versjon
 });
 
 
@@ -1497,10 +1517,143 @@ async function loadFaser(divisionName) {
   } catch (err) {
     console.error('Feil ved henting av faser:', err);
     sel.innerHTML = '<option>Feil ved henting.</option>';
-    sel.disabled = true;
+  sel.disabled = true;
   }
 }
-    window.onload = loadSlides;
+
+// ---------------- Ny layout-logikk -----------------
+let layoutSections = [];
+let currentLayout   = 1;
+let editingSection  = null;
+
+document.addEventListener('DOMContentLoaded', () => {
+  changeLayout(1);
+  loadDivisionsForPopup();
+  const st = document.getElementById('sectionType');
+  if(st) st.addEventListener('change', updateSectionFields);
+});
+
+function changeLayout(n) {
+  currentLayout = parseInt(n, 10);
+  layoutSections.length = currentLayout;
+  renderLayout();
+}
+
+function renderLayout() {
+  const cont = document.getElementById('layoutContainer');
+  cont.className = 'layout-' + currentLayout;
+  cont.innerHTML = '';
+  for(let i=0;i<currentLayout;i++) {
+    const sec = document.createElement('div');
+    sec.className = 'grid-item';
+    const btn = document.createElement('button');
+    btn.className = 'add-element';
+    btn.textContent = layoutSections[i] ? 'Endre' : 'Legg til';
+    btn.onclick = () => openSectionPopup(i);
+    sec.appendChild(btn);
+    const content = document.createElement('div');
+    content.className = 'section-content';
+    if(layoutSections[i]) renderSection(layoutSections[i], content);
+    sec.appendChild(content);
+    cont.appendChild(sec);
+  }
+}
+
+function openSectionPopup(idx) {
+  editingSection = idx;
+  const sec = layoutSections[idx] || {};
+  document.getElementById('sectionType').value = sec.type || 'kamper';
+  document.getElementById('sectionDivision').value = sec.division || '';
+  document.getElementById('sectionPhase').value = sec.fase || '';
+  document.getElementById('sectionKampId').value = sec.kampId || '';
+  updateSectionFields();
+  document.getElementById('sectionPopup').classList.add('active');
+  document.getElementById('sectionOverlay').classList.add('active');
+}
+
+function updateSectionFields() {
+  const type = document.getElementById('sectionType').value;
+  const divFields = document.getElementById('divisionPhaseFields');
+  const kampField = document.getElementById('kampIdField');
+  if (type === 'kommendeKamper') {
+    divFields.style.display = 'none';
+    kampField.style.display = 'none';
+  } else if (type === 'liveScore') {
+    divFields.style.display = 'none';
+    kampField.style.display = 'block';
+  } else {
+    divFields.style.display = 'block';
+    kampField.style.display = 'none';
+  }
+}
+
+function saveSection() {
+  const type = document.getElementById('sectionType').value;
+  const division = document.getElementById('sectionDivision').value;
+  const fase = document.getElementById('sectionPhase').value;
+  const kampId = document.getElementById('sectionKampId').value;
+  layoutSections[editingSection] = {type, division, fase, kampId};
+  closeSectionPopup();
+  renderLayout();
+}
+
+function closeSectionPopup() {
+  document.getElementById('sectionPopup').classList.remove('active');
+  document.getElementById('sectionOverlay').classList.remove('active');
+  editingSection = null;
+}
+
+function renderSection(cfg, target) {
+  target.innerHTML = '';
+  if(cfg.type === 'kamper') {
+    const ul = document.createElement('ul');
+    target.appendChild(ul);
+    loadKamper(cfg.division, cfg.fase, html => { ul.innerHTML = html; });
+  } else if(cfg.type === 'tabeller') {
+    const id = 'tbl_' + Math.random().toString(36).slice(2,6);
+    target.innerHTML = `<table id="${id}"><thead></thead><tbody><tr><td colspan='9'><div class='loader'></div></td></tr></tbody></table>`;
+    loadTabeller(cfg.division, cfg.fase, id);
+  } else if(cfg.type === 'kommendeKamper') {
+    const ul = document.createElement('ul');
+    target.appendChild(ul);
+    loadUpcoming(ul);
+  } else if(cfg.type === 'liveScore') {
+    const box = document.createElement('div');
+    box.innerHTML = '<div class="score-home">0</div><div class="score-away">0</div><div class="live-time">--:--</div>';
+    target.appendChild(box);
+    loadLiveScore(cfg.kampId, box);
+  }
+}
+
+function loadUpcoming(targetEl) {
+  db.collection('turneringer').doc(turneringId).collection('kamper')
+    .orderBy('starttid').limit(5).get().then(snap => {
+      let html = '';
+      snap.forEach(doc => {
+        const d = doc.data();
+        if(d.status === 'ferdig') return;
+        const tid = d.starttid?.toDate ? d.starttid.toDate() : new Date(d.starttid);
+        html += `<li>${d.hjemmelag} vs ${d.bortelag} ${tid.toLocaleTimeString('no-NO',{hour:'2-digit',minute:'2-digit'})}</li>`;
+      });
+      targetEl.innerHTML = html || '<li>Ingen kamper</li>';
+    });
+}
+
+function loadLiveScore(kampId, el) {
+  if(!kampId) { el.textContent = 'Ingen kamp'; return; }
+  db.collection('turneringer').doc(turneringId).collection('kamper').doc(kampId)
+    .onSnapshot(doc => {
+      const d = doc.data();
+      if(!d) return;
+      el.querySelector('.score-home').textContent = d.hjemmelagScore ?? 0;
+      el.querySelector('.score-away').textContent = d.bortelagScore ?? 0;
+    });
+  firebase.database().ref(`games/${turneringId}/kamper/${kampId}/remainingTime`)
+    .on('value', s => {
+      el.querySelector('.live-time').textContent = s.val() || '--:--';
+    });
+}
+    // window.onload = loadSlides;
   </script>
 </body>
 </html>
