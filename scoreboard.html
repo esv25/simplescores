@@ -26,7 +26,6 @@
                     <button class="time-button" onclick="adjustTime(1)">+1s</button>
                     <button class="time-button" onclick="adjustTime(-1)">-1s</button>
                 </div>
-                <div class="timer" id="timer">15:00</div>
                 <!-- Resten av innholdet forblir uendret -->
                 <div class="timeout-timer" id="timeoutTimer" style="display:none;">Timeout: 30s</div>
                 <div class="period" id="period">1. omgang</div>
@@ -47,6 +46,7 @@
                         <div id="hjemmeCards" class="card-display"></div>
                         <div id="hjemmePenalties" class="penalty-display"></div>
                     </div>
+                    <div class="timer" id="timer">15:00</div>
                     <div class="score-section" id="borteSection">
                         <div id="borteScore" class="score">0</div>
                         <div class="team-name" id="bortelagNavn">Lag 2</div>
@@ -1463,9 +1463,11 @@ async function updateTeamStatsAfterReset(hjemmelag, bortelag, hjemmeScore, borte
             const scoresContainer = document.getElementById('scoresContainer');
             const hjemmeSection = document.getElementById('hjemmeSection');
             const borteSection = document.getElementById('borteSection');
+            const timerEl = document.getElementById('timer');
 
-            // Bytt rekkefølge på elementene
-            scoresContainer.insertBefore(borteSection, hjemmeSection);
+            // Plasser borteseksjonen til venstre og hjemmelaget til høyre
+            scoresContainer.insertBefore(borteSection, timerEl);
+            scoresContainer.appendChild(hjemmeSection);
 
             // Oppdater Firebase med byttet
             db.collection('turneringer').doc(turneringId).collection('kamper').doc(kampId).update({
