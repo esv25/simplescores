@@ -44,6 +44,8 @@
                             <button class="time-button red-button" style="display:none;" onclick="openPlayerModal('hjemme','red')">Rødt kort</button>
                             <button class="time-button penalty-button" style="display:none;" onclick="openPlayerModal('hjemme','penalty')">2&nbsp;min</button>
                         </div>
+                        <div id="hjemmeCards" class="card-display"></div>
+                        <div id="hjemmePenalties" class="penalty-display"></div>
                     </div>
                     <div class="score-section" id="borteSection">
                         <div id="borteScore" class="score">0</div>
@@ -58,6 +60,8 @@
                             <button class="time-button red-button" style="display:none;" onclick="openPlayerModal('borte','red')">Rødt kort</button>
                             <button class="time-button penalty-button" style="display:none;" onclick="openPlayerModal('borte','penalty')">2&nbsp;min</button>
                         </div>
+                        <div id="borteCards" class="card-display"></div>
+                        <div id="bortePenalties" class="penalty-display"></div>
                     </div>
                 </div>
             </div>
@@ -226,9 +230,10 @@ let pauseDuration;   // Pauselengde, satt fra innstillingene
         let storedTimeLeft; // For å lagre tiden før timeout
         let originalTimeLeft; // For å lagre tiden før timeout start
         let logGoalScorersEnabled = true; // Kan deaktiveres via innstillinger
-        let logYellowCardsEnabled = false;
-        let logRedCardsEnabled    = false;
-        let logPenaltiesEnabled   = false;
+        let logYellowCardsEnabled = true;
+        let logRedCardsEnabled    = true;
+        let logPenaltiesEnabled   = true;
+        const activePenalties = { hjemme: [], borte: [] };
         // Global variabel for kampens fase – "utslag" for utslagskamper
 let matchPhase;
 
@@ -308,9 +313,15 @@ async function hentInnstillinger(division) {
             logGoalScorersEnabled =
                 settings.logGoalScorers === undefined ? true
                                                      : Boolean(settings.logGoalScorers);
-            logYellowCardsEnabled = Boolean(settings.logYellowCards);
-            logRedCardsEnabled    = Boolean(settings.logRedCards);
-            logPenaltiesEnabled   = Boolean(settings.logPenalties);
+            logYellowCardsEnabled =
+                settings.logYellowCards === undefined ? true
+                                                      : Boolean(settings.logYellowCards);
+            logRedCardsEnabled =
+                settings.logRedCards === undefined ? true
+                                                 : Boolean(settings.logRedCards);
+            logPenaltiesEnabled =
+                settings.logPenalties === undefined ? true
+                                                  : Boolean(settings.logPenalties);
             console.log("pauseDuration satt til:", pauseDuration);
 
         } else {
@@ -321,9 +332,9 @@ async function hentInnstillinger(division) {
             timeBegin       = 900;
             timeoutDuration = 30;
             pauseDuration   = 60;
-            logYellowCardsEnabled = false;
-            logRedCardsEnabled    = false;
-            logPenaltiesEnabled   = false;
+            logYellowCardsEnabled = true;  // default to enabled
+            logRedCardsEnabled    = true;
+            logPenaltiesEnabled   = true;
         }
     } catch (error) {
         console.error('Feil ved henting av innstillinger:', error);
@@ -333,9 +344,9 @@ async function hentInnstillinger(division) {
         timeBegin       = 900;
         timeoutDuration = 30;
         pauseDuration   = 60;
-        logYellowCardsEnabled = false;
-        logRedCardsEnabled    = false;
-        logPenaltiesEnabled   = false;
+        logYellowCardsEnabled = true;  // default to enabled on error
+        logRedCardsEnabled    = true;
+        logPenaltiesEnabled   = true;
     }
 
     // --- OPPDATER UI HER ---
@@ -1564,9 +1575,54 @@ async function logCard(spiller, team, type) {
                            .collection('kamper').doc(kampId);
         await kampRef.collection('cards').add(cardData);
         console.log('Kort registrert');
+        updateCardUI(spiller, team, type);
     } catch (error) {
         console.error('Feil ved registrering av kort:', error);
     }
+}
+
+function updateCardUI(spiller, team, type) {
+    if (type === 'yellow') {
+        addCard(team, 'yellow-card', spiller);
+    } else if (type === 'red') {
+        addCard(team, 'red-card', spiller);
+    } else if (type === 'penalty') {
+        startPenaltyTimer(team, spiller);
+    }
+}
+
+function addCard(team, cardClass, spiller) {
+    const containerId = team === 'hjemme' ? 'hjemmeCards' : 'borteCards';
+    const container = document.getElementById(containerId);
+    const span = document.createElement('span');
+    span.className = `card ${cardClass}`;
+    span.textContent = spiller;
+    container.appendChild(span);
+}
+
+function startPenaltyTimer(team, spiller) {
+    const containerId = team === 'hjemme' ? 'hjemmePenalties' : 'bortePenalties';
+    const container = document.getElementById(containerId);
+    const item = document.createElement('div');
+    item.className = 'penalty-item';
+    item.textContent = spiller + ':';
+    const span = document.createElement('span');
+    span.className = 'penalty-time';
+    item.appendChild(span);
+    container.appendChild(item);
+
+    let remaining = 120;
+    span.textContent = formatTime(remaining);
+    const interval = setInterval(() => {
+        remaining--;
+        if (remaining <= 0) {
+            clearInterval(interval);
+            item.remove();
+        } else {
+            span.textContent = formatTime(remaining);
+        }
+    }, 1000);
+    activePenalties[team].push(interval);
 }
 
 

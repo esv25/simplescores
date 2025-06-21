@@ -422,6 +422,36 @@
 .yellow-button:hover { background-color: #ecc94b; }
 .red-button:hover { background-color: #c53030; }
 .penalty-button:hover { background-color: #dd6b20; }
+
+/* Card and penalty displays */
+.card-display {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.25rem;
+    margin-top: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.card {
+    padding: 2px 4px;
+    border-radius: 3px;
+    color: white;
+}
+
+.yellow-card { background-color: #f6e05e; color: #2d3e50; }
+.red-card { background-color: #e53e3e; color: #fff; }
+
+.penalty-display { margin-top: 0.5rem; text-align: center; }
+.penalty-item {
+    background-color: #ed8936;
+    color: white;
+    padding: 2px 4px;
+    border-radius: 3px;
+    margin: 2px 0;
+    display: inline-block;
+}
+.penalty-time { margin-left: 4px; }
     
 @media (max-width: 480px) {
     .timer, .score {
