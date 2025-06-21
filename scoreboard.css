@@ -187,7 +187,7 @@
     
       /* Øk font-størrelsen på tidtakeren */
       .timer {
-          font-size: min(12vw, 10vh);    /* Begrens høyden for laptopskjermer */
+          font-size: min(16vw, 14vh);    /* Større tall uten å fylle mer enn en skjerm */
           margin-bottom: 0.5rem;
           letter-spacing: 4px;
           color: #2d3e50;
@@ -196,7 +196,7 @@
     
       /* Øk font-størrelsen på poengsummen */
       .score {
-          font-size: min(12vw, 10vh);   /* Tilpass for mindre skjermer */
+          font-size: min(16vw, 14vh);   /* Større resultat */
           text-align: center;
           margin-bottom: 0.5rem;
           color: #007bff;
@@ -377,7 +377,7 @@
       /* Responsiv justering av fontstørrelser for mindre skjermer */
       @media (max-width: 768px) {
           .timer, .score {
-              font-size: 20vw;
+              font-size: 25vw;
           }
           .period, .team-name, .timeout-timer {
               font-size: 5vw;
@@ -455,7 +455,7 @@
     
 @media (max-width: 480px) {
     .timer, .score {
-        font-size: 24vw;
+        font-size: 28vw;
     }
     .period, .team-name, .timeout-timer {
         font-size: 6vw;
@@ -474,7 +474,7 @@
 
 @media (min-width: 769px) and (max-width: 1024px) {
     .timer, .score {
-        font-size: 15vw;
+        font-size: 18vw;
     }
     .period, .team-name, .timeout-timer {
         font-size: 4vw;
