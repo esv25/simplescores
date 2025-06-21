@@ -72,6 +72,7 @@
                 </div>
             </div>
         </div>
+
     
 <!-- Høyre sidepanel -->
 <!-- Høyre sidepanel -->
@@ -1466,23 +1467,23 @@ async function updateTeamStatsAfterReset(hjemmelag, bortelag, hjemmeScore, borte
 
 
         // Funksjon for å bytte sider
+
         function switchSides() {
             const scoresContainer = document.getElementById('scoresContainer');
             const hjemmeSection = document.getElementById('hjemmeSection');
             const borteSection = document.getElementById('borteSection');
-
             const timerEl = document.getElementById('timer');
 
             // Plasser borteseksjonen til venstre og hjemmelaget til høyre
             scoresContainer.insertBefore(borteSection, timerEl);
             scoresContainer.appendChild(hjemmeSection);
 
-
             // Oppdater Firebase med byttet
             db.collection('turneringer').doc(turneringId).collection('kamper').doc(kampId).update({
                 sidesSwitched: true
             });
         }
+
 
 async function logGoalAndUpdateScore(spiller, team) {
     const minutes = Math.floor(timeLeft / 60);

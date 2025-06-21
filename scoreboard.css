@@ -187,7 +187,7 @@
     
       /* Øk font-størrelsen på tidtakeren */
       .timer {
-          font-size: min(16vw, 14vh);    /* Større tall uten å fylle mer enn en skjerm */
+          font-size: min(18vw, 16vh);    /* Enda større tall uten å fylle mer enn skjermen */
           margin-bottom: 0.5rem;
           letter-spacing: 4px;
           color: #2d3e50;
@@ -383,7 +383,7 @@
       /* Responsiv justering av fontstørrelser for mindre skjermer */
       @media (max-width: 768px) {
           .timer, .score {
-              font-size: 25vw;
+              font-size: 28vw;
           }
           .period, .team-name, .timeout-timer {
               font-size: 5vw;
@@ -461,7 +461,7 @@
     
 @media (max-width: 480px) {
     .timer, .score {
-        font-size: 28vw;
+        font-size: 32vw;
     }
     .period, .team-name, .timeout-timer {
         font-size: 6vw;
@@ -480,7 +480,7 @@
 
 @media (min-width: 769px) and (max-width: 1024px) {
     .timer, .score {
-        font-size: 18vw;
+        font-size: 20vw;
     }
     .period, .team-name, .timeout-timer {
         font-size: 4vw;
