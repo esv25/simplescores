@@ -2,10 +2,15 @@
 <html lang="no">
 <head>
   <script src="https://cdn.tailwindcss.com"></script>
+
     <meta charset="UTF-8">
+  <meta name="description" content="Avansert poengtavle for live kamper.">
+  <link rel="canonical" href="https://<ditt-domene>/scoreboard.html">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Scoreboard</title>
+
     <link rel="stylesheet" href="scoreboard.css">
+
 </head>
 <body>
 
@@ -26,6 +31,7 @@
                     <button class="time-button" onclick="adjustTime(1)">+1s</button>
                     <button class="time-button" onclick="adjustTime(-1)">-1s</button>
                 </div>
+
                 <!-- Resten av innholdet forblir uendret -->
                 <div class="timeout-timer" id="timeoutTimer" style="display:none;">Timeout: 30s</div>
                 <div class="period" id="period">1. omgang</div>
@@ -66,6 +72,7 @@
                 </div>
             </div>
         </div>
+
     
 <!-- Høyre sidepanel -->
 <!-- Høyre sidepanel -->
@@ -1337,6 +1344,7 @@ function startTimer() {
             activePenalties[t] = [];
         });
 
+
         // Tilbakestill til første omgang og standard tid (15 min = 900 sekunder)
         currentPeriod = 1;
         timeLeft = 900;
@@ -1459,6 +1467,7 @@ async function updateTeamStatsAfterReset(hjemmelag, bortelag, hjemmeScore, borte
 
 
         // Funksjon for å bytte sider
+
         function switchSides() {
             const scoresContainer = document.getElementById('scoresContainer');
             const hjemmeSection = document.getElementById('hjemmeSection');
@@ -1474,8 +1483,6 @@ async function updateTeamStatsAfterReset(hjemmelag, bortelag, hjemmeScore, borte
                 sidesSwitched: true
             });
         }
-
-
 
 
 async function logGoalAndUpdateScore(spiller, team) {

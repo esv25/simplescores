@@ -3,8 +3,14 @@
 <head>
   <script src="https://cdn.tailwindcss.com"></script>
   <meta charset="UTF-8">
+  <meta name="description" content="Få full oversikt over kampene.">
+  <link rel="canonical" href="https://<ditt-domene>/kampliste.html">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Kamper - Turnering</title>
+  <meta property="og:title" content="Kamper - Turnering">
+  <meta property="og:description" content="Lister alle kamper i turneringen.">
+  <meta property="og:image" content="logo.png">
+  <meta property="og:url" content="https://ditt-domene.no/kampliste.html">
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
   <style>
@@ -148,7 +154,6 @@
         font-size: 0.8rem;
       }
     }
-
     /* Scroll button */
     #scrollToNext {
       position: fixed;
@@ -168,7 +173,7 @@
 </head>
 <body>
   <header>
-    <img src="logo.png" alt="Simple Scores-logo" class="logo">
+    <img src="logo.png" alt="Simple Scores logo" class="logo">
     <button id="hamburgerBtn" class="hamburger" aria-label="Åpne meny">
       <span></span><span></span><span></span>
     </button>
@@ -188,6 +193,8 @@
 
   <!-- Selve menyen -->
   <ul id="menu">
+
+
     <li><a href="publikum.html" class="nav-link"><i class="fa-solid fa-house"></i><span>Hjem</span></a></li>
     <li><a href="login.html" class="nav-link"><i class="fa-solid fa-user"></i><span>Admin</span></a></li>
     <li><a href="turnering.html" class="nav-link"><i class="fa-solid fa-circle-info"></i><span>Turneringsdetaljer</span></a></li>

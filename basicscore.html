@@ -2,7 +2,10 @@
 <html lang="no">
 <head>
   <script src="https://cdn.tailwindcss.com"></script>
+
     <meta charset="UTF-8">
+  <meta name="description" content="Enkel poengtavle for kamper.">
+  <link rel="canonical" href="https://<ditt-domene>/basicscore.html">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Basic Scoreboard</title>
     <style>
@@ -91,6 +94,7 @@
         align-items: center;
     }
 
+
     /* Timer og omgangen */
     #timer { font-size: min(10vw, 12vh); margin-bottom: .5rem; letter-spacing: 4px; }
     #period { font-size: min(3vw, 4vh); margin-bottom: 1rem; text-transform: uppercase; }
@@ -99,7 +103,9 @@
     /* Score-seksjon */
     .scores { display: flex; justify-content: center; align-items: center; gap: 2rem; width: 100%; }
     .scores #timer { margin: 0 1rem; }
+
     .score-section { flex: 1; display: flex; flex-direction: column; align-items: center; margin: 0 .5rem; }
+
     .score { font-size: min(9vw, 10vh); color: #007bff; margin-bottom: .5rem; }
     .team-name { font-size: min(3vw, 4vh); margin-bottom: 1rem; text-transform: uppercase; }
 
@@ -113,13 +119,14 @@
     .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); justify-content: center; align-items: center; }
     .modal-content { background: #fff; padding: 1.5rem; border-radius: 10px; text-align: center; }
 
+
     @media(max-width:768px) {
         #timer { font-size: min(14vw, 18vh); }
         .score { font-size: min(12vw, 15vh); }
         #period, .team-name { font-size: min(5vw, 6vh); }
         .score-button, .controls button, .side-panel button { width: 120px; height: 50px; font-size: 1.5rem; padding: .5rem .75rem; }
         .scoreboard { max-width: 90%; }
-    }
+      }
     </style>
 </head>
 <body>
@@ -128,8 +135,10 @@
         <div class="side-panel">
             <!-- Start, stop og reset er tilgjengelige i kontrollseksjonen -->
         </div>
+
         <div class="scoreboard-container">
             <div class="scoreboard" id="scoreboard">
+
                 <div id="period">1. omgang</div>
                 <div id="breakTimer"></div>
                 <div class="scores">
@@ -146,6 +155,7 @@
                         <div id="scoreAway" class="score">0</div>
                         <div class="team-name">Borte</div>
                         <div class="adjust-buttons">
+
                             <button class="score-button" id="incAway">+</button>
                             <button class="score-button" id="decAway">-</button>
                         </div>
@@ -154,6 +164,7 @@
                 <div class="controls">
                     <button id="startCtrl">Start</button>
                     <button id="stopCtrl">Stopp</button>
+
                     <button id="timeoutBtn">Timeout</button>
                     <button id="resetCtrl">Reset</button>
                 </div>

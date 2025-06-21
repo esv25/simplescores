@@ -3,8 +3,14 @@
 <head>
   <script src="https://cdn.tailwindcss.com"></script>
   <meta charset="UTF-8">
+  <meta name="description" content="Rediger slides til presentasjoner.">
+  <link rel="canonical" href="https://<ditt-domene>/slideshowEditor.html">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Slide Editor</title>
+  <meta property="og:title" content="Slide Editor">
+  <meta property="og:description" content="Rediger presentasjoner for scorevisning.">
+  <meta property="og:image" content="logo.png">
+  <meta property="og:url" content="https://ditt-domene.no/slideshowEditor.html">
   <link rel="stylesheet" type="text/css" href="./admin.css">
   <style>
 /* Wrapper rundt hele braketten */
@@ -393,12 +399,13 @@
       border-radius: 4px;
       cursor: pointer;
     }
+
   </style>
 </head>
 <body>
   <header>
     <div class="logo-title">
-        <a href="nyTurnering.html"><img src="logo.png" alt="Simple Scores Logo" class="logo"></a>
+        <a href="nyTurnering.html"><img src="logo.png" alt="Simple Scores logo" class="logo"></a>
     </div>
     <div class="nav2">
         <button id="user-button" onclick="toggleUserMenu()">Bruker</button>

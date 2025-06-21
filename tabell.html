@@ -3,7 +3,13 @@
 <head>
   <script src="https://cdn.tailwindcss.com"></script>
   <meta charset="UTF-8" />
+  <meta name="description" content="Tabeller og rangeringer.">
+  <link rel="canonical" href="https://<ditt-domene>/tabell.html">
   <title>Alle divisjons- og fase-tabeller</title>
+  <meta property="og:title" content="Alle divisjons- og fase-tabeller">
+  <meta property="og:description" content="Se tabeller for alle divisjoner og faser.">
+  <meta property="og:image" content="logo.png">
+  <meta property="og:url" content="https://ditt-domene.no/tabell.html">
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <!-- Google Fonts -->
@@ -305,12 +311,13 @@
   <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/8.2.0/firebase-app.js"></script>
     <script src="firebaseConfig.js"></script>
+
   <script src="https://www.gstatic.com/firebasejs/8.2.0/firebase-firestore.js"></script>
 </head>
 <body>
   <header>
     <div class="logo-title">
-      <img src="logo.png" alt="Simple Scores Logo" class="logo" />
+      <img src="logo.png" alt="Simple Scores logo" class="logo" />
     </div>
   </header>
 
@@ -327,6 +334,7 @@
 
   <!-- Selve menyen -->
   <ul id="menu">
+
     <li><a href="publikum.html" class="nav-link"><i class="fa-solid fa-house"></i><span>Hjem</span></a></li>
     <li><a href="login.html" class="nav-link"><i class="fa-solid fa-user"></i><span>Admin</span></a></li>
     <li><a href="turnering.html" class="nav-link"><i class="fa-solid fa-circle-info"></i><span>Turneringsdetaljer</span></a></li>

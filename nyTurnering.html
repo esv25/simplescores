@@ -3,9 +3,15 @@
 <head>
   <script src="https://cdn.tailwindcss.com"></script>
   <meta charset="UTF-8">
+  <meta name="description" content="Legg til en ny turnering.">
+  <link rel="canonical" href="https://<ditt-domene>/nyTurnering.html">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" type="text/css" href="./admin.css">
   <title>Legg til Turnering</title>
+  <meta property="og:title" content="Legg til Turnering">
+  <meta property="og:description" content="Registrer en ny turnering.">
+  <meta property="og:image" content="logo.png">
+  <meta property="og:url" content="https://ditt-domene.no/nyTurnering.html">
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
   <!-- Ekstra stil for turneringskortene -->
     <style>
@@ -21,7 +27,7 @@
 <body id="wrapper">
   <header>
     <div class="logo-title">
-      <a href="index.html"><img src="logo.png" alt="Simple Scores Logo" class="logo"></a>
+      <a href="index.html"><img src="logo.png" alt="Simple Scores logo" class="logo"></a>
     </div>
     <div class="nav2">
       <button id="user-button" onclick="toggleUserMenu()">Bruker</button>
@@ -29,6 +35,7 @@
         <p>Logget inn som <span id="mail"></span></p>
         <button id="loggut" onclick="loggut()">Logg ut</button>
       </div>
+
       <button onclick="window.location.href='publikum.html'">Publikum</button>
     </div>
   </header>
