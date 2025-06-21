@@ -100,9 +100,14 @@
     #period { font-size: min(3vw, 4vh); margin-bottom: 1rem; text-transform: uppercase; }
     #breakTimer { font-size: min(3vw, 4vh); margin-bottom: 1rem; color: #ff5722; text-align: center; display: none; }
 
+
+
+
     /* Score-seksjon */
-    .scores { display: flex; justify-content: space-between; width: 100%; }
+    .scores { display: flex; justify-content: center; align-items: center; gap: 2rem; width: 100%; }
+    .scores #timer { margin: 0 1rem; }
     .score-section { flex: 1; display: flex; flex-direction: column; align-items: center; margin: 0 .5rem; }
+
     .score { font-size: min(9vw, 10vh); color: #007bff; margin-bottom: .5rem; }
     .team-name { font-size: min(3vw, 4vh); margin-bottom: 1rem; text-transform: uppercase; }
 
@@ -130,9 +135,10 @@
         <div class="side-panel">
             <!-- Start, stop og reset er tilgjengelige i kontrollseksjonen -->
         </div>
+
         <div class="scoreboard-container">
             <div class="scoreboard" id="scoreboard">
-                <div id="timer">00:00</div>
+
                 <div id="period">1. omgang</div>
                 <div id="breakTimer"></div>
                 <div class="scores">
@@ -144,10 +150,14 @@
                             <button class="score-button" id="decHome">-</button>
                         </div>
                     </div>
+
+                    <div id="timer">00:00</div>
+
                     <div class="score-section">
                         <div id="scoreAway" class="score">0</div>
                         <div class="team-name">Borte</div>
                         <div class="adjust-buttons">
+
                             <button class="score-button" id="incAway">+</button>
                             <button class="score-button" id="decAway">-</button>
                         </div>
@@ -156,6 +166,7 @@
                 <div class="controls">
                     <button id="startCtrl">Start</button>
                     <button id="stopCtrl">Stopp</button>
+
                     <button id="timeoutBtn">Timeout</button>
                     <button id="resetCtrl">Reset</button>
                 </div>
