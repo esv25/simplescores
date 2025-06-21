@@ -888,15 +888,15 @@ function showSlide(index) {
           <div id="elementLibrary"></div>
           <div id="layoutCanvas" class="layout-canvas"></div>
         `;
-        loadDivisionsForPopup();
-        addDivisionChangeListener();
+        loadDivisionsForPopup('divisionSelection');
+        addDivisionChangeListener('divisionSelection','faseSelection');
         ['kamperCheckbox','tabellerCheckbox','kommendeKamperCheckbox','textCheckbox'].forEach(id=>{
           const el = document.getElementById(id);
           if(el) el.addEventListener('change', updateElementLibrary);
         });
         if(editingSlide) {
           document.getElementById('divisionSelection').value = editingSlide.division;
-          loadFaser(editingSlide.division).then(() => {
+          loadFaser(editingSlide.division, 'faseSelection').then(() => {
             document.getElementById('faseSelection').value = editingSlide.fase;
           });
           document.getElementById('slideTitle').value = editingSlide.title || "";
@@ -930,13 +930,14 @@ function showSlide(index) {
     }
 
     // Hent divisjoner for popup
-    function loadDivisionsForPopup() {
+    function loadDivisionsForPopup(selectId = 'divisionSelection') {
       db.collection('turneringer').doc(turneringId).get().then(doc => {
         if (doc.exists) {
           const data = doc.data();
           const divisions = data.divisions || [];
-          const divisionSelection = document.getElementById('divisionSelection');
+          const divisionSelection = document.getElementById(selectId);
           if (divisionSelection) {
+            divisionSelection.innerHTML = '<option value="">Velg divisjon</option>';
             divisions.forEach(division => {
               const option = document.createElement('option');
               option.value = division.name;
@@ -951,16 +952,16 @@ function showSlide(index) {
     }
 
     // Lytter for divisjonsendring
-function addDivisionChangeListener() {
-      const divisionSelection = document.getElementById('divisionSelection');
-      const faseSelection = document.getElementById('faseSelection');
+function addDivisionChangeListener(divId = 'divisionSelection', faseId = 'faseSelection') {
+      const divisionSelection = document.getElementById(divId);
+      const faseSelection = document.getElementById(faseId);
       if (divisionSelection && faseSelection) {
         divisionSelection.addEventListener('change', function() {
           const selectedDivision = this.value;
           if (selectedDivision) {
             faseSelection.disabled = true;
             faseSelection.innerHTML = '<option value="">Laster faser...</option>';
-            loadFaser(selectedDivision);
+            loadFaser(selectedDivision, faseId);
           } else {
             faseSelection.innerHTML = '<option value="">Velg fase</option>';
             faseSelection.disabled = true;
@@ -1490,8 +1491,8 @@ async function fetchDivisjonTabell(divisjon, faseNummer) {
   }
 });
 // --- Last inn faser i popup (bruker doc.id som verdi) ---
-async function loadFaser(divisionName) {
-  const sel = document.getElementById('faseSelection');
+async function loadFaser(divisionName, selectId = 'faseSelection') {
+  const sel = document.getElementById(selectId);
   sel.innerHTML = '<option value="">Velg fase</option>';
   const col = `${divisionName}_format`;
 
@@ -1528,7 +1529,8 @@ let editingSection  = null;
 
 document.addEventListener('DOMContentLoaded', () => {
   changeLayout(1);
-  loadDivisionsForPopup();
+  loadDivisionsForPopup('sectionDivision');
+  addDivisionChangeListener('sectionDivision','sectionPhase');
   const st = document.getElementById('sectionType');
   if(st) st.addEventListener('change', updateSectionFields);
 });
@@ -1563,8 +1565,20 @@ function openSectionPopup(idx) {
   editingSection = idx;
   const sec = layoutSections[idx] || {};
   document.getElementById('sectionType').value = sec.type || 'kamper';
-  document.getElementById('sectionDivision').value = sec.division || '';
-  document.getElementById('sectionPhase').value = sec.fase || '';
+  const divSel = document.getElementById('sectionDivision');
+  const faseSel = document.getElementById('sectionPhase');
+  if(divSel) divSel.value = sec.division || '';
+  if(sec.division) {
+    loadFaser(sec.division, 'sectionPhase').then(() => {
+      if(faseSel) faseSel.value = sec.fase || '';
+    });
+  } else {
+    if(faseSel) {
+      faseSel.innerHTML = '<option value="">Velg fase</option>';
+      faseSel.disabled = true;
+      faseSel.value = '';
+    }
+  }
   document.getElementById('sectionKampId').value = sec.kampId || '';
   updateSectionFields();
   document.getElementById('sectionPopup').classList.add('active');
