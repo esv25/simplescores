@@ -233,6 +233,8 @@ let pauseDuration;   // Pauselengde, satt fra innstillingene
         let logYellowCardsEnabled = false;
         let logRedCardsEnabled    = false;
         let logPenaltiesEnabled   = false;
+        // Holder aktive utvisningstimere for hvert lag
+        // Hver oppføring er et objekt { remaining, interval, item, span }
         const activePenalties = { hjemme: [], borte: [] };
         // Global variabel for kampens fase – "utslag" for utslagskamper
 let matchPhase;
@@ -1288,7 +1290,7 @@ function startLocalCountdown(kampList) {
             updateTimer(); // Oppdater timeren til korrekt tid uten å starte den
         }
 
-        function startTimer() {
+function startTimer() {
   // Sjekk om timeLeft er ugyldig, og sett til standardverdi dersom det er tilfellet
   if (isNaN(timeLeft) || timeLeft === undefined || timeLeft === null) {
     timeLeft = 900; // Standardverdi: 15 minutter (900 sekunder)
@@ -1305,7 +1307,10 @@ function startLocalCountdown(kampList) {
 
   // Fjern eventuell eksisterende timer for å unngå duplisering
   clearInterval(timerInterval);
-  
+
+  // Gjenoppta eventuelle utvisningstimere
+  resumePenaltyTimers();
+
   timerInterval = setInterval(() => {
     if (timeLeft > 0) {
       timeLeft--;
@@ -1319,12 +1324,18 @@ function startLocalCountdown(kampList) {
 
         function stopTimer() {
             clearInterval(timerInterval); // Stopp timeren
+            pausePenaltyTimers();        // Pause utvisningstimere
         }
         async function resetTimer() {
     try {
         // Stopp hovedtimeren og eventuelle timeouts/pausetimere
         clearInterval(timerInterval);
         clearInterval(activeBreakInterval); // Erstatt timeoutInterval med activeBreakInterval
+        pausePenaltyTimers();
+        Object.keys(activePenalties).forEach(t => {
+            activePenalties[t].forEach(p => p.item.remove());
+            activePenalties[t] = [];
+        });
 
         // Tilbakestill til første omgang og standard tid (15 min = 900 sekunder)
         currentPeriod = 1;
@@ -1605,18 +1616,54 @@ function startPenaltyTimer(team, spiller) {
     item.appendChild(span);
     container.appendChild(item);
 
-    let remaining = 120;
-    span.textContent = formatTime(remaining);
-    const interval = setInterval(() => {
-        remaining--;
-        if (remaining <= 0) {
-            clearInterval(interval);
+    const penalty = { remaining: 120, interval: null, item, span };
+    span.textContent = formatTime(penalty.remaining);
+
+    const tick = () => {
+        penalty.remaining--;
+        if (penalty.remaining <= 0) {
+            clearInterval(penalty.interval);
+            penalty.interval = null;
             item.remove();
+            activePenalties[team] = activePenalties[team].filter(p => p !== penalty);
         } else {
-            span.textContent = formatTime(remaining);
+            span.textContent = formatTime(penalty.remaining);
         }
-    }, 1000);
-    activePenalties[team].push(interval);
+    };
+
+    penalty.interval = setInterval(tick, 1000);
+    activePenalties[team].push(penalty);
+}
+
+function pausePenaltyTimers() {
+    Object.keys(activePenalties).forEach(t => {
+        activePenalties[t].forEach(p => {
+            if (p.interval) {
+                clearInterval(p.interval);
+                p.interval = null;
+            }
+        });
+    });
+}
+
+function resumePenaltyTimers() {
+    Object.keys(activePenalties).forEach(t => {
+        activePenalties[t].forEach(p => {
+            if (!p.interval) {
+                p.interval = setInterval(() => {
+                    p.remaining--;
+                    if (p.remaining <= 0) {
+                        clearInterval(p.interval);
+                        p.interval = null;
+                        p.item.remove();
+                        activePenalties[t] = activePenalties[t].filter(x => x !== p);
+                    } else {
+                        p.span.textContent = formatTime(p.remaining);
+                    }
+                }, 1000);
+            }
+        });
+    });
 }
 
 
