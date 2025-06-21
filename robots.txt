@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://<ditt-domene>/sitemap.xml
