@@ -5,7 +5,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Scoreboard</title>
+  <meta property="og:title" content="Scoreboard">
+  <meta property="og:description" content="Live oppdatering av scorene.">
+  <meta property="og:image" content="logo.png">
+  <meta property="og:url" content="https://ditt-domene.no/scoreboard.html">
     <link rel="stylesheet" href="scoreboard.css">
+
 </head>
 <body>
 
@@ -26,6 +31,7 @@
                     <button class="time-button" onclick="adjustTime(1)">+1s</button>
                     <button class="time-button" onclick="adjustTime(-1)">-1s</button>
                 </div>
+
                 <!-- Resten av innholdet forblir uendret -->
                 <div class="timeout-timer" id="timeoutTimer" style="display:none;">Timeout: 30s</div>
                 <div class="period" id="period">1. omgang</div>
@@ -1337,6 +1343,7 @@ function startTimer() {
             activePenalties[t] = [];
         });
 
+
         // Tilbakestill til første omgang og standard tid (15 min = 900 sekunder)
         currentPeriod = 1;
         timeLeft = 900;
@@ -1463,20 +1470,19 @@ async function updateTeamStatsAfterReset(hjemmelag, bortelag, hjemmeScore, borte
             const scoresContainer = document.getElementById('scoresContainer');
             const hjemmeSection = document.getElementById('hjemmeSection');
             const borteSection = document.getElementById('borteSection');
+
             const timerEl = document.getElementById('timer');
 
             // Plasser borteseksjonen til venstre og hjemmelaget til høyre
             scoresContainer.insertBefore(borteSection, timerEl);
             scoresContainer.appendChild(hjemmeSection);
 
+
             // Oppdater Firebase med byttet
             db.collection('turneringer').doc(turneringId).collection('kamper').doc(kampId).update({
                 sidesSwitched: true
             });
         }
-
-
-
 
 async function logGoalAndUpdateScore(spiller, team) {
     const minutes = Math.floor(timeLeft / 60);
