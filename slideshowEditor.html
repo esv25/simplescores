@@ -414,8 +414,7 @@
 <nav>
     <button class="meny-ikon" id="meny-knapp" aria-label="Åpne meny" aria-expanded="false" aria-controls="meny"></button>
     <ul id="meny">
-        <li><a href="slideshow.html">Slideshow</a></li>
-        <li><a href="slideshowEditor.html">Slideshow Editor</a></li>
+        <li><a href="slideshowEditor.html">Slideshow</a></li>
         <li><a href="instillinger.html">Instillinger</a></li>
         <li><a href="leggtillag.html">Legg til lag</a></li>
         <li><a href="format.html">Format</a></li>
@@ -424,6 +423,17 @@
     </ul>
 </nav>
   <main>
+    <div id="slideListContainer">
+      <h2>Oversikt over Slides</h2>
+      <div id="slideList"></div>
+    </div>
+    <div id="slides">
+      <button id="fullscreenBtn" onclick="toggleFullScreen()">Fullskjerm</button>
+    </div>
+    <div id="slidesOverview">
+      <button class="add-slide-button" onclick="openSlideConfigPopup()">Legg til ny Slide</button>
+      <button class="start-slideshow-button" onclick="startPresentation()">Start Slideshow</button>
+    </div>
     <div id="layoutControls">
       <label for="layoutSelect">Layout:</label>
       <select id="layoutSelect" onchange="changeLayout(this.value)">
@@ -431,7 +441,6 @@
         <option value="2">2</option>
         <option value="4">4</option>
       </select>
-      <button id="fullscreenBtn" onclick="toggleFullScreen()">Fullskjerm</button>
     </div>
     <div id="layoutContainer" class="layout-1"></div>
 
@@ -458,6 +467,22 @@
       </div>
     </div>
     <div id="sectionOverlay"></div>
+    <div id="slideConfigPopup" class="popup">
+      <h2 id="popupTitle">Konfigurer Slide</h2>
+      <div id="slideConfig"></div>
+      <div style="margin-top:10px;">
+        <button onclick="previewSlideConfig()">Forhåndsvis</button>
+        <button onclick="saveSlideConfig()">Lagre</button>
+        <button onclick="closePopup()">Avbryt</button>
+      </div>
+    </div>
+    <div id="popupOverlay"></div>
+    <div id="previewPopup" class="popup">
+      <h2>Forhåndsvisning av Slide</h2>
+      <div id="previewContent"></div>
+      <button onclick="closePreviewPopup()">Lukk Forhåndsvisning</button>
+    </div>
+    <div id="previewOverlay"></div>
   </main>
 
   <!-- Q&A Seksjon -->
@@ -518,7 +543,7 @@ document.addEventListener('DOMContentLoaded', () => {
   slideList       = document.getElementById('slideList');
   slidesOverview  = document.getElementById('slidesOverview');
   slidesContainer = document.getElementById('slides');
-  // loadSlides();  // deaktivert i ny layout-versjon
+  loadSlides();
 });
 
 
@@ -1653,7 +1678,7 @@ function loadLiveScore(kampId, el) {
       el.querySelector('.live-time').textContent = s.val() || '--:--';
     });
 }
-    // window.onload = loadSlides;
+    window.onload = loadSlides;
   </script>
 </body>
 </html>
