@@ -7,6 +7,10 @@
   <link rel="canonical" href="https://<ditt-domene>/lagdetaljer.html">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lagdetaljer - Turnering</title>
+  <meta property="og:title" content="Lagdetaljer - Turnering">
+  <meta property="og:description" content="Informasjon om lagene i turneringen.">
+  <meta property="og:image" content="logo.png">
+  <meta property="og:url" content="https://ditt-domene.no/lagdetaljer.html">
   <link rel="stylesheet" href="./style.css">
   <!-- Kun styling for kamp-listen fra kampliste.html -->
   <style>
@@ -77,12 +81,14 @@
   </style>
   <script src="https://www.gstatic.com/firebasejs/8.2.0/firebase-app.js"></script>
     <script src="firebaseConfig.js"></script>
+
+ 
   <script src="https://www.gstatic.com/firebasejs/8.2.0/firebase-firestore.js"></script>
 </head>
 <body>
   <header>
     <div class="logo-title">
-      <img src="logo.png" alt="Simple Scores Logo" class="logo">
+      <img src="logo.png" alt="Simple Scores logo" class="logo">
     </div>
   </header>
 
@@ -99,6 +105,7 @@
 
   <!-- Selve menyen -->
   <ul id="menu">
+ 
     <li><a href="publikum.html" class="nav-link"><i class="fa-solid fa-house"></i><span>Hjem</span></a></li>
     <li><a href="login.html" class="nav-link"><i class="fa-solid fa-user"></i><span>Admin</span></a></li>
     <li><a href="turnering.html" class="nav-link"><i class="fa-solid fa-circle-info"></i><span>Turneringsdetaljer</span></a></li>

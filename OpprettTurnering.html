@@ -2,6 +2,7 @@
 <html lang="no">
 <head>
   <script src="https://cdn.tailwindcss.com"></script>
+
     <meta charset="UTF-8">
   <meta name="description" content="Siden for å opprette en ny turnering.">
   <link rel="canonical" href="https://<ditt-domene>/OpprettTurnering.html">
@@ -125,9 +126,139 @@
 <body>
     <header>
         <div class="logo-title">
+          <a href="nyTurnering.html"><img src="logo.png" alt="Simple Scores logo" class="logo"></a>
+        </div>
+        <div class="nav2">
+=======
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">    
+    <link rel="stylesheet" type="text/css" href="./admin.css">
+    <title>Opprett Turnering</title>
+  <meta property="og:title" content="Opprett Turnering">
+  <meta property="og:description" content="Opprett en ny turnering i systemet.">
+  <meta property="og:image" content="logo.png">
+  <meta property="og:url" content="https://ditt-domene.no/OpprettTurnering.html">
+    <style>
+        /* Reset CSS */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Body */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f4f9; /* Light grey background */
+            color: #2802d2;
+            margin: 0;
+        }
+
+        /* Hide steps by default */
+        .step {
+            display: none;
+        }
+
+        /* Show only the active step */
+        .step.active {
+            display: block;
+            background-color: #ffffff; /* White background */
+            border: 1px solid #dee2e6; /* Light grey border */
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            width: 100%;
+            max-width: 600px;
+            margin: 20px auto;
+        }
+
+        .step h2 {
+            color: #333; /* Dark grey text */
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #333;
+            font-weight: bold;
+        }
+
+        input {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+
+        }
+
+        button {
+
+            color: #FFEFEF;
+            border: none;
+            padding: 10px;
+            width: 100%;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            background-color: #1c115d; /* Darker shade for hover */
+        }
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        li {
+            background-color: #f4f4f9; /* Lys grå bakgrunn */
+            padding: 15px;
+            margin-bottom: 10px;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Gir en lett skyggeeffekt */
+        }
+
+        /* Legg til litt plass mellom teksten og knappen */
+        li span {
+            font-size: 16px;
+            color: #333; /* Mørk tekstfarge */
+            font-weight: bold;
+            margin-right: 50px; /* Legger til plass mellom tekst og knapp */
+            flex-grow: 1; /* Sørger for at teksten tar opp tilgjengelig plass */
+        }
+
+        /* Stiler for "Fjern"-knappen i listen */
+        li button {
+            background-color: #E83C00; /* Rød bakgrunn */
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            font-size: 14px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        li button:hover {
+            background-color: #c32a00; /* Mørkere rød for hover */
+        }
+
+    </style>
+
+</head>
+<body>
+    <header>
+        <div class="logo-title">
           <a href="nyTurnering.html"><img src="logo.png" alt="Simple Scores Logo" class="logo"></a>
         </div>
         <div class="nav2">
+
           <button id="user-button" onclick="toggleUserMenu()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-4 rounded">Bruker</button>
           <div id="user-menu" class="user-menu" style="display: none;">
             <p>Logget inn som <span id="mail"></span></p>

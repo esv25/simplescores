@@ -6,6 +6,10 @@
   <meta name="description" content="Opprett ny brukerkonto.">
   <link rel="canonical" href="https://<ditt-domene>/registrer.html">
     <title>Register</title>
+  <meta property="og:title" content="Register">
+  <meta property="og:description" content="Registrer deg som bruker.">
+  <meta property="og:image" content="logo.png">
+  <meta property="og:url" content="https://ditt-domene.no/registrer.html">
     <link rel="stylesheet" type="text/css" href="./admin.css">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
@@ -191,18 +195,20 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <!-- Firebase Firestore -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+
 </head>
 <body>
     <div class="container">
         <!-- Logo Section -->
         <div class="logo-section">
-            <img src="logo.png" alt="Simple Scores Logo">
+            <img src="logo.png" alt="Simple Scores logo">
         </div>
 
         <!-- Register Section -->
         <div class="register-section">
             <h2>Register</h2>
             <input type="email" id="email" placeholder="Email">
+
             <input type="password" id="password" placeholder="Password">
             <button id="register">Register</button>
             <button onclick="LoggInn()">Already an account? Sign in</button>
