@@ -506,12 +506,14 @@
     background-color: #007bff;
     color: white;
     cursor: pointer;
+
     min-width: 200px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     text-align: center;
     white-space: normal;
+
     transition: background-color 0.3s ease, transform 0.2s;
 }
 
